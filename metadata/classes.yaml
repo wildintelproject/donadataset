@@ -1,0 +1,29 @@
+# DonaDataset — class definitions
+# Each entry maps a YOLO class id to the common and scientific name of the species.
+# Edit this file to add, remove or rename classes; keep ids contiguous starting at 0.
+
+classes:
+  0:
+    common: Red deer
+    scientific: Cervus elaphus
+  1:
+    common: Fallow deer
+    scientific: Dama dama
+  2:
+    common: Wild boar
+    scientific: Sus scrofa
+  3:
+    common: Iberian lynx
+    scientific: Lynx pardinus
+  4:
+    common: Red fox
+    scientific: Vulpes vulpes
+  5:
+    common: Egyptian mongoose
+    scientific: Herpestes ichneumon
+  6:
+    common: European rabbit
+    scientific: Oryctolagus cuniculus
+  7:
+    common: Badger
+    scientific: Meles meles

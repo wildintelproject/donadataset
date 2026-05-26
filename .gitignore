@@ -1,0 +1,18 @@
+# Dataset images and labels (stored on HuggingFace Hub, not in git)
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# MkDocs build output
+site/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store

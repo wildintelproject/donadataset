@@ -1,0 +1,25 @@
+# DonaDataset — Ultralytics YOLO dataset configuration
+# Images and labels are hosted on HuggingFace Hub.
+# Download them with: python scripts/download.py
+
+path: ./data          # root directory (populated by download.py)
+train: train/images
+val:   val/images
+test:  test/images
+
+# Number of classes
+nc: 8
+
+# Class names (must match classes.yaml order)
+names:
+  0: red_deer
+  1: fallow_deer
+  2: wild_boar
+  3: iberian_lynx
+  4: red_fox
+  5: egyptian_mongoose
+  6: european_rabbit
+  7: badger
+
+# HuggingFace Hub repository
+hf_repo: wildintelproject/donadataset

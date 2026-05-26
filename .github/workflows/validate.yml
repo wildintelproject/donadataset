@@ -1,0 +1,70 @@
+name: ✅ Validate Dataset
+
+on:
+  pull_request:
+    paths:
+      - "metadata/**"
+      - "scripts/**"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate metadata & scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        run: |
+          uv pip install --system \
+            huggingface-hub \
+            pillow \
+            pyyaml \
+            tqdm
+
+      - name: Validate classes.yaml
+        run: |
+          python - <<'EOF'
+          import yaml, sys
+          with open("metadata/classes.yaml") as f:
+              data = yaml.safe_load(f)
+          classes = data.get("classes", {})
+          ids = sorted(classes.keys())
+          expected = list(range(len(ids)))
+          if ids != expected:
+              print(f"❌ Class ids are not contiguous: {ids}")
+              sys.exit(1)
+          print(f"✅ classes.yaml — {len(classes)} classes, ids {ids[0]}–{ids[-1]}")
+          EOF
+
+      - name: Validate dataset.yaml
+        run: |
+          python - <<'EOF'
+          import yaml, sys
+          with open("metadata/classes.yaml") as f:
+              classes_data = yaml.safe_load(f)
+          with open("metadata/dataset.yaml") as f:
+              dataset = yaml.safe_load(f)
+
+          nc_yaml    = len(classes_data["classes"])
+          nc_dataset = dataset.get("nc", -1)
+          names      = dataset.get("names", {})
+
+          if nc_dataset != nc_yaml:
+              print(f"❌ nc mismatch: dataset.yaml={nc_dataset}, classes.yaml={nc_yaml}")
+              sys.exit(1)
+          if len(names) != nc_yaml:
+              print(f"❌ names count mismatch: {len(names)} vs nc={nc_yaml}")
+              sys.exit(1)
+          print(f"✅ dataset.yaml — nc={nc_dataset}, names={list(names.values())}")
+          EOF
