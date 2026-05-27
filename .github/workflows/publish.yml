@@ -1,0 +1,223 @@
+name: Publish DonaDataset
+
+# Triggered when a new GitHub release is published.
+# Zenodo picks up the release automatically via webhook.
+# This workflow distributes images + labels to all other mirrors.
+
+on:
+  release:
+    types: [published]
+
+env:
+  VERSION: ${{ github.event.release.tag_name }}
+  HF_DATASET: wildintelproject/donadataset
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════════════
+  # JOB 1 — Download from HuggingFace Hub and push to data mirrors
+  # ══════════════════════════════════════════════════════════════════════════
+  publish-data:
+    name: Publish images + labels to mirrors
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Checkout ───────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Free up disk space ─────────────────────────────────────────────
+      # ubuntu-latest has ~14 GB free by default.
+      # Removing unused tools can recover up to ~30 GB extra.
+      - name: Free disk space
+        run: |
+          echo "Disk before cleanup:"
+          df -h /
+          sudo rm -rf /usr/share/dotnet \
+                      /usr/local/lib/android \
+                      /opt/ghc \
+                      /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          echo "Disk after cleanup:"
+          df -h /
+
+      # ── Python + dependencies ──────────────────────────────────────────
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install huggingface-hub roboflow kaggle requests
+
+      # ── Download dataset from HuggingFace Hub ─────────────────────────
+      - name: Download dataset from HuggingFace Hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          huggingface-cli download $HF_DATASET \
+            --repo-type dataset \
+            --local-dir ./data
+          echo "── Dataset size ──────────────────"
+          du -sh ./data
+          du -sh ./data/*/
+          echo "── Remaining disk ────────────────"
+          df -h /
+
+      # ── Package splits into zip archives ──────────────────────────────
+      - name: Package splits into zip archives
+        run: |
+          mkdir -p dist
+          for split in train val test; do
+            echo "Packaging $split..."
+            zip -r dist/${split}.zip data/${split}/
+            echo "  → $(du -sh dist/${split}.zip)"
+          done
+          cp metadata/classes.yaml metadata/dataset.yaml dist/
+
+      # ══════════════════════════════════════════════════════════════════
+      # MIRROR 1 — Dataverse
+      # ══════════════════════════════════════════════════════════════════
+      # Secrets required:
+      #   DATAVERSE_API_TOKEN  — API token from your Dataverse account
+      #   DATAVERSE_DOI        — Persistent ID of the dataset, e.g. doi:10.7910/DVN/XXXXXX
+      - name: Upload to Dataverse
+        continue-on-error: true
+        env:
+          DATAVERSE_API_TOKEN: ${{ secrets.DATAVERSE_API_TOKEN }}
+          DATAVERSE_DOI: ${{ secrets.DATAVERSE_DOI }}
+        run: |
+          BASE="https://dataverse.harvard.edu/api/datasets/:persistentId"
+
+          # Upload data files
+          for file in dist/train.zip dist/val.zip dist/test.zip \
+                      dist/classes.yaml dist/dataset.yaml; do
+            echo "Uploading $(basename $file)..."
+            curl --fail --silent --show-error \
+                 -H "X-Dataverse-key: $DATAVERSE_API_TOKEN" \
+                 -X POST \
+                 -F "file=@${file}" \
+                 "${BASE}/add?persistentId=${DATAVERSE_DOI}"
+          done
+
+          # Publish new version
+          curl --fail --silent --show-error \
+               -H "X-Dataverse-key: $DATAVERSE_API_TOKEN" \
+               -X POST \
+               "${BASE}/actions/:publish?persistentId=${DATAVERSE_DOI}&type=minor"
+
+      # ══════════════════════════════════════════════════════════════════
+      # MIRROR 2 — Roboflow Universe
+      # ══════════════════════════════════════════════════════════════════
+      # Secrets required:
+      #   ROBOFLOW_API_KEY      — API key from roboflow.com
+      #   ROBOFLOW_WORKSPACE    — Workspace slug, e.g. wildintelproject
+      #   ROBOFLOW_PROJECT      — Project slug, e.g. donadataset
+      - name: Upload to Roboflow Universe
+        continue-on-error: true
+        env:
+          ROBOFLOW_API_KEY: ${{ secrets.ROBOFLOW_API_KEY }}
+          ROBOFLOW_WORKSPACE: ${{ secrets.ROBOFLOW_WORKSPACE }}
+          ROBOFLOW_PROJECT: ${{ secrets.ROBOFLOW_PROJECT }}
+        run: |
+          python - <<'EOF'
+          import os
+          from roboflow import Roboflow
+
+          rf = Roboflow(api_key=os.environ["ROBOFLOW_API_KEY"])
+          project = rf.workspace(os.environ["ROBOFLOW_WORKSPACE"]) \
+                      .project(os.environ["ROBOFLOW_PROJECT"])
+
+          for split in ["train", "val", "test"]:
+              print(f"Uploading {split}...")
+              project.upload(
+                  image_path=f"data/{split}/images",
+                  annotation_path=f"data/{split}/labels",
+                  split=split,
+                  num_workers=4,
+              )
+          print("Roboflow upload complete.")
+          EOF
+
+      # ══════════════════════════════════════════════════════════════════
+      # MIRROR 3 — Kaggle Datasets
+      # ══════════════════════════════════════════════════════════════════
+      # Secrets required:
+      #   KAGGLE_USERNAME   — your Kaggle username
+      #   KAGGLE_KEY        — API key from kaggle.com/settings
+      - name: Upload to Kaggle
+        continue-on-error: true
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+        run: |
+          mkdir -p ~/.kaggle
+          printf '{"username":"%s","key":"%s"}' \
+            "$KAGGLE_USERNAME" "$KAGGLE_KEY" > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+
+          mkdir -p kaggle_upload
+          cp dist/train.zip dist/val.zip dist/test.zip \
+             dist/classes.yaml dist/dataset.yaml \
+             kaggle_upload/
+
+          kaggle datasets version \
+            -p kaggle_upload/ \
+            -m "Release $VERSION"
+
+      # ══════════════════════════════════════════════════════════════════
+      # MIRROR 4 — B2SHARE (EUDAT) — European copy: images + code
+      # ══════════════════════════════════════════════════════════════════
+      # Secrets required:
+      #   B2SHARE_API_TOKEN   — personal access token from b2share.eudat.eu
+      #   B2SHARE_BUCKET_ID   — file bucket ID of the B2SHARE record
+      #                         (found in the record's JSON: links.files)
+      - name: Download GitHub release archive for B2SHARE
+        run: |
+          curl -L \
+            "https://github.com/wildintelproject/donadataset/archive/refs/tags/${VERSION}.zip" \
+            -o dist/donadataset-${VERSION}.zip
+
+      - name: Upload to B2SHARE
+        continue-on-error: true
+        env:
+          B2SHARE_API_TOKEN: ${{ secrets.B2SHARE_API_TOKEN }}
+          B2SHARE_BUCKET_ID: ${{ secrets.B2SHARE_BUCKET_ID }}
+        run: |
+          BASE="https://b2share.eudat.eu/api/files/${B2SHARE_BUCKET_ID}"
+
+          for file in dist/train.zip dist/val.zip dist/test.zip \
+                      dist/classes.yaml dist/dataset.yaml \
+                      dist/donadataset-${VERSION}.zip; do
+            filename=$(basename "$file")
+            echo "Uploading ${filename}..."
+            curl --fail --silent --show-error \
+                 -H "Authorization: Bearer $B2SHARE_API_TOKEN" \
+                 -X PUT \
+                 --upload-file "$file" \
+                 "${BASE}/${filename}"
+          done
+
+      # ── Job summary ────────────────────────────────────────────────────
+      - name: Write summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## 📦 DonaDataset ${VERSION} — Publication Summary
+
+          ### ✅ Automated steps
+          | Repository | Content |
+          |---|---|
+          | HuggingFace Hub | Source of truth — already up to date |
+          | Dataverse | Images + labels (mirror) |
+          | Roboflow Universe | Images + labels in YOLO format (mirror) |
+          | Kaggle | Images + labels (mirror) |
+          | B2SHARE 🇪🇺 | Images + labels + code (European copy) |
+          | Zenodo | Triggered automatically by this release |
+
+          ### 🖐 Manual steps required
+          - [ ] **Zenodo** — Review metadata and click **Publish**
+          - [ ] **GBIF** — Generate Darwin Core Archive and upload to IPT
+          - [ ] **Arias Montano** — Notify [biblioteca@uhu.es](mailto:biblioteca@uhu.es)
+          - [ ] Update DOI badges in \`README.md\` once Zenodo DOI is confirmed
+          EOF
