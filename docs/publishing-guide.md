@@ -7,6 +7,17 @@ repositories. It is aimed at the **dataset maintainer**.
 
 ## Overview
 
+To maximise the visibility, accessibility, and long-term preservation of DonaDataset,
+the dataset is published across multiple internationally recognised repositories. Each
+platform serves a different community — from machine learning researchers to ecologists
+and data managers — ensuring that DonaDataset can be found and cited regardless of the
+field or tool a user works with.
+
+Although there are many repositories available worldwide, the following have been selected
+based on their relevance to the dataset's scope (biodiversity, computer vision, open
+science), their alignment with the EU funding context of the WildINTEL project, and
+their adoption by the international research community:
+
 | Repository | Type | DOI | Audience |
 |---|---|---|---|
 | [HuggingFace Hub](#1-huggingface-hub) | Specialised (ML) | No | AI / ML community |
@@ -22,17 +33,58 @@ repositories. It is aimed at the **dataset maintainer**.
 
 ## What is stored where
 
-| What | Where |
-|---|---|
-| **Images + labels** (the actual data) | HuggingFace Hub (primary) · Dataverse · Roboflow Universe · Kaggle · B2SHARE (🇪🇺 European copy) |
-| **Code + metadata + documentation** | GitHub → Zenodo · Arias Montano (UHU) · B2SHARE |
-| **Biodiversity occurrence records** | GBIF |
+DonaDataset is made up of the following types of content:
+
+- **Images** — the raw camera-trap photographs captured in Doñana National Park.
+  Large binary files that form the bulk of the dataset.
+
+- **Labels** — one annotation file per image in YOLO format. Each row describes a
+  detected animal: species class identifier, bounding box coordinates, and confidence
+  score. Labels are what turn raw photographs into a supervised training dataset.
+
+- **Species catalogue** — the file `metadata/classes.yaml`, which maps each numeric
+  class identifier to the common and scientific name of the corresponding mammal species.
+  It is the key that makes labels human-readable and scientifically meaningful.
+
+- **Scripts** — Python utilities included in this repository: `download.py` to fetch
+  the dataset, `upload.py` to publish new images to HuggingFace Hub, and `validate.py`
+  to check dataset integrity.
+
+- **Documentation** — the MkDocs site (this guide and related pages) and the
+  `README.md`, which describe the dataset, its structure, and how to use it.
+
+- **Occurrence records** — a representation of the dataset in
+  [Darwin Core](https://dwc.tdwg.org/) format for GBIF. Each detected animal becomes
+  a biodiversity occurrence record with species name, date, and geographic coordinates,
+  making the data discoverable by ecologists and conservation researchers worldwide.
+
+Due to the nature of the different repositories — some specialised in large file storage,
+others in citable scientific records or biodiversity standards — it is not always possible
+to store images and metadata together in the same place. The table below shows what is
+stored in each repository:
+
+| Repository | Images | Labels | Species catalogue | Scripts | Documentation | Occurrence records |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| HuggingFace Hub | ✅ | ✅ | | | | |
+| Dataverse | ✅ | ✅ | ✅ | | | |
+| Roboflow Universe | ✅ | ✅ | | | | |
+| Kaggle | ✅ | ✅ | ✅ | | | |
+| B2SHARE (EUDAT) 🇪🇺 | ✅ | ✅ | ✅ | ✅ | ✅ | |
+| Zenodo | | | ✅ | ✅ | ✅ | |
+| Arias Montano (UHU) | | | ✅ | ✅ | ✅ | |
+| GBIF | | | ✅ | | | ✅ |
 
 ---
 
 ## 1. HuggingFace Hub
 
 **URL:** https://huggingface.co/datasets/wildintelproject/donadataset
+
+HuggingFace Hub is the leading platform for sharing machine learning models and datasets.
+It provides version control, a built-in dataset viewer, and a Python library for
+programmatic access, making it the primary reference for the AI and machine learning
+research community. It is used as the **primary source of truth** for DonaDataset images
+and labels.
 
 ### First-time setup
 
@@ -77,6 +129,11 @@ Edit it directly on the HuggingFace web UI or push a `README.md` via the CLI.
 
 **URL:** https://zenodo.org
 
+Zenodo is an open-access repository operated by CERN (Geneva, Switzerland) that enables
+researchers to share and preserve any research output — datasets, software, papers, or
+presentations. It assigns persistent DOIs and is widely adopted across all scientific
+disciplines as a reliable, long-term archive.
+
 > ⚠️ **What Zenodo hosts:** Zenodo archives the contents of **this GitHub repository**
 > (metadata, scripts, documentation). **The images and labels are NOT stored in Zenodo** —
 > they live on HuggingFace Hub. The Zenodo deposit exists to provide a citable DOI for the
@@ -110,6 +167,11 @@ Edit it directly on the HuggingFace web UI or push a `README.md` via the CLI.
 ## 3. Dataverse
 
 **URL:** https://dataverse.harvard.edu (or another Dataverse instance if preferred)
+
+Dataverse is an open-source research data repository platform originally developed by
+Harvard University and now adopted by hundreds of institutions worldwide. It is designed
+specifically for sharing, citing, and archiving research datasets, with support for rich
+metadata, versioning, and persistent identifiers (DOI).
 
 > 📦 **What Dataverse hosts:** Dataverse acts as a **mirror** of the actual dataset —
 > images and labels — for the scientific community. It is the primary alternative to
@@ -169,6 +231,11 @@ Edit it directly on the HuggingFace web UI or push a `README.md` via the CLI.
 
 **URL:** https://rabida.uhu.es
 
+Arias Montano is the institutional open-access repository of the University of Huelva,
+managed by the university library service. Its purpose is to preserve and give visibility
+to the scientific output produced by the university's researchers, ensuring long-term
+access and compliance with open-access mandates.
+
 > 📦 **What Arias Montano hosts:** like Zenodo, Arias Montano archives the contents of
 > **this GitHub repository** (metadata, scripts, documentation). **The images and labels
 > are NOT stored here** — they live on HuggingFace Hub and Dataverse. The deposit exists
@@ -200,6 +267,12 @@ Contact the library again to add a new version record linked to the existing dep
 ## 5. Roboflow Universe
 
 **URL:** https://universe.roboflow.com
+
+Roboflow Universe is a community platform specialised in computer vision datasets. It
+supports YOLO and other annotation formats natively, and provides tools to explore,
+augment, and version datasets. Its Python SDK allows direct integration into training
+pipelines, making it the reference hub for the object detection and computer vision
+community.
 
 > 📦 **What Roboflow hosts:** images and labels in YOLO format — a mirror of the actual
 > dataset oriented to the computer vision community. Roboflow natively supports YOLO splits
@@ -244,6 +317,11 @@ EOF
 ## 6. Kaggle Datasets
 
 **URL:** https://www.kaggle.com/datasets
+
+Kaggle is the world's largest data science and machine learning competition platform,
+owned by Google. Its dataset repository offers high visibility within the ML community
+and integrates directly with Kaggle Notebooks, allowing users to explore and use the
+data without any local setup.
 
 > 📦 **What Kaggle hosts:** images and labels — a mirror of the actual dataset oriented
 > to the ML community. Kaggle provides high visibility and easy integration with Kaggle
@@ -291,6 +369,13 @@ Run `kaggle datasets version` with the updated zip archives and a descriptive me
 
 **URL:** https://www.gbif.org
 
+GBIF (Global Biodiversity Information Facility) is the world's largest open-access
+aggregator of biodiversity data, hosted in Copenhagen and funded by governments
+worldwide. It indexes hundreds of millions of species occurrence records from research
+institutions, natural history museums, and citizen science projects, and is the
+reference platform for ecologists, conservation biologists, and environmental policy
+makers.
+
 > 📋 **What GBIF hosts:** **biodiversity occurrence records** in
 > [Darwin Core](https://dwc.tdwg.org/) format — NOT the raw images or YOLO labels.
 > Each camera-trap detection is represented as a species occurrence with coordinates,
@@ -333,6 +418,12 @@ Upload a new Darwin Core Archive to the IPT and trigger a re-crawl from the GBIF
 ## 8. B2SHARE (EUDAT)
 
 **URL:** https://b2share.eudat.eu
+
+B2SHARE is a research data sharing service provided by EUDAT, the European collaborative
+data infrastructure funded by the European Commission. It offers secure, long-term storage
+on servers located within the European Union, making it the most appropriate repository
+for EU-funded research projects that need to comply with data sovereignty and open-science
+mandates such as those of Horizon Europe and Biodiversa+.
 
 > 🇪🇺 **What B2SHARE hosts:** B2SHARE is the **European copy** of the full dataset —
 > images, labels, and the code + metadata from this GitHub repository. It is part of
