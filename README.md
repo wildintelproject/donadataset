@@ -14,27 +14,26 @@ and classifying the mammals that inhabit
 [Doñana National Park](https://www.miteco.gob.es/es/red-parques-nacionales/nuestros-parques/donana/)
 (Spain).
 
-Images and labels are hosted on **[HuggingFace Hub](https://huggingface.co/datasets/wildintelproject/donadataset)**.
+Images and labels are hosted on **[HuggingFace Hub](https://huggingface.co/datasets/wildintelproject/donadataset)**
+and also published in the **[Arias Montano](https://rabida.uhu.es/)** institutional repository of the
+[University of Huelva](https://www.uhu.es/), on **[Zenodo](https://zenodo.org/)**, and on
+**[Dataverse](https://dataverse.harvard.edu/)**.
 This repository contains the metadata, class definitions, and utility scripts.
 
 ## 📥 Download
 
 ```bash
-# Install dependencies
-pip install huggingface-hub
+# 1. Set up the environment
+./setup.sh
 
-# Download all splits
+# 2. Activate the virtual environment
+source .venv/bin/activate
+
+# 3. Download all splits
 python scripts/download.py
 
 # Download a single split
 python scripts/download.py --split train
-```
-
-Or directly with the HuggingFace CLI:
-
-```bash
-huggingface-cli download wildintelproject/donadataset \
-  --repo-type dataset --local-dir ./data
 ```
 
 ## 📂 Repository structure
@@ -54,6 +53,9 @@ donadataset/
 
 Full documentation available at:
 **https://wildintelproject.github.io/donadataset/**
+
+For maintainers — how to publish and update the dataset across all external repositories:
+**[Publishing Guide](docs/publishing-guide.md)**
 
 ## 🏛️ Funding
 

@@ -11,7 +11,10 @@ It covers the mammal species present in
 ## Storage
 
 Images and labels are hosted on HuggingFace Hub at
-[wildintelproject/donadataset](https://huggingface.co/datasets/wildintelproject/donadataset).
+[wildintelproject/donadataset](https://huggingface.co/datasets/wildintelproject/donadataset),
+published in the [Arias Montano](https://rabida.uhu.es/) institutional repository of the
+[University of Huelva](https://www.uhu.es/), on [Zenodo](https://zenodo.org/), and on
+[Dataverse](https://dataverse.harvard.edu/).
 
 ## Dataset splits
 

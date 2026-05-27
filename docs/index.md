@@ -7,7 +7,10 @@
 and classifying the mammals that inhabit
 [Doñana National Park](https://www.miteco.gob.es/es/red-parques-nacionales/nuestros-parques/donana/) (Spain).
 
-Images and labels are hosted on **[HuggingFace Hub](https://huggingface.co/datasets/wildintelproject/donadataset)**.
+Images and labels are hosted on **[HuggingFace Hub](https://huggingface.co/datasets/wildintelproject/donadataset)**
+and also published in the **[Arias Montano](https://rabida.uhu.es/)** institutional repository of the
+[University of Huelva](https://www.uhu.es/), on **[Zenodo](https://zenodo.org/)**, and on
+**[Dataverse](https://dataverse.harvard.edu/)**.
 This repository contains the metadata, class definitions, and utility scripts.
 
 ---
@@ -18,6 +21,7 @@ This repository contains the metadata, class definitions, and utility scripts.
 - [Classes](classes.md)
 - [Collection Protocol](collection-protocol.md)
 - [About](about.md)
+- [Publishing Guide](publishing-guide.md) ← for maintainers
 
 ---
 
