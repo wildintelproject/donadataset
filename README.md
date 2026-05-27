@@ -45,6 +45,7 @@ donadataset/
 │   └── dataset.yaml    ← Ultralytics YOLO dataset config
 ├── scripts/
 │   ├── download.py     ← download images + labels from HuggingFace
+│   ├── upload.py       ← upload images + labels to HuggingFace
 │   └── validate.py     ← check dataset integrity
 └── docs/               ← MkDocs documentation
 ```
