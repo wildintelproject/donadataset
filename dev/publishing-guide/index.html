@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://wildintelproject.github.io/donadataset/dev/dataset-description/">
+        <link rel="canonical" href="https://wildintelproject.github.io/donadataset/dev/publishing-guide/">
       
       
-        <link rel="prev" href="..">
-      
-      
-        <link rel="next" href="../classes/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>Dataset Description - DonaDataset</title>
+        <title>Publishing Guide - DonaDataset</title>
       
     
     
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#dataset-description" class="md-skip">
+        <a href="#publishing-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -117,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Dataset Description
+              Publishing Guide
             
           </span>
         </div>
@@ -245,11 +241,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../dataset-description/" class="md-tabs__link">
         
   
   
@@ -394,37 +388,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Dataset Description
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../dataset-description/" class="md-nav__link">
         
   
   
@@ -440,94 +407,6 @@
   
 
       </a>
-      
-        
-
-  
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Overview
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#storage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Storage
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dataset-splits" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dataset splits
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#directory-layout-after-download" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Directory layout (after download)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#annotation-format" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Annotation format
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#metadata-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Metadata files
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -653,10 +532,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#storage" class="md-nav__link">
+  <a href="#what-is-stored-where" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Storage
+        What is stored where
       
     </span>
   </a>
@@ -664,43 +543,210 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dataset-splits" class="md-nav__link">
+  <a href="#1-huggingface-hub" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dataset splits
+        1. HuggingFace Hub
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. HuggingFace Hub">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-time-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-time setup
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#directory-layout-after-download" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#uploading-images-and-labels" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Directory layout (after download)
+        Uploading images and labels
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#annotation-format" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#updating-the-dataset-card" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Annotation format
+        Updating the dataset card
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#metadata-files" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#on-every-new-version" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Metadata files
+        On every new version
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-zenodo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Zenodo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Zenodo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-time-setup-github-integration-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-time setup — GitHub integration (recommended)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-a-new-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing a new version
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-dataverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Dataverse
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Dataverse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-time-setup_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-time setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filling-in-the-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Filling in the metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uploading-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uploading files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on-every-new-version_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On every new version
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-arias-montano-university-of-huelva" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Arias Montano (University of Huelva)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Arias Montano (University of Huelva)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on-every-new-version_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On every new version
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checklist-for-a-new-dataset-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checklist for a new dataset release
       
     </span>
   </a>
@@ -727,78 +773,234 @@
   
 
 
-<h1 id="dataset-description">Dataset Description</h1>
+<h1 id="publishing-guide">Publishing Guide</h1>
+<p>This document explains how to publish and keep DonaDataset synchronized across all external
+repositories. It is aimed at the <strong>dataset maintainer</strong>.</p>
+<hr />
 <h2 id="overview">Overview</h2>
-<p>DonaDataset is a collection of camera-trap images annotated in
-<a href="https://docs.ultralytics.com/datasets/detect/">YOLO format</a> for object detection.
-It covers the mammal species present in
-<a href="https://www.miteco.gob.es/es/red-parques-nacionales/nuestros-parques/donana/">Doñana National Park</a>
-(Huelva, Spain), one of the most important wetland ecosystems in Europe.</p>
-<h2 id="storage">Storage</h2>
-<p>Images and labels are hosted on HuggingFace Hub at
-<a href="https://huggingface.co/datasets/wildintelproject/donadataset">wildintelproject/donadataset</a>,
-published in the <a href="https://rabida.uhu.es/">Arias Montano</a> institutional repository of the
-<a href="https://www.uhu.es/">University of Huelva</a>, on <a href="https://zenodo.org/">Zenodo</a>, and on
-<a href="https://dataverse.harvard.edu/">Dataverse</a>.</p>
-<h2 id="dataset-splits">Dataset splits</h2>
 <table>
 <thead>
 <tr>
-<th>Split</th>
-<th>Purpose</th>
+<th>Repository</th>
+<th>Type</th>
+<th>DOI</th>
+<th>Audience</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>train</code></td>
-<td>Model training</td>
+<td><a href="#1-huggingface-hub">HuggingFace Hub</a></td>
+<td>Specialised (ML)</td>
+<td>No</td>
+<td>AI / ML community</td>
 </tr>
 <tr>
-<td><code>val</code></td>
-<td>Hyperparameter tuning / monitoring</td>
+<td><a href="#2-zenodo">Zenodo</a></td>
+<td>Open science archive</td>
+<td>Yes</td>
+<td>Scientific community</td>
 </tr>
 <tr>
-<td><code>test</code></td>
-<td>Final evaluation (held-out)</td>
+<td><a href="#3-dataverse">Dataverse</a></td>
+<td>Research data repository</td>
+<td>Yes</td>
+<td>Scientific community</td>
+</tr>
+<tr>
+<td><a href="#4-arias-montano-university-of-huelva">Arias Montano (UHU)</a></td>
+<td>Institutional repository</td>
+<td>Yes</td>
+<td>University of Huelva</td>
 </tr>
 </tbody>
 </table>
-<h2 id="directory-layout-after-download">Directory layout (after download)</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>data/
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── train/
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── images/   ← camera-trap images (.jpg)
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   └── labels/   ← YOLO annotations (.txt)
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── val/
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── images/
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   └── labels/
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>└── test/
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    ├── images/
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    └── labels/
-</code></pre></div>
-<h2 id="annotation-format">Annotation format</h2>
-<p>Each label file contains one row per detected animal:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>&lt;class_id&gt; &lt;x_center&gt; &lt;y_center&gt; &lt;width&gt; &lt;height&gt;
-</code></pre></div>
-<p>All coordinates are normalised to <code>[0, 1]</code> relative to the image dimensions.</p>
-<h2 id="metadata-files">Metadata files</h2>
+<hr />
+<h2 id="what-is-stored-where">What is stored where</h2>
 <table>
 <thead>
 <tr>
-<th>File</th>
-<th>Description</th>
+<th>What</th>
+<th>Where</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>metadata/classes.yaml</code></td>
-<td>Maps class ids to common and scientific species names</td>
+<td><strong>Images + labels</strong> (the actual data)</td>
+<td>HuggingFace Hub</td>
 </tr>
 <tr>
-<td><code>metadata/dataset.yaml</code></td>
-<td>Ultralytics YOLO config — use directly with <code>donanet train</code></td>
+<td><strong>Code + metadata + documentation</strong></td>
+<td>This GitHub repository → archived in Zenodo (with DOI)</td>
+</tr>
+<tr>
+<td><strong>Academic / citable record</strong></td>
+<td>Arias Montano (UHU), Dataverse</td>
 </tr>
 </tbody>
 </table>
+<hr />
+<h2 id="1-huggingface-hub">1. HuggingFace Hub</h2>
+<p><strong>URL:</strong> https://huggingface.co/datasets/wildintelproject/donadataset</p>
+<h3 id="first-time-setup">First-time setup</h3>
+<ol>
+<li>Create an account at <a href="https://huggingface.co">huggingface.co</a> and join the
+   <strong>wildintelproject</strong> organisation.</li>
+<li>Install the HuggingFace CLI:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>huggingface-hub
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>huggingface-cli<span class="w"> </span>login<span class="w">   </span><span class="c1"># paste your access token</span>
+</code></pre></div></li>
+<li>Create the dataset repository on the web:
+   <strong>New → Dataset → wildintelproject/donadataset</strong> (set to Public, CC BY 4.0).</li>
+</ol>
+<h3 id="uploading-images-and-labels">Uploading images and labels</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Upload a specific split (e.g. train)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>huggingface-cli<span class="w"> </span>upload<span class="w"> </span>wildintelproject/donadataset<span class="w"> </span>./data/train<span class="w"> </span>train<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--repo-type<span class="w"> </span>dataset
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Upload all splits at once</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">for</span><span class="w"> </span>split<span class="w"> </span><span class="k">in</span><span class="w"> </span>train<span class="w"> </span>val<span class="w"> </span>test<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span>huggingface-cli<span class="w"> </span>upload<span class="w"> </span>wildintelproject/donadataset<span class="w"> </span>./data/<span class="nv">$split</span><span class="w"> </span><span class="nv">$split</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span>--repo-type<span class="w"> </span>dataset
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">done</span>
+</code></pre></div>
+<h3 id="updating-the-dataset-card">Updating the dataset card</h3>
+<p>The dataset card is the <code>README.md</code> inside the HuggingFace repository (not this GitHub repo).
+Edit it directly on the HuggingFace web UI or push a <code>README.md</code> via the CLI.</p>
+<h3 id="on-every-new-version">On every new version</h3>
+<ol>
+<li>Upload the new/updated images and labels as above.</li>
+<li>Update the version tag in the dataset card.</li>
+<li>Update <code>metadata/dataset.yaml</code> in this GitHub repo if splits or class IDs changed.</li>
+</ol>
+<hr />
+<h2 id="2-zenodo">2. Zenodo</h2>
+<p><strong>URL:</strong> https://zenodo.org</p>
+<blockquote>
+<p>⚠️ <strong>What Zenodo hosts:</strong> Zenodo archives the contents of <strong>this GitHub repository</strong>
+(metadata, scripts, documentation). <strong>The images and labels are NOT stored in Zenodo</strong> —
+they live on HuggingFace Hub. The Zenodo deposit exists to provide a citable DOI for the
+dataset and to ensure long-term preservation of the code and metadata.</p>
+</blockquote>
+<h3 id="first-time-setup-github-integration-recommended">First-time setup — GitHub integration (recommended)</h3>
+<ol>
+<li>Log in at <a href="https://zenodo.org">zenodo.org</a> with your GitHub account.</li>
+<li>Go to <strong>Account → GitHub</strong>.</li>
+<li>Find <strong>wildintelproject/donadataset</strong> and toggle it <strong>ON</strong>.</li>
+<li>Zenodo will now watch this repository for new releases.</li>
+</ol>
+<h3 id="publishing-a-new-version">Publishing a new version</h3>
+<ol>
+<li>In this GitHub repository, create a new release:
+   <strong>Releases → Draft a new release → Create tag</strong> (e.g. <code>v1.1.0</code>) → <strong>Publish release</strong>.</li>
+<li>Zenodo automatically creates a new deposit and mints a DOI within a few minutes.</li>
+<li>Go to the Zenodo deposit, review the metadata (title, authors, licence, description),
+   and click <strong>Publish</strong> if it is not published automatically.</li>
+<li>Copy the DOI badge URL and update it in <code>README.md</code>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>[<span class="nt">![DOI</span>](<span class="na">https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg</span>)](https://doi.org/10.5281/zenodo.XXXXXXX)
+</code></pre></div></li>
+</ol>
+<blockquote>
+<p><strong>Note:</strong> Zenodo archives the GitHub repository contents (code + metadata), not the images
+themselves (those live on HuggingFace). Include a clear note in the Zenodo description
+pointing to HuggingFace for the actual data files.</p>
+</blockquote>
+<hr />
+<h2 id="3-dataverse">3. Dataverse</h2>
+<p><strong>URL:</strong> https://dataverse.harvard.edu (or another Dataverse instance if preferred)</p>
+<h3 id="first-time-setup_1">First-time setup</h3>
+<ol>
+<li>Create an account at <a href="https://dataverse.harvard.edu">dataverse.harvard.edu</a>.</li>
+<li>Request access to or create a <strong>Dataverse collection</strong> for WildINTEL / University of Huelva.</li>
+<li>Click <strong>Add Data → New Dataset</strong>.</li>
+</ol>
+<h3 id="filling-in-the-metadata">Filling in the metadata</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Title</td>
+<td>DonaDataset: Camera-trap mammal dataset from Doñana National Park</td>
+</tr>
+<tr>
+<td>Author</td>
+<td>WildINTEL project team</td>
+</tr>
+<tr>
+<td>Contact</td>
+<td>(project contact email)</td>
+</tr>
+<tr>
+<td>Description</td>
+<td>(copy from <code>docs/dataset-description.md</code>)</td>
+</tr>
+<tr>
+<td>Subject</td>
+<td>Earth and Environmental Sciences</td>
+</tr>
+<tr>
+<td>Licence</td>
+<td>CC BY 4.0</td>
+</tr>
+<tr>
+<td>Related publication</td>
+<td>(add DOI of associated paper when available)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="uploading-files">Uploading files</h3>
+<ul>
+<li>Upload the image archives and label files directly through the web UI, or use the
+  <a href="https://guides.dataverse.org/en/latest/api/native-api.html">Dataverse API</a>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;X-Dataverse-key: </span><span class="nv">$DATAVERSE_API_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">     </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">     </span>-F<span class="w"> </span><span class="s2">&quot;file=@data/train.zip&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">     </span><span class="s2">&quot;https://dataverse.harvard.edu/api/datasets/:persistentId/add?persistentId=doi:10.7910/DVN/XXXXXX&quot;</span>
+</code></pre></div></li>
+<li>Add <code>metadata/classes.yaml</code> and <code>metadata/dataset.yaml</code> as supplementary files.</li>
+</ul>
+<h3 id="on-every-new-version_1">On every new version</h3>
+<ol>
+<li>Open the existing dataset on Dataverse.</li>
+<li>Click <strong>Edit Dataset → Add New Files</strong> and upload the updated data.</li>
+<li>Increment the version number and click <strong>Publish</strong>.</li>
+</ol>
+<hr />
+<h2 id="4-arias-montano-university-of-huelva">4. Arias Montano (University of Huelva)</h2>
+<p><strong>URL:</strong> https://rabida.uhu.es</p>
+<p>Arias Montano is the institutional open-access repository of the University of Huelva,
+managed by the university library service. Deposits are made by request.</p>
+<h3 id="steps">Steps</h3>
+<ol>
+<li>Contact the <strong>Biblioteca de la Universidad de Huelva</strong> to open a deposit:</li>
+<li>Web: <a href="https://www.uhu.es/biblioteca/">https://www.uhu.es/biblioteca/</a></li>
+<li>Email: biblioteca@uhu.es</li>
+<li>Provide the following information:</li>
+<li>Title, authors, abstract (in Spanish and English).</li>
+<li>Licence: CC BY 4.0.</li>
+<li>Type of resource: <em>Dataset</em>.</li>
+<li>Links to HuggingFace Hub and Zenodo (DOI).</li>
+<li>Associated publication or project (WildINTEL / Biodiversa+).</li>
+<li>The library will assign a permanent handle/URI and confirm the deposit.</li>
+<li>Update <code>README.md</code> replacing the generic Arias Montano link with the specific record URL.</li>
+</ol>
+<h3 id="on-every-new-version_2">On every new version</h3>
+<p>Contact the library again to add a new version record linked to the existing deposit.</p>
+<hr />
+<h2 id="checklist-for-a-new-dataset-release">Checklist for a new dataset release</h2>
+<ul>
+<li>[ ] Upload new images and labels to <strong>HuggingFace Hub</strong>.</li>
+<li>[ ] Update <code>metadata/classes.yaml</code> and <code>metadata/dataset.yaml</code> if needed.</li>
+<li>[ ] Create a <strong>GitHub release</strong> (triggers Zenodo automatically).</li>
+<li>[ ] Review and publish the <strong>Zenodo</strong> deposit; update the DOI badge in <code>README.md</code>.</li>
+<li>[ ] Upload new files to <strong>Dataverse</strong> and publish the new version.</li>
+<li>[ ] Notify <strong>Arias Montano</strong> library if the update is significant.</li>
+<li>[ ] Update the version number in <code>README.md</code> and <code>docs/dataset-description.md</code>.</li>
+</ul>
 
 
 
