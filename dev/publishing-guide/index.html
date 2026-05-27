@@ -677,10 +677,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#uploading-files" class="md-nav__link">
+  <a href="#preparing-and-uploading-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Uploading files
+        Preparing and uploading files
       
     </span>
   </a>
@@ -747,6 +747,17 @@
     <span class="md-ellipsis">
       
         Checklist for a new dataset release
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publication-workflow-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publication workflow diagram
       
     </span>
   </a>
@@ -826,15 +837,11 @@ repositories. It is aimed at the <strong>dataset maintainer</strong>.</p>
 <tbody>
 <tr>
 <td><strong>Images + labels</strong> (the actual data)</td>
-<td>HuggingFace Hub</td>
+<td>HuggingFace Hub (primary) · Dataverse (mirror)</td>
 </tr>
 <tr>
 <td><strong>Code + metadata + documentation</strong></td>
-<td>This GitHub repository → archived in Zenodo (with DOI)</td>
-</tr>
-<tr>
-<td><strong>Academic / citable record</strong></td>
-<td>Arias Montano (UHU), Dataverse</td>
+<td>This GitHub repository → archived in Zenodo (with DOI) · Arias Montano (UHU)</td>
 </tr>
 </tbody>
 </table>
@@ -907,6 +914,14 @@ pointing to HuggingFace for the actual data files.</p>
 <hr />
 <h2 id="3-dataverse">3. Dataverse</h2>
 <p><strong>URL:</strong> https://dataverse.harvard.edu (or another Dataverse instance if preferred)</p>
+<blockquote>
+<p>📦 <strong>What Dataverse hosts:</strong> Dataverse acts as a <strong>mirror</strong> of the actual dataset —
+images and labels — for the scientific community. It is the primary alternative to
+HuggingFace Hub for researchers who prefer a traditional academic data repository.</p>
+<p>⚠️ <strong>File size limit:</strong> Harvard Dataverse has a <strong>2.5 GB per-file</strong> limit. Split the
+data by split (<code>train.zip</code>, <code>val.zip</code>, <code>test.zip</code>) before uploading to stay within
+this limit.</p>
+</blockquote>
 <h3 id="first-time-setup_1">First-time setup</h3>
 <ol>
 <li>Create an account at <a href="https://dataverse.harvard.edu">dataverse.harvard.edu</a>.</li>
@@ -952,26 +967,39 @@ pointing to HuggingFace for the actual data files.</p>
 </tr>
 </tbody>
 </table>
-<h3 id="uploading-files">Uploading files</h3>
-<ul>
-<li>Upload the image archives and label files directly through the web UI, or use the
-  <a href="https://guides.dataverse.org/en/latest/api/native-api.html">Dataverse API</a>:
-  <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;X-Dataverse-key: </span><span class="nv">$DATAVERSE_API_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">     </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">     </span>-F<span class="w"> </span><span class="s2">&quot;file=@data/train.zip&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">     </span><span class="s2">&quot;https://dataverse.harvard.edu/api/datasets/:persistentId/add?persistentId=doi:10.7910/DVN/XXXXXX&quot;</span>
+<h3 id="preparing-and-uploading-files">Preparing and uploading files</h3>
+<ol>
+<li>Package each split as a zip archive (max 2.5 GB per file):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>zip<span class="w"> </span>-r<span class="w"> </span>data/train.zip<span class="w">  </span>data/train/
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>zip<span class="w"> </span>-r<span class="w"> </span>data/val.zip<span class="w">    </span>data/val/
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>zip<span class="w"> </span>-r<span class="w"> </span>data/test.zip<span class="w">   </span>data/test/
 </code></pre></div></li>
-<li>Add <code>metadata/classes.yaml</code> and <code>metadata/dataset.yaml</code> as supplementary files.</li>
-</ul>
+<li>Upload via the web UI, or use the
+   <a href="https://guides.dataverse.org/en/latest/api/native-api.html">Dataverse API</a>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">for</span><span class="w"> </span>split<span class="w"> </span><span class="k">in</span><span class="w"> </span>train<span class="w"> </span>val<span class="w"> </span>test<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;X-Dataverse-key: </span><span class="nv">$DATAVERSE_API_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">       </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">       </span>-F<span class="w"> </span><span class="s2">&quot;file=@data/</span><span class="si">${</span><span class="nv">split</span><span class="si">}</span><span class="s2">.zip&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">       </span><span class="s2">&quot;https://dataverse.harvard.edu/api/datasets/:persistentId/add?persistentId=doi:10.7910/DVN/XXXXXX&quot;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="k">done</span>
+</code></pre></div></li>
+<li>Also upload <code>metadata/classes.yaml</code> and <code>metadata/dataset.yaml</code> as supplementary files.</li>
+</ol>
 <h3 id="on-every-new-version_1">On every new version</h3>
 <ol>
 <li>Open the existing dataset on Dataverse.</li>
-<li>Click <strong>Edit Dataset → Add New Files</strong> and upload the updated data.</li>
+<li>Click <strong>Edit Dataset → Add New Files</strong>, upload the updated zip archives.</li>
 <li>Increment the version number and click <strong>Publish</strong>.</li>
 </ol>
 <hr />
 <h2 id="4-arias-montano-university-of-huelva">4. Arias Montano (University of Huelva)</h2>
 <p><strong>URL:</strong> https://rabida.uhu.es</p>
+<blockquote>
+<p>📦 <strong>What Arias Montano hosts:</strong> like Zenodo, Arias Montano archives the contents of
+<strong>this GitHub repository</strong> (metadata, scripts, documentation). <strong>The images and labels
+are NOT stored here</strong> — they live on HuggingFace Hub and Dataverse. The deposit exists
+to provide an institutional citable record at the University of Huelva.</p>
+</blockquote>
 <p>Arias Montano is the institutional open-access repository of the University of Huelva,
 managed by the university library service. Deposits are made by request.</p>
 <h3 id="steps">Steps</h3>
@@ -983,7 +1011,7 @@ managed by the university library service. Deposits are made by request.</p>
 <li>Title, authors, abstract (in Spanish and English).</li>
 <li>Licence: CC BY 4.0.</li>
 <li>Type of resource: <em>Dataset</em>.</li>
-<li>Links to HuggingFace Hub and Zenodo (DOI).</li>
+<li>Links to HuggingFace Hub, Dataverse, and Zenodo (DOI).</li>
 <li>Associated publication or project (WildINTEL / Biodiversa+).</li>
 <li>The library will assign a permanent handle/URI and confirm the deposit.</li>
 <li>Update <code>README.md</code> replacing the generic Arias Montano link with the specific record URL.</li>
@@ -995,12 +1023,47 @@ managed by the university library service. Deposits are made by request.</p>
 <ul>
 <li>[ ] Upload new images and labels to <strong>HuggingFace Hub</strong>.</li>
 <li>[ ] Update <code>metadata/classes.yaml</code> and <code>metadata/dataset.yaml</code> if needed.</li>
+<li>[ ] Upload updated zip archives (<code>train.zip</code>, <code>val.zip</code>, <code>test.zip</code>) to <strong>Dataverse</strong> and publish the new version.</li>
 <li>[ ] Create a <strong>GitHub release</strong> (triggers Zenodo automatically).</li>
 <li>[ ] Review and publish the <strong>Zenodo</strong> deposit; update the DOI badge in <code>README.md</code>.</li>
-<li>[ ] Upload new files to <strong>Dataverse</strong> and publish the new version.</li>
-<li>[ ] Notify <strong>Arias Montano</strong> library if the update is significant.</li>
+<li>[ ] Notify <strong>Arias Montano</strong> library to register the new version.</li>
 <li>[ ] Update the version number in <code>README.md</code> and <code>docs/dataset-description.md</code>.</li>
 </ul>
+<hr />
+<h2 id="publication-workflow-diagram">Publication workflow diagram</h2>
+<p>The following diagram shows the full sequence of steps to publish a new version of DonaDataset.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    actor M as Maintainer
+    participant HF as HuggingFace Hub
+    participant DV as Dataverse
+    participant GH as GitHub
+    participant ZN as Zenodo
+    participant AM as Arias Montano
+
+    note over M,AM: ── Data (images + labels) ──────────────────
+
+    M-&gt;&gt;HF: Upload images + labels per split
+    HF--&gt;&gt;M: ✓ Dataset updated
+
+    M-&gt;&gt;M: Package splits into zip archives
+    M-&gt;&gt;DV: Upload train.zip / val.zip / test.zip
+    M-&gt;&gt;DV: Upload metadata/classes.yaml + dataset.yaml
+    DV--&gt;&gt;M: ✓ New version published · DOI assigned
+
+    note over M,AM: ── Code + metadata + docs ──────────────────
+
+    M-&gt;&gt;GH: Create release (tag vX.Y.Z)
+    GH--&gt;&gt;ZN: Notify new release (webhook)
+    ZN--&gt;&gt;M: Deposit created automatically
+    M-&gt;&gt;ZN: Review metadata and publish
+    ZN--&gt;&gt;M: ✓ DOI assigned
+
+    M-&gt;&gt;AM: Submit deposit request (code + metadata + DOIs)
+    AM--&gt;&gt;M: ✓ Handle / URI assigned
+
+    note over M,AM: ── Update references ───────────────────────
+
+    M-&gt;&gt;GH: Update README.md with DOI badges and record URLs</code></pre>
 
 
 
