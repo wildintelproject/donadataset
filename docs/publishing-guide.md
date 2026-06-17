@@ -38,13 +38,12 @@ DonaDataset is made up of the following types of content:
 - **Images** — the raw camera-trap photographs captured in Doñana National Park.
   Large binary files that form the bulk of the dataset.
 
-- **Labels** — one annotation file per image in YOLO format. Each row describes a
-  detected animal: species class identifier, bounding box coordinates, and confidence
-  score. Labels are what turn raw photographs into a supervised training dataset.
+- **Labels** — one annotation file per image in YOLO format. Each row describes one
+  annotated object using a class identifier and normalized bounding-box coordinates.
 
 - **Species catalogue** — the file `metadata/classes.yaml`, which maps each numeric
-  class identifier to the common and scientific name of the corresponding mammal species.
-  It is the key that makes labels human-readable and scientifically meaningful.
+  label identifier to the corresponding dataset label. The label space contains 16 object
+  categories plus the `Empty` category used for negative examples.
 
 - **Scripts** — Python utilities included in this repository: `download.py` to fetch
   the dataset, `upload.py` to publish new images to HuggingFace Hub, and `validate.py`
@@ -53,10 +52,9 @@ DonaDataset is made up of the following types of content:
 - **Documentation** — the MkDocs site (this guide and related pages) and the
   `README.md`, which describe the dataset, its structure, and how to use it.
 
-- **Occurrence records** — a representation of the dataset in
-  [Darwin Core](https://dwc.tdwg.org/) format for GBIF. Each detected animal becomes
-  a biodiversity occurrence record with species name, date, and geographic coordinates,
-  making the data discoverable by ecologists and conservation researchers worldwide.
+- **Occurrence records** — an optional representation of selected wildlife detections in
+  [Darwin Core](https://dwc.tdwg.org/) format for GBIF. Only biologically meaningful
+  wildlife detections should be exported as occurrence records.
 
 Due to the nature of the different repositories — some specialised in large file storage,
 others in citable scientific records or biodiversity standards — it is not always possible
@@ -83,45 +81,113 @@ stored in each repository:
 HuggingFace Hub is the leading platform for sharing machine learning models and datasets.
 It provides version control, a built-in dataset viewer, and a Python library for
 programmatic access, making it the primary reference for the AI and machine learning
-research community. It is used as the **primary source of truth** for DonaDataset images
-and labels.
+research community. It is used as the **primary source of truth** for DonaDataset images,
+YOLO labels and dataset configuration files.
 
 ### First-time setup
 
 1. Create an account at [huggingface.co](https://huggingface.co) and join the
    **wildintelproject** organisation.
 2. Install the HuggingFace CLI:
+
    ```bash
    pip install huggingface-hub
    huggingface-cli login   # paste your access token
    ```
+
 3. Create the dataset repository on the web:
    **New → Dataset → wildintelproject/donadataset** (set to Public, CC BY 4.0).
 
-### Uploading images and labels
+### Uploading the dataset
+
+The DonaDataset directory should follow the DonaNet-compatible structure:
+
+```text
+dataset/
+├── images/
+│   ├── train/
+│   ├── val/
+│   └── test/
+├── labels/
+│   ├── train/
+│   ├── val/
+│   └── test/
+├── data.yaml
+└── annotations.csv
+```
+
+Upload the full `dataset/` directory to HuggingFace Hub:
 
 ```bash
-# Upload a specific split (e.g. train)
-huggingface-cli upload wildintelproject/donadataset ./data/train train \
+huggingface-cli upload wildintelproject/donadataset ./dataset . \
+  --repo-type dataset
+```
+
+This uploads:
+
+```text
+images/train/
+images/val/
+images/test/
+labels/train/
+labels/val/
+labels/test/
+data.yaml
+annotations.csv
+```
+
+If only one split needs to be updated, upload both the images and labels for that split:
+
+```bash
+# Example: update train images
+huggingface-cli upload wildintelproject/donadataset ./dataset/images/train images/train \
   --repo-type dataset
 
-# Upload all splits at once
-for split in train val test; do
-  huggingface-cli upload wildintelproject/donadataset ./data/$split $split \
-    --repo-type dataset
-done
+# Example: update train labels
+huggingface-cli upload wildintelproject/donadataset ./dataset/labels/train labels/train \
+  --repo-type dataset
+```
+
+After updating split files, upload the dataset configuration and annotation table if they changed:
+
+```bash
+huggingface-cli upload wildintelproject/donadataset ./dataset/data.yaml data.yaml \
+  --repo-type dataset
+
+huggingface-cli upload wildintelproject/donadataset ./dataset/annotations.csv annotations.csv \
+  --repo-type dataset
 ```
 
 ### Updating the dataset card
 
-The dataset card is the `README.md` inside the HuggingFace repository (not this GitHub repo).
-Edit it directly on the HuggingFace web UI or push a `README.md` via the CLI.
+The dataset card is the `README.md` inside the HuggingFace dataset repository, not the `README.md`
+inside this GitHub repository.
+
+Edit it directly on the HuggingFace web UI or push a `README.md` via the CLI:
+
+```bash
+huggingface-cli upload wildintelproject/donadataset ./README.md README.md \
+  --repo-type dataset
+```
 
 ### On every new version
 
-1. Upload the new/updated images and labels as above.
-2. Update the version tag in the dataset card.
-3. Update `metadata/dataset.yaml` in this GitHub repo if splits or class IDs changed.
+1. Upload the new or updated dataset files to HuggingFace Hub.
+2. Verify that the HuggingFace repository contains:
+
+   ```text
+   images/train/
+   images/val/
+   images/test/
+   labels/train/
+   labels/val/
+   labels/test/
+   data.yaml
+   annotations.csv
+   ```
+
+3. Update the dataset card if the dataset version, class list, structure, licence or citation information changed.
+4. Update `metadata/classes.yaml`, `metadata/dataset.yaml` and the documentation in this GitHub repository if splits, labels or class IDs changed.
 
 ---
 
@@ -129,57 +195,70 @@ Edit it directly on the HuggingFace web UI or push a `README.md` via the CLI.
 
 **URL:** https://zenodo.org
 
-Zenodo is an open-access repository operated by CERN (Geneva, Switzerland) that enables
-researchers to share and preserve any research output — datasets, software, papers, or
-presentations. It assigns persistent DOIs and is widely adopted across all scientific
-disciplines as a reliable, long-term archive.
+Zenodo is an open-access repository operated by CERN. It enables researchers to archive and cite research outputs such as software, metadata, documentation and release snapshots. Zenodo assigns persistent DOIs and is widely used as a long-term scientific archive.
 
-> ⚠️ **What Zenodo hosts:** Zenodo archives the contents of **this GitHub repository**
-> (metadata, scripts, documentation). **The images and labels are NOT stored in Zenodo** —
-> they live on HuggingFace Hub. The Zenodo deposit exists to provide a citable DOI for the
-> dataset and to ensure long-term preservation of the code and metadata.
+>  **What Zenodo hosts:** Zenodo archives the contents of **this GitHub repository**:
+> documentation, metadata files, scripts and release information.
+>
+> The public image files and YOLO label files are **not stored in Zenodo**. They are hosted on
+> HuggingFace Hub. The Zenodo record exists to provide a citable DOI for the DonaDataset release
+> and to preserve the repository metadata and documentation.
 
-### First-time setup — GitHub integration (recommended)
+### First-time setup — GitHub integration
 
 1. Log in at [zenodo.org](https://zenodo.org) with your GitHub account.
 2. Go to **Account → GitHub**.
 3. Find **wildintelproject/donadataset** and toggle it **ON**.
-4. Zenodo will now watch this repository for new releases.
+4. Zenodo will watch this GitHub repository for new releases.
 
 ### Publishing a new version
 
 1. In this GitHub repository, create a new release:
-   **Releases → Draft a new release → Create tag** (e.g. `v1.1.0`) → **Publish release**.
-2. Zenodo automatically creates a new deposit and mints a DOI within a few minutes.
-3. Go to the Zenodo deposit, review the metadata (title, authors, licence, description),
-   and click **Publish** if it is not published automatically.
-4. Copy the DOI badge URL and update it in `README.md`:
+   **Releases → Draft a new release → Create tag**.
+   Recommended tag format:
+   ```text
+   vMAJOR.MINOR.PATCH
+   ```
+   Example:
+   ```text
+   v1.1.0
+   ```
+
+2. Write release notes describing the dataset, metadata or documentation changes.
+3. Publish the GitHub release.
+4. Zenodo will automatically create a new deposit from the GitHub release.
+5. Open the Zenodo deposit and review:
+   - title;
+   - authors;
+   - description;
+   - licence;
+   - related identifiers;
+   - links to HuggingFace Hub and the GitHub repository.
+6. Publish the Zenodo deposit if it is not published automatically.
+7. Copy the DOI badge URL and update it in `README.md` if needed:
+
    ```markdown
    [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
    ```
 
-> **Note:** Zenodo archives the GitHub repository contents (code + metadata), not the images
-> themselves (those live on HuggingFace). Include a clear note in the Zenodo description
-> pointing to HuggingFace for the actual data files.
-
+> **Note:** The Zenodo description should clearly state that the actual image and YOLO label files are hosted on HuggingFace Hub. Zenodo preserves the GitHub repository snapshot, metadata, scripts and documentation.
 ---
 
 ## 3. Dataverse
 
 **URL:** https://dataverse.harvard.edu (or another Dataverse instance if preferred)
-
 Dataverse is an open-source research data repository platform originally developed by
-Harvard University and now adopted by hundreds of institutions worldwide. It is designed
-specifically for sharing, citing, and archiving research datasets, with support for rich
-metadata, versioning, and persistent identifiers (DOI).
+Harvard University and now adopted by many institutions worldwide. It is designed for
+sharing, citing and archiving research datasets, with support for rich metadata,
+versioning and persistent identifiers such as DOIs.
 
-> 📦 **What Dataverse hosts:** Dataverse acts as a **mirror** of the actual dataset —
-> images and labels — for the scientific community. It is the primary alternative to
-> HuggingFace Hub for researchers who prefer a traditional academic data repository.
->
-> ⚠️ **File size limit:** Harvard Dataverse has a **2.5 GB per-file** limit. Split the
-> data by split (`train.zip`, `val.zip`, `test.zip`) before uploading to stay within
-> this limit.
+> **What Dataverse hosts:** Dataverse acts as a mirror of the actual dataset files:
+> images, YOLO label files, `data.yaml`, `annotations.csv` and selected metadata files.
+> It is an alternative access point for researchers who prefer a traditional academic
+> data repository.
+> **File size limit:** Harvard Dataverse has a per-file size limit. If the full dataset is
+> too large for a single upload, split the data by partition into `train.zip`, `val.zip`
+> and `test.zip`.
 
 ### First-time setup
 
@@ -191,44 +270,63 @@ metadata, versioning, and persistent identifiers (DOI).
 
 | Field | Value |
 |---|---|
-| Title | DonaDataset: Camera-trap mammal dataset from Doñana National Park |
+| Title | DonaDataset: Camera-trap dataset from Doñana National Park |
 | Author | WildINTEL project team |
-| Contact | (project contact email) |
-| Description | (copy from `docs/dataset-description.md`) |
+| Contact | Project contact email |
+| Description | Summary from `docs/dataset-description.md` |
 | Subject | Earth and Environmental Sciences |
 | Licence | CC BY 4.0 |
-| Related publication | (add DOI of associated paper when available) |
+| Related publication | DOI of the associated paper, when available |
+| Related dataset | HuggingFace Hub dataset URL |
 
 ### Preparing and uploading files
 
-1. Package each split as a zip archive (max 2.5 GB per file):
+1. Package each split as a ZIP archive:
+
    ```bash
-   zip -r data/train.zip  data/train/
-   zip -r data/val.zip    data/val/
-   zip -r data/test.zip   data/test/
+   mkdir -p dataverse_upload
+   zip -r dataverse_upload/train.zip dataset/images/train dataset/labels/train
+   zip -r dataverse_upload/val.zip dataset/images/val dataset/labels/val
+   zip -r dataverse_upload/test.zip dataset/images/test dataset/labels/test
+   cp dataset/data.yaml dataverse_upload/
+   cp dataset/annotations.csv dataverse_upload/
+   cp -r metadata dataverse_upload/
    ```
-2. Upload via the web UI, or use the
-   [Dataverse API](https://guides.dataverse.org/en/latest/api/native-api.html):
+
+2. Upload the files through the Dataverse web UI.
+
+3. Alternatively, use the Dataverse API:
    ```bash
    for split in train val test; do
      curl -H "X-Dataverse-key: $DATAVERSE_API_TOKEN" \
           -X POST \
-          -F "file=@data/${split}.zip" \
+          -F "file=@dataverse_upload/${split}.zip" \
           "https://dataverse.harvard.edu/api/datasets/:persistentId/add?persistentId=doi:10.7910/DVN/XXXXXX"
    done
    ```
-3. Also upload `metadata/classes.yaml` and `metadata/dataset.yaml` as supplementary files.
+
+4. Upload the supplementary files as well:
+   ```bash
+   curl -H "X-Dataverse-key: $DATAVERSE_API_TOKEN" \
+        -X POST \
+        -F "file=@dataverse_upload/data.yaml" \
+        "https://dataverse.harvard.edu/api/datasets/:persistentId/add?persistentId=doi:10.7910/DVN/XXXXXX"
+   curl -H "X-Dataverse-key: $DATAVERSE_API_TOKEN" \
+        -X POST \
+        -F "file=@dataverse_upload/annotations.csv" \
+        "https://dataverse.harvard.edu/api/datasets/:persistentId/add?persistentId=doi:10.7910/DVN/XXXXXX"
+   ```
 
 ### On every new version
-
 1. Open the existing dataset on Dataverse.
-2. Click **Edit Dataset → Add New Files**, upload the updated zip archives.
-3. Increment the version number and click **Publish**.
+2. Click **Edit Dataset → Add New Files**.
+3. Upload the updated ZIP archives and supplementary files.
+4. Review the metadata.
+5. Increment the version number and click **Publish**.
 
 ---
 
-## 4. Arias Montano (University of Huelva)
-
+## 4. Arias Montano, University of Huelva
 **URL:** https://rabida.uhu.es
 
 Arias Montano is the institutional open-access repository of the University of Huelva,
@@ -236,13 +334,13 @@ managed by the university library service. Its purpose is to preserve and give v
 to the scientific output produced by the university's researchers, ensuring long-term
 access and compliance with open-access mandates.
 
-> 📦 **What Arias Montano hosts:** like Zenodo, Arias Montano archives the contents of
-> **this GitHub repository** (metadata, scripts, documentation). **The images and labels
-> are NOT stored here** — they live on HuggingFace Hub and Dataverse. The deposit exists
+> **What Arias Montano hosts:** Arias Montano archives the contents of **this GitHub repository**:
+> metadata, scripts and documentation.
+> The public image files and YOLO label files are **not stored here**. They are hosted on
+> HuggingFace Hub and, when available, mirrored on Dataverse. The Arias Montano deposit exists
 > to provide an institutional citable record at the University of Huelva.
 
-Arias Montano is the institutional open-access repository of the University of Huelva,
-managed by the university library service. Deposits are made by request.
+Deposits are made by request through the University of Huelva library service.
 
 ### Steps
 
@@ -250,16 +348,15 @@ managed by the university library service. Deposits are made by request.
    - Web: [https://www.uhu.es/biblioteca/](https://www.uhu.es/biblioteca/)
    - Email: biblioteca@uhu.es
 2. Provide the following information:
-   - Title, authors, abstract (in Spanish and English).
+   - Title, authors and abstract in Spanish and English.
    - Licence: CC BY 4.0.
    - Type of resource: *Dataset*.
-   - Links to HuggingFace Hub, Dataverse, and Zenodo (DOI).
-   - Associated publication or project (WildINTEL / Biodiversa+).
-3. The library will assign a permanent handle/URI and confirm the deposit.
-4. Update `README.md` replacing the generic Arias Montano link with the specific record URL.
+   - Links to HuggingFace Hub, Dataverse and Zenodo, when available.
+   - Associated publication or project: WildINTEL / Biodiversa+.
+3. The library will assign a permanent handle or URI and confirm the deposit.
+4. Update `README.md` and the documentation by replacing the generic Arias Montano link with the specific record URL.
 
 ### On every new version
-
 Contact the library again to add a new version record linked to the existing deposit.
 
 ---
@@ -267,50 +364,65 @@ Contact the library again to add a new version record linked to the existing dep
 ## 5. Roboflow Universe
 
 **URL:** https://universe.roboflow.com
-
 Roboflow Universe is a community platform specialised in computer vision datasets. It
 supports YOLO and other annotation formats natively, and provides tools to explore,
-augment, and version datasets. Its Python SDK allows direct integration into training
-pipelines, making it the reference hub for the object detection and computer vision
-community.
+augment and version datasets. Its Python SDK allows integration into computer-vision
+training pipelines.
 
-> 📦 **What Roboflow hosts:** images and labels in YOLO format — a mirror of the actual
-> dataset oriented to the computer vision community. Roboflow natively supports YOLO splits
-> and provides an API for direct integration into training pipelines.
+> **What Roboflow hosts:** Roboflow can host a mirror of the DonaDataset image files and
+> YOLO label files for the computer-vision community.
+> The primary source of truth remains HuggingFace Hub. Roboflow should be treated as an
+> optional mirror for users who prefer the Roboflow ecosystem.
 
 ### First-time setup
-
 1. Create an account at [roboflow.com](https://roboflow.com) and create a workspace for
-   **WildINTEL** (or use an existing one).
+   **WildINTEL** or use an existing workspace.
 2. Click **New Project → Object Detection**.
-3. Set the project name to `donadataset`, licence to **CC BY 4.0**, and annotation format
-   to **YOLOv8**.
+3. Set the project name to `donadataset`.
+4. Set the licence to **CC BY 4.0**.
+5. Set the annotation format to **YOLOv8**.
 
 ### Uploading images and labels
+The local dataset must follow the DonaNet-compatible structure:
+```text
+dataset/
+├── images/
+│   ├── train/
+│   ├── val/
+│   └── test/
+├── labels/
+│   ├── train/
+│   ├── val/
+│   └── test/
+├── data.yaml
+└── annotations.csv
+```
 
+Install the Roboflow Python package:
 ```bash
 pip install roboflow
-
-python - <<'EOF'
+```
+Upload each split with its corresponding images and YOLO label files:
+```python
 from roboflow import Roboflow
+
 rf = Roboflow(api_key="YOUR_API_KEY")
 project = rf.workspace("wildintelproject").project("donadataset")
 
 for split in ["train", "val", "test"]:
     project.upload(
-        image_path=f"data/{split}/images",
-        annotation_path=f"data/{split}/labels",
+        image_path=f"dataset/images/{split}",
+        annotation_path=f"dataset/labels/{split}",
         split=split,
         num_workers=4,
     )
-EOF
 ```
 
 ### On every new version
-
-1. Upload the new images and labels as above.
-2. Create a new **Version** in the Roboflow UI (Generate → Version).
-3. Update the version link in `README.md` if needed.
+1. Upload the new or updated images and labels.
+2. Create a new version in the Roboflow UI.
+3. Review that the class list and split counts match `dataset/data.yaml`.
+4. Update the Roboflow link in `README.md` or the documentation if needed.
 
 ---
 
@@ -318,14 +430,14 @@ EOF
 
 **URL:** https://www.kaggle.com/datasets
 
-Kaggle is the world's largest data science and machine learning competition platform,
-owned by Google. Its dataset repository offers high visibility within the ML community
-and integrates directly with Kaggle Notebooks, allowing users to explore and use the
-data without any local setup.
+Kaggle is a data science and machine learning platform owned by Google. Its dataset
+repository offers high visibility within the ML community and integrates directly with
+Kaggle Notebooks, allowing users to explore and use the data without local setup.
 
-> 📦 **What Kaggle hosts:** images and labels — a mirror of the actual dataset oriented
-> to the ML community. Kaggle provides high visibility and easy integration with Kaggle
-> Notebooks.
+> **What Kaggle hosts:** Kaggle can host a mirror of the DonaDataset image files,
+> YOLO label files, `data.yaml`, `annotations.csv` and selected metadata files.
+> The primary source of truth remains HuggingFace Hub. Kaggle should be treated as an
+> optional mirror for users who prefer the Kaggle ecosystem.
 
 ### First-time setup
 
@@ -334,149 +446,179 @@ data without any local setup.
 2. Install the Kaggle CLI:
    ```bash
    pip install kaggle
-   # Place your kaggle.json token in ~/.kaggle/kaggle.json
    ```
-3. Create a `dataset-metadata.json` in the project root:
+3. Place your `kaggle.json` token in:
+   ```text
+   ~/.kaggle/kaggle.json
+   ```
+4. Create a `dataset-metadata.json` file in the project root:
    ```json
    {
-     "title": "DonaDataset — Camera-trap mammals from Doñana",
+     "title": "DonaDataset — Camera-trap dataset from Doñana",
      "id": "wildintelproject/donadataset",
-     "licenses": [{"name": "CC BY 4.0"}]
+     "licenses": [{"name": "CC-BY-4.0"}]
    }
    ```
 
 ### Uploading images and labels
-
+Package each split with both images and YOLO label files:
 ```bash
-# Package splits (max 20 GB total on free tier)
-zip -r kaggle_upload/train.zip data/train/
-zip -r kaggle_upload/val.zip   data/val/
-zip -r kaggle_upload/test.zip  data/test/
-cp metadata/classes.yaml metadata/dataset.yaml kaggle_upload/
+mkdir -p kaggle_upload
+zip -r kaggle_upload/train.zip dataset/images/train dataset/labels/train
+zip -r kaggle_upload/val.zip dataset/images/val dataset/labels/val
+zip -r kaggle_upload/test.zip dataset/images/test dataset/labels/test
+cp dataset/data.yaml kaggle_upload/
+cp dataset/annotations.csv kaggle_upload/
+cp -r metadata kaggle_upload/
+cp dataset-metadata.json kaggle_upload/
+```
 
-# Create or update the dataset
-kaggle datasets create -p kaggle_upload/     # first time
+Create the dataset on first upload:
+```bash
+kaggle datasets create -p kaggle_upload/
+```
+
+For later updates, create a new dataset version:
+```bash
 kaggle datasets version -p kaggle_upload/ -m "v1.1.0 — description of changes"
 ```
 
 ### On every new version
-
-Run `kaggle datasets version` with the updated zip archives and a descriptive message.
+1. Rebuild the ZIP archives from the current `dataset/` directory.
+2. Check that each split archive contains both `images` and `labels`.
+3. Check that `data.yaml` and `annotations.csv` are included when changed.
+4. Run `kaggle datasets version` with a descriptive version message.
 
 ---
 
 ## 7. GBIF
 
 **URL:** https://www.gbif.org
+GBIF, the Global Biodiversity Information Facility, is an international open-access
+infrastructure for biodiversity occurrence data. It is used by ecologists, conservation
+biologists and environmental policy makers to discover and access species occurrence records.
+> **What GBIF hosts:** GBIF can host biodiversity occurrence records derived from DonaDataset
+> in [Darwin Core](https://dwc.tdwg.org/) format.
+> GBIF does **not** host the raw camera-trap images or the YOLO `.txt` label files. The image
+> files and YOLO labels are hosted on HuggingFace Hub and, when available, mirrored through
+> other dataset repositories.
 
-GBIF (Global Biodiversity Information Facility) is the world's largest open-access
-aggregator of biodiversity data, hosted in Copenhagen and funded by governments
-worldwide. It indexes hundreds of millions of species occurrence records from research
-institutions, natural history museums, and citizen science projects, and is the
-reference platform for ecologists, conservation biologists, and environmental policy
-makers.
-
-> 📋 **What GBIF hosts:** **biodiversity occurrence records** in
-> [Darwin Core](https://dwc.tdwg.org/) format — NOT the raw images or YOLO labels.
-> Each camera-trap detection is represented as a species occurrence with coordinates,
-> date, and taxonomy. GBIF is the global standard for biodiversity data and greatly
-> increases discoverability by ecologists and conservation researchers.
+### Important scope note
+Only biologically meaningful wildlife detections should be converted into GBIF occurrence records.
+The following records should normally be excluded from the GBIF export:
+- `Empty` images, because they do not represent species occurrences;
+- `Homo sapiens`, because it is used in DonaDataset for humans and vehicles and is not suitable as a biodiversity occurrence record;
+- vehicle-only detections, if present in the source annotations;
+- uncertain or ambiguous detections that cannot be assigned to a valid taxon.
+Bird records under `Ave` should only be exported to GBIF if they can be mapped to an accepted taxon or an agreed higher-level taxonomic category. If they cannot be reliably resolved, they should be excluded from the GBIF export.
 
 ### First-time setup
-
-1. Create an account at [gbif.org](https://www.gbif.org) and request an **organisation**
-   account for WildINTEL (or use the University of Huelva's existing GBIF node).
-2. Install the [GBIF IPT](https://www.gbif.org/ipt) (Integrated Publishing Toolkit) on
-   your server, or use a hosted IPT instance.
-3. Register the dataset in the IPT with resource type **Camera Trap**.
+1. Create an account at [gbif.org](https://www.gbif.org).
+2. Request an organisation account for WildINTEL or use the University of Huelva's existing GBIF publishing route.
+3. Install or access a [GBIF IPT](https://www.gbif.org/ipt) instance.
+4. Register the dataset in the IPT with an appropriate resource type for camera-trap-derived occurrence records.
 
 ### Preparing the Darwin Core data
 
-Convert the YOLO annotations to Darwin Core occurrence records. Each detection becomes
-one row with at minimum:
-
+Convert selected DonaDataset annotations to Darwin Core occurrence records.
+Each exported detection should become one occurrence record with, at minimum, the following fields:
 | Darwin Core field | Source |
 |---|---|
-| `scientificName` | `metadata/classes.yaml` (class id → species name) |
-| `eventDate` | From image EXIF or filename |
-| `decimalLatitude` / `decimalLongitude` | Camera GPS coordinates |
-| `basisOfRecord` | `MachineObservation` |
+| `scientificName` | Dataset label mapped through `metadata/classes.yaml` or another taxonomic mapping file |
+| `eventDate` | Image metadata, EXIF timestamp or trusted source metadata |
+| `decimalLatitude` / `decimalLongitude` | Camera location metadata |
+| `basisOfRecord` | `MachineObservation` or another value accepted by the GBIF publishing workflow |
 | `datasetName` | `DonaDataset` |
+| `occurrenceID` | Stable unique identifier for the exported occurrence |
+| `eventID` | Stable identifier for the camera-trap event or sequence, when available |
+The export should preserve links back to the source dataset release and documentation where possible.
 
 ### Publishing
-
-1. Upload the Darwin Core Archive (`.zip`) to the IPT resource.
-2. Register the resource with GBIF — it will be indexed within 24–48 hours.
-3. GBIF assigns a DOI; update `README.md` with the GBIF dataset link.
+1. Generate a Darwin Core Archive (`.zip`) from the selected occurrence records.
+2. Validate the Darwin Core Archive before publication.
+3. Upload the archive to the IPT resource.
+4. Register or update the resource with GBIF.
+5. After GBIF indexing, update `README.md` and the documentation with the GBIF dataset link or DOI, if assigned.
 
 ### On every new version
-
-Upload a new Darwin Core Archive to the IPT and trigger a re-crawl from the GBIF portal.
+1. Regenerate the Darwin Core Archive from the updated annotations.
+2. Exclude records that are not suitable for biodiversity occurrence publishing.
+3. Upload the new archive to the IPT resource.
+4. Trigger or request a re-indexing through the GBIF publishing workflow.
+5. Update repository links and release notes if the GBIF record changed.
 
 ---
 
 ## 8. B2SHARE (EUDAT)
 
 **URL:** https://b2share.eudat.eu
-
 B2SHARE is a research data sharing service provided by EUDAT, the European collaborative
-data infrastructure funded by the European Commission. It offers secure, long-term storage
-on servers located within the European Union, making it the most appropriate repository
-for EU-funded research projects that need to comply with data sovereignty and open-science
-mandates such as those of Horizon Europe and Biodiversa+.
-
-> 🇪🇺 **What B2SHARE hosts:** B2SHARE is the **European copy** of the full dataset —
-> images, labels, and the code + metadata from this GitHub repository. It is part of
-> the EUDAT European research infrastructure, making it especially appropriate given the
-> Biodiversa+ / EU funding of this project. It is the only mirror where **all data
-> resides on European servers**.
->
-> ⚠️ **Storage limit:** 10 GB per record by default. Request an extension if the dataset
-> exceeds this. Package data as zip archives split by dataset split to stay within limits.
+data infrastructure. It offers long-term research data storage on European servers and is
+therefore suitable for EU-funded projects and open-science data preservation.
+> **What B2SHARE hosts:** B2SHARE can host a European copy of the DonaDataset release,
+> including image archives, YOLO label files, `data.yaml`, `annotations.csv`, selected
+> metadata files and a GitHub release archive containing code and documentation.
+> The primary source of truth remains HuggingFace Hub. B2SHARE should be treated as a
+> European preservation copy or mirror.
+> **Storage limit:** B2SHARE records may have file-size or storage limits. If the dataset is
+> too large for a single upload, package the data as split-specific ZIP archives:
+> `train.zip`, `val.zip` and `test.zip`.
 
 ### First-time setup
 
 1. Log in at [b2share.eudat.eu](https://b2share.eudat.eu) using your institutional account
    or ORCID.
 2. Click **Upload → Create new record**.
-3. Select or create the **WildINTEL** community (or use the generic *Biodiversity* community).
+3. Select or create the **WildINTEL** community, or use an appropriate biodiversity or
+   research-data community.
 
 ### Filling in the metadata
 
 | Field | Value |
 |---|---|
-| Title | DonaDataset: Camera-trap mammal dataset from Doñana National Park |
+| Title | DonaDataset: Camera-trap dataset from Doñana National Park |
 | Authors | WildINTEL project team |
-| Description | (copy from `docs/dataset-description.md`) |
+| Description | Summary from `docs/dataset-description.md` |
 | Community | Biodiversity / WildINTEL |
 | Licence | CC BY 4.0 |
 | Funding | Biodiversa+ Joint Research Call 2022–2023 |
-| Related identifiers | Zenodo DOI, HuggingFace URL, GBIF DOI |
+| Related identifiers | HuggingFace URL, GitHub repository, Zenodo DOI, Dataverse DOI and GBIF DOI, when available |
 
 ### Uploading files
 
-Upload both the image archives and the GitHub release:
-
+Package each split with both images and YOLO label files:
 ```bash
-# 1. Package image splits
-zip -r b2share_upload/train.zip data/train/
-zip -r b2share_upload/val.zip   data/val/
-zip -r b2share_upload/test.zip  data/test/
+mkdir -p b2share_upload
+zip -r b2share_upload/train.zip dataset/images/train dataset/labels/train
+zip -r b2share_upload/val.zip dataset/images/val dataset/labels/val
+zip -r b2share_upload/test.zip dataset/images/test dataset/labels/test
+```
 
-# 2. Add metadata files
-cp metadata/classes.yaml metadata/dataset.yaml b2share_upload/
+Add the main dataset configuration and annotation files:
+```bash
+cp dataset/data.yaml b2share_upload/
+cp dataset/annotations.csv b2share_upload/
+```
 
-# 3. Add the GitHub release archive (code + docs)
+Add repository metadata files:
+```bash
+cp -r metadata b2share_upload/
+```
+
+Add the GitHub release archive containing code and documentation:
+```bash
 curl -L https://github.com/wildintelproject/donadataset/archive/refs/tags/vX.Y.Z.zip \
      -o b2share_upload/donadataset-vX.Y.Z.zip
 ```
-
 Then upload all files in `b2share_upload/` through the B2SHARE web UI.
 
 ### On every new version
-
-Create a new record version on B2SHARE and upload the updated zip archives and release archive.
-
+1. Rebuild the ZIP archives from the current `dataset/` directory.
+2. Check that each split archive contains both images and YOLO label files.
+3. Include updated `data.yaml`, `annotations.csv` and metadata files.
+4. Add the GitHub release archive for the same version tag.
+5. Create a new B2SHARE record version and upload the updated files.
+6. Update `README.md` and the documentation with the B2SHARE record URL or DOI, if available.
 ---
 
 ## Checklist for a new dataset release
@@ -611,8 +753,9 @@ python scripts/upload.py --split train
 The script reads the `HF_TOKEN` environment variable (or prompts for it) and pushes
 the contents of `data/` to the HuggingFace Hub dataset repository.
 
-> ⚠️ Make sure the images are in `data/train/`, `data/val/`, and `data/test/` before
-> running the script.
+> Make sure the images and labels follow the DonaNet-compatible structure:
+> `dataset/images/train`, `dataset/images/val`, `dataset/images/test`,
+> `dataset/labels/train`, `dataset/labels/val` and `dataset/labels/test`.
 
 ---
 

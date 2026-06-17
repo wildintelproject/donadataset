@@ -4,7 +4,9 @@
 
 **DonaDataset** is the annotated camera-trap image dataset used to train
 [DonaNet](https://github.com/wildintelproject/donanet), a YOLO-based neural network for detecting
-and classifying the mammals that inhabit
+and classifying the mammals that inhabit. Moreover, the dataset includes birds grouped under the `Ave` label,
+humans and vehicles grouped under the `Homo sapiens` label, and empty images used as negative examples
+during training.
 [Doñana National Park](https://www.miteco.gob.es/es/red-parques-nacionales/nuestros-parques/donana/) (Spain).
 
 Images and labels are hosted on **[HuggingFace Hub](https://huggingface.co/datasets/wildintelproject/donadataset)**
@@ -35,5 +37,5 @@ Or with the HuggingFace CLI:
 
 ```bash
 huggingface-cli download wildintelproject/donadataset \
-  --repo-type dataset --local-dir ./data
+  --repo-type dataset --local-dir ./dataset
 ```

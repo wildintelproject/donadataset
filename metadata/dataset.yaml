@@ -1,25 +1,39 @@
 # DonaDataset — Ultralytics YOLO dataset configuration
 # Images and labels are hosted on HuggingFace Hub.
 # Download them with: python scripts/download.py
+# Keep this file consistent with dataset/data.yaml and metadata/classes.yaml.
 
-path: ./data          # root directory (populated by download.py)
-train: train/images
-val:   val/images
-test:  test/images
+path: ./dataset
+train: images/train
+val: images/val
+test: images/test
 
-# Number of classes
-nc: 8
+# Number of labels
+# Labels 0–15 are object categories used in bounding-box annotations.
+# Label 16, Empty, is used for images without annotated objects and is not used as a bounding-box object class.
+nc: 17
 
-# Class names (must match classes.yaml order)
+# Label names
+# The order must match metadata/classes.yaml, dataset/data.yaml,
+# YOLO .txt label files and annotations.csv.
 names:
-  0: red_deer
-  1: fallow_deer
-  2: wild_boar
-  3: iberian_lynx
-  4: red_fox
-  5: egyptian_mongoose
-  6: european_rabbit
-  7: badger
+  0: Ave
+  1: Felis catus
+  2: Bos taurus
+  3: Canis familiaris
+  4: Herpestes ichneumon
+  5: Meles meles
+  6: Oryctolagus cuniculus
+  7: Dama dama
+  8: Genetta genetta
+  9: Equus sp
+  10: Homo sapiens
+  11: Lepus granatensis
+  12: Lynx pardinus
+  13: Cervus elaphus
+  14: Vulpes vulpes
+  15: Sus scrofa
+  16: Empty
 
 # HuggingFace Hub repository
 hf_repo: wildintelproject/donadataset
