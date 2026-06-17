@@ -23,14 +23,17 @@ Ambiguous detections (partial occlusion, low confidence) are excluded from the d
 
 ## Dataset splits
 
-Images are split into `train / val / test` partitions using the
-[DonaNet](https://github.com/wildintelproject/donanet) `prepare-dataset` command
-with the following default ratios:
+Images were split into `train`, `val` and `test` partitions using a sequence-based strategy designed to reduce spatial and temporal leakage.
 
-| Split   | Ratio |
-|---------|-------|
-| `train` | 70 %  |
-| `val`   | 20 %  |
-| `test`  | 10 %  |
+Camera-trap images are often captured in bursts, where consecutive images from the same camera can be nearly identical. To avoid placing near-duplicate images in different dataset partitions, images were first grouped by camera location and temporal sequence.
+A temporal sequence was defined as a group of consecutive images captured less than 90 seconds apart. All images belonging to the same camera location and temporal sequence were assigned to the same split.
+This means that a full sequence was assigned entirely to one of the following partitions:
 
-Stratified sampling is applied to ensure each species is represented in all splits.
+| Split | Approximate ratio |
+|---|---:|
+| `train` | 80 % |
+| `val` | 10 % |
+| `test` | 10 % |
+
+The split was therefore performed at the sequence level, not at the individual image level.
+This strategy helps ensure that the training, validation and test sets are more independent in both time and space.
