@@ -12,6 +12,9 @@ training dataset behind
 developed as part of the [WildINTEL project](https://wildintel.eu/) for the automated
 monitoring of wildlife through camera-trap imagery.
 
+![Zoning map of Doñana National Park](https://portalrediam.cica.es/geonetwork/srv/api/records/5aa36bf5092a0ac745f89d570e131f1d9deacb5e/attachments/zonificacion_donana.png)
+*Zoning map of Doñana National Park. Source: [REDIAM](https://portalrediam.cica.es/).*
+
 ## Classes
 
 The dataset covers the following mammal species present in Doñana National Park.
