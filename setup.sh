@@ -3,7 +3,7 @@
 #                  DonaDataset — Environment Setup Script
 # ============================================================================ #
 # Sets up a Python virtual environment with uv and installs the dependencies
-# needed to run the download and validation scripts.
+# needed to run the "donadataset" and "cli" tools.
 #
 # Usage:
 #   ./setup.sh
@@ -67,9 +67,9 @@ create_venv() {
 }
 
 install_dependencies() {
-    print_info "Installing dependencies (scripts group)..."
+    print_info "Installing dependencies (dev + scripts groups)..."
     source "$VENV_DIR/bin/activate"
-    uv sync --group scripts
+    uv sync --group dev --group scripts
     print_success "Dependencies installed"
 }
 
@@ -84,10 +84,12 @@ print_next_steps() {
     echo "  source .venv/bin/activate"
     echo ""
     print_info "Available commands:"
-    echo "  python scripts/download.py                  Download all splits"
-    echo "  python scripts/download.py --split train    Download a single split"
-    echo "  python scripts/validate.py                  Validate dataset integrity"
-    echo "  python scripts/validate.py --split train    Validate a single split"
+    echo "  donadataset generate real --source <dir> --output <dir>   Generate the real dataset"
+    echo "  donadataset generate toy                                  Generate a small toy dataset"
+    echo "  donadataset publish huggingface                           Publish to HuggingFace Hub"
+    echo "  donadataset publish zenodo                                Publish to Zenodo"
+    echo "  cli docs serve                                            Serve the docs locally"
+    echo "  cli docs build                                            Build the static docs site"
     echo ""
 }
 

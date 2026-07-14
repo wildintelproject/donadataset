@@ -27,8 +27,6 @@ theme:
         name: Switch to light mode
 
   features:
-    - navigation.tabs
-    - navigation.sections
     - navigation.top
     - search.highlight
     - content.code.copy
@@ -42,6 +40,9 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/wildintelproject
       name: WildINTEL on GitHub
+    - icon: simple/huggingface
+      link: https://huggingface.co/wildintelproject
+      name: WildINTEL on HuggingFace Hub
     - icon: fontawesome/brands/facebook
       link: https://www.facebook.com/people/WildIntel/61556603674655/
       name: WildINTEL on Facebook
@@ -77,10 +78,28 @@ markdown_extensions:
 
 plugins:
   - search
+  # Solo se activa con la variable de entorno ENABLE_PDF_EXPORT=1 (la pone
+  # 'uv run cli docs pdf') — generar el PDF añade tiempo de build (WeasyPrint
+  # renderiza cada página), así que 'docs serve'/'docs build' normales no
+  # pagan ese coste.
+  - with-pdf:
+      enabled_if_env: ENABLE_PDF_EXPORT
+      output_path: pdf/donadataset.pdf
+      cover_title: DonaDataset
+      cover_subtitle: Camera-trap mammal dataset from Doñana National Park
+      author: WildINTEL
+      copyright: Copyright © 2026 WildINTEL
+      toc_title: Table of contents
+      toc_level: 2
 
 nav:
   - Home: index.md
   - Dataset Description: dataset-description.md
-  - Classes: classes.md
-  - Collection Protocol: collection-protocol.md
+  - User Guide: user-guide.md
+  - Publishing:
+      - Overview (all repositories): publishing-guide.md
+      - HuggingFace Hub: publishing-huggingface.md
+      - Zenodo: publishing-zenodo.md
+      - B2SHARE: publishing-b2share.md
+      - GBIF: publishing-gbif.md
   - About: about.md

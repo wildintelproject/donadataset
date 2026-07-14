@@ -14,10 +14,8 @@ and classifying the mammals that inhabit
 [Doñana National Park](https://www.miteco.gob.es/es/red-parques-nacionales/nuestros-parques/donana/)
 (Spain).
 
-Images and labels are hosted on **[HuggingFace Hub](https://huggingface.co/datasets/wildintelproject/donadataset)**
-and also published in the **[Arias Montano](https://rabida.uhu.es/)** institutional repository of the
-[University of Huelva](https://www.uhu.es/), on **[Zenodo](https://zenodo.org/)**, and on
-**[Dataverse](https://dataverse.harvard.edu/)**.
+Images and labels are published across several external repositories — see the
+**[Publishing Guide](docs/publishing-guide.md)** for the full list and details.
 This repository contains the metadata, class definitions, and utility scripts.
 
 ## 📥 Download
@@ -35,6 +33,9 @@ python scripts/download.py
 # Download a single split
 python scripts/download.py --split train
 ```
+
+See the [User Guide](docs/user-guide.md) for alternative download methods and exactly
+what you'll find afterward (directory layout, annotation format, metadata files).
 
 ## 📂 Repository structure
 

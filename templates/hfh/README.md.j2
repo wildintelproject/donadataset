@@ -1,0 +1,136 @@
+---
+license: {{ license_id | lower }}
+task_categories:
+- object-detection
+pretty_name: {{ dataset_name }}
+---
+
+# {{ dataset_name }}
+
+![License](https://img.shields.io/badge/license-{{ license_id | replace("-", "--") }}-blue.svg)
+[![WildINTEL](https://img.shields.io/badge/WildINTEL-project-blue)](https://wildintel.eu/)
+
+Version: `{{ version }}`
+
+{{ description }}
+
+## Dataset format
+
+This dataset is distributed in YOLO format for object detection.
+
+After downloading and extracting all tar shards into the same directory, the expected structure is:
+
+```text
+.
+├── donana.yaml
+├── images/
+│   ├── train/
+│   ├── val/
+│   └── test/
+└── labels/
+    ├── train/
+    ├── val/
+    └── test/
+```
+
+The YOLO configuration file uses relative paths:
+
+```yaml
+path: .
+train: images/train
+val: images/val
+test: images/test
+```
+
+## Splits
+
+{% for split in splits %}
+- `{{ split.name }}`: {{ split.count }} images
+{% endfor %}
+
+## Classes
+
+{% for cls in classes %}
+- `{{ cls.id }}`: {{ cls.name }}
+{% endfor %}
+
+## Data files
+
+The image and label files are stored inside tar shards under:
+
+```text
+data/train/
+data/val/
+data/test/
+```
+
+Each tar file preserves YOLO-compatible internal paths, for example:
+
+```text
+images/train/example.jpg
+labels/train/example.txt
+```
+
+## Integrity verification
+
+The export includes:
+
+```text
+checksums-sha256.txt
+manifest.csv
+manifest-files-sha256.csv
+verification_report_local.json
+```
+
+Use these files to verify downloaded shards and internal image/label hashes.
+
+## Example extraction
+
+From the directory containing the downloaded files:
+
+```bash
+mkdir -p extracted
+cp donana.yaml extracted/
+
+for f in data/train/*.tar data/val/*.tar data/test/*.tar; do
+  tar -xf "$f" -C extracted/
+done
+```
+
+Then train with a YOLO-compatible framework using:
+
+```text
+extracted/donana.yaml
+```
+
+## Hugging Face repository
+
+```text
+{{ repo_id }}
+```
+
+## Contributing
+
+{% if repository_code %}
+Issues and pull requests are welcome in the source code repository: {{ repository_code }}
+{% else %}
+Issues and pull requests are welcome in the source code repository.
+{% endif %}
+
+## Funding
+
+This work is part of the [WildINTEL project](https://wildintel.eu/), funded by the
+[Biodiversa+](https://www.biodiversa.eu/) Joint Research Call 2022-2023
+"Improved transnational monitoring of biodiversity and ecosystem change for science and society (BiodivMon)".
+
+## License
+
+This dataset is released under: `{{ license_id }}`.
+
+## Citation
+
+Please check `CITATION.cff` for citation information.
+
+## Limitations and ethical considerations
+
+Before using this dataset, users should review possible limitations related to camera-trap data, class imbalance, annotation quality, environmental bias, privacy, and sensitive ecological information.

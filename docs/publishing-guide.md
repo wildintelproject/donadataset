@@ -18,16 +18,16 @@ based on their relevance to the dataset's scope (biodiversity, computer vision, 
 science), their alignment with the EU funding context of the WildINTEL project, and
 their adoption by the international research community:
 
-| Repository | Type | DOI | Audience |
-|---|---|---|---|
-| [HuggingFace Hub](#1-huggingface-hub) | Specialised (ML) | No | AI / ML community |
-| [Zenodo](#2-zenodo) | Open science archive | Yes | Scientific community |
-| [Dataverse](#3-dataverse) | Research data repository | Yes | Scientific community |
-| [Arias Montano (UHU)](#4-arias-montano-university-of-huelva) | Institutional repository | Yes | University of Huelva |
-| [Roboflow Universe](#5-roboflow-universe) | Specialised (CV / YOLO) | No | Computer vision community |
-| [Kaggle Datasets](#6-kaggle-datasets) | Generalised (ML) | No | ML community |
-| [GBIF](#7-gbif) | Biodiversity data | Yes | Ecology / biology community |
-| [B2SHARE (EUDAT)](#8-b2share-eudat) | European research data | Yes | EU scientific community |
+| Repository | Type | DOI | Audience | Implementation status |
+|---|---|-----|---|---|
+| [HuggingFace Hub](#1-huggingface-hub) | Specialised (ML) | Yes | AI / ML community | Testing |
+| [Zenodo](#2-zenodo) | Open science archive | Yes | Scientific community | Testing |
+| [Dataverse](#3-dataverse) | Research data repository | Yes | Scientific community | Not implemented |
+| [Arias Montano (UHU)](#4-arias-montano-university-of-huelva) | Institutional repository | Yes | University of Huelva | Not implemented |
+| [Roboflow Universe](#5-roboflow-universe) | Specialised (CV / YOLO) | No  | Computer vision community | Not implemented |
+| [Kaggle Datasets](#6-kaggle-datasets) | Generalised (ML) | Yes | ML community | Not implemented |
+| [GBIF](#7-gbif) | Biodiversity data | Yes | Ecology / biology community | Testing |
+| [B2SHARE (EUDAT)](#8-b2share-eudat) | European research data | Yes | EU scientific community | Testing |
 
 ---
 
@@ -53,17 +53,17 @@ DonaDataset is made up of the following types of content:
 - **Documentation** — the MkDocs site (this guide and related pages) and the
   `README.md`, which describe the dataset, its structure, and how to use it.
 
-- **Occurrence records** — a representation of the dataset in
-  [Darwin Core](https://dwc.tdwg.org/) format for GBIF. Each detected animal becomes
-  a biodiversity occurrence record with species name, date, and geographic coordinates,
-  making the data discoverable by ecologists and conservation researchers worldwide.
+- **Camtrap DP package** — a representation of the dataset in
+  [Camtrap DP](https://camtrap-dp.tdwg.org/) format for GBIF. Each detected animal
+  becomes an observation with species name, date, and deployment location, making the
+  data discoverable by ecologists and conservation researchers worldwide.
 
 Due to the nature of the different repositories — some specialised in large file storage,
 others in citable scientific records or biodiversity standards — it is not always possible
 to store images and metadata together in the same place. The table below shows what is
 stored in each repository:
 
-| Repository | Images | Labels | Species catalogue | Scripts | Documentation | Occurrence records |
+| Repository | Images | Labels | Species catalogue | Scripts | Documentation | Camtrap DP package |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
 | HuggingFace Hub | ✅ | ✅ | | | | |
 | Dataverse | ✅ | ✅ | ✅ | | | |
@@ -376,42 +376,64 @@ institutions, natural history museums, and citizen science projects, and is the
 reference platform for ecologists, conservation biologists, and environmental policy
 makers.
 
-> 📋 **What GBIF hosts:** **biodiversity occurrence records** in
-> [Darwin Core](https://dwc.tdwg.org/) format — NOT the raw images or YOLO labels.
-> Each camera-trap detection is represented as a species occurrence with coordinates,
-> date, and taxonomy. GBIF is the global standard for biodiversity data and greatly
-> increases discoverability by ecologists and conservation researchers.
+> 📋 **What GBIF hosts:** camera-trap data in **[Camtrap DP](https://camtrap-dp.tdwg.org/)**
+> format — NOT the raw images or YOLO labels (those live on
+> [HuggingFace Hub](#1-huggingface-hub)). GBIF converts it internally to Darwin Core
+> Occurrence records. Camtrap DP is the TDWG/GBIF standard for camera-trap data,
+> natively supported by IPT v3+.
+
+> ℹ️ **Two publishing paths, and nothing to fill in by hand.** This pipeline tracks no
+> real per-camera GPS or deployment dates, so `gbif prepare` invents reasonable
+> placeholders itself (one deployment per split, EXIF-derived photo dates where
+> available) instead of asking you for a CSV. The IPT itself has no upload API, but
+> GBIF's separate Registry API lets you register a dataset directly, without an IPT, if
+> you host the archive yourself. See the
+> dedicated [GBIF publishing guide](publishing-gbif.md) for exactly what's derived vs.
+> invented and the full command-by-command walkthrough; this section only summarises it.
 
 ### First-time setup
 
 1. Create an account at [gbif.org](https://www.gbif.org) and request an **organisation**
    account for WildINTEL (or use the University of Huelva's existing GBIF node).
-2. Install the [GBIF IPT](https://www.gbif.org/ipt) (Integrated Publishing Toolkit) on
-   your server, or use a hosted IPT instance.
-3. Register the dataset in the IPT with resource type **Camera Trap**.
+2. Either install the [GBIF IPT](https://www.gbif.org/ipt) v3+ (or use a hosted instance)
+   if publishing manually, or register an **installation** (any type — doesn't have to be
+   an IPT) if publishing via `gbif register`'s Registry API path.
 
-### Preparing the Darwin Core data
+### Preparing the Camtrap DP package
 
-Convert the YOLO annotations to Darwin Core occurrence records. Each detection becomes
-one row with at minimum:
+```bash
+donadataset publish gbif prepare --source-dataset-dir ./output
+```
 
-| Darwin Core field | Source |
-|---|---|
-| `scientificName` | `metadata/classes.yaml` (class id → species name) |
-| `eventDate` | From image EXIF or filename |
-| `decimalLatitude` / `decimalLongitude` | Camera GPS coordinates |
-| `basisOfRecord` | `MachineObservation` |
-| `datasetName` | `DonaDataset` |
+No CSV to fill in. `prepare` scans the YOLO dataset, treats each split (train/val/test)
+as one illustrative deployment inside Doñana, reads each photo's date from its EXIF (or
+estimates one otherwise), and writes `datapackage.json` + `deployments.csv` +
+`media.csv` + `observations.csv` into a `.zip`. See
+[publishing-gbif.md](publishing-gbif.md#3-what-gbif-prepare-invents-and-why) for exactly
+what's derived from the data vs. invented as a placeholder.
 
 ### Publishing
 
-1. Upload the Darwin Core Archive (`.zip`) to the IPT resource.
-2. Register the resource with GBIF — it will be indexed within 24–48 hours.
-3. GBIF assigns a DOI; update `README.md` with the GBIF dataset link.
+**Manual, through an IPT v3+:**
+
+1. Upload the Camtrap DP `.zip` as the resource's source file.
+2. Publish the resource from the IPT UI — it will be indexed within 24–48 hours.
+
+**Scripted, through the Registry API (no IPT):** host the `.zip` yourself at a public
+URL, then:
+
+```bash
+export GBIF_USERNAME=... GBIF_PASSWORD=...
+donadataset publish gbif register --archive-url https://your-host/donadataset-camtrap-dp.zip
+```
+
+Either way, GBIF assigns a DOI; update `README.md` with the GBIF dataset link.
 
 ### On every new version
 
-Upload a new Darwin Core Archive to the IPT and trigger a re-crawl from the GBIF portal.
+Re-run `gbif prepare` (it always regenerates the whole package, nothing to keep in sync
+by hand), then either upload the new Camtrap DP `.zip` to the IPT and trigger a re-crawl,
+or re-run `gbif register` with the same (re-uploaded) `--archive-url`.
 
 ---
 
@@ -497,7 +519,7 @@ Create a new record version on B2SHARE and upload the updated zip archives and r
 - [ ] Upload updated zip archives + release archive to **B2SHARE** and publish the new version.
 
 **Biodiversity records**
-- [ ] Generate updated Darwin Core Archive and re-publish on **GBIF**.
+- [ ] Generate an updated Camtrap DP package (`gbif prepare`) and re-publish on **GBIF**.
 
 **References**
 - [ ] Update DOI badges and record URLs in `README.md`.
@@ -557,8 +579,8 @@ sequenceDiagram
     M->>ZN: Review metadata and publish
     ZN-->>M: ✓ DOI confirmed
 
-    M->>M: Generate Darwin Core Archive from annotations
-    M->>GB: Upload Darwin Core Archive to IPT
+    M->>M: Generate Camtrap DP package from annotations (gbif prepare)
+    M->>GB: Upload Camtrap DP package to IPT (or gbif register)
     GB-->>M: ✓ Dataset indexed · DOI assigned
 
     M->>AM: Submit deposit request (code + metadata + DOIs)
@@ -585,8 +607,36 @@ reviewing the Zenodo deposit, publishing on GBIF, and notifying Arias Montano.
 | Kaggle | ✅ GitHub Actions (`publish.yml`) |
 | B2SHARE 🇪🇺 | ✅ GitHub Actions (`publish.yml`) |
 | Zenodo | ✅ Automatic webhook triggered by the GitHub release |
-| GBIF | ⚠️ Partial — Darwin Core Archive must be generated and uploaded manually |
+| GBIF | ⚠️ Partial — `gbif prepare` is scriptable, but uploading/publishing still needs either the IPT UI or `gbif register` run by hand |
 | Arias Montano | ❌ Manual — contact biblioteca@uhu.es |
+
+### The `donadataset publish all` CLI pipeline
+
+Separately from the GitHub Actions workflow above, the `donadataset` CLI itself can drive
+**HuggingFace Hub, Zenodo, B2SHARE, and GBIF** end to end in one command:
+
+```bash
+donadataset publish all
+```
+
+It runs each integration's `pipeline` in the order they depend on each other
+(HuggingFace Hub → Zenodo → B2SHARE → GBIF), reusing whatever you've already saved with
+`donadataset publish <repo> config set ...` — no flags needed if every integration is
+already configured. Zenodo's own `pipeline` normally pauses to ask you to manually
+re-run `huggingface upload` after it reserves a DOI (so the public HF repo reflects it);
+`publish all` closes that gap itself, automatically, with no prompt. The **one** manual
+step left is unavoidable: HuggingFace Hub has no API to generate its own DOI, so its
+pipeline still pauses once for you to click "Generate DOI" on the web UI and press Enter.
+
+Use `--include`/`--exclude` (comma-separated: `huggingface`, `zenodo`, `b2share`, `gbif`)
+to skip repositories — `--exclude` removes them, `--include` always wins if a repository
+ends up in both. `--dry-run` prints the exact commands it would run, in order, without
+running any of them.
+
+```bash
+donadataset publish all --exclude b2share      # skip B2SHARE this time
+donadataset publish all --dry-run              # preview the full plan first
+```
 
 ---
 

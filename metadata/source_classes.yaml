@@ -1,0 +1,25 @@
+# DonaDataset — original label scheme of the raw camera-trap source dataset
+# This is the raw annotation scheme (18 classes) produced upstream by the
+# annotation pipeline, before filtering/remapping into the public class list
+# (see classes.yaml). Only edit this file if the upstream annotation schema
+# itself changes — it is not the public dataset's class list.
+
+classes:
+  0: Ave
+  1: Felis catus
+  2: Bos taurus
+  3: Canis familiaris
+  4: Herpestes ichneumon
+  5: Meles meles
+  6: Oryctolagus cuniculus
+  7: Dama dama
+  8: Genetta genetta
+  9: Equus sp
+  10: Homo sapiens
+  11: Lepus granatensis
+  12: Lynx pardinus
+  13: Cervus elaphus
+  14: Vulpes vulpes
+  15: Sus scrofa
+  16: Empty
+  17: Vehicle

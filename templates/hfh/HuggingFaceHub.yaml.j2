@@ -1,0 +1,188 @@
+# DonaDataset — configuración para publicar SOLO en HuggingFace Hub.
+#
+# Usado por: donadataset publish huggingface prepare|upload|download|release|sync-doi
+#
+# No contiene ninguna sección "zenodo:"/"b2share:" — 'huggingface prepare' no
+# sabe nada de esos repositorios, ni falta que le hace: Zenodo y B2SHARE
+# tienen su propia plantilla separada (templates/Zenodo.yaml.j2,
+# templates/B2SHARE.yaml.j2) con su propia identidad de proyecto, y cuando se
+# publica en ellos simplemente descargan en vivo el repo de HuggingFace Hub
+# ya publicado y reutilizan la copia resuelta de ESTE fichero
+# (HuggingFaceHub.yaml, dentro del export) como uno de los ficheros de
+# evidencia que suben a su propio depósito — no hace falta que este fichero
+# sepa que existen.
+#
+# Ubicación por defecto: ~/.config/donadataset/HuggingFaceHub.yaml
+# (donadataset publish huggingface config wizard la crea/edita por ti para
+# los campos más comunes; el resto se añade a mano o con
+# 'donadataset publish huggingface config set clave=valor').
+#
+# ── Cómo usar esta plantilla ──────────────────────────────────────────────────
+# Este fichero es una plantilla Jinja2 (.j2). 'donadataset publish huggingface
+# prepare' la renderiza automáticamente al vuelo cuando --config apunta a un
+# fichero .j2: las variables Jinja se rellenan con los flags de 'prepare'
+# (--dataset-slug, --repo-id, --license-id, --author-given-names...).
+#
+# El VALOR POR DEFECTO de esos flags (visible en 'prepare --help') sale de
+# 'donadataset config set HUGGINGFACE.<campo>=...' (o 'donadataset config
+# wizard') — así no hace falta repetirlos en cada dataset nuevo ni pasarlos
+# a mano cada vez. Pasar el flag explícitamente en la línea de comandos
+# siempre gana sobre ese default guardado. Lo que ni el flag ni settings.toml
+# resuelvan queda como el texto REPLACE_WITH_... de siempre en el YAML
+# resultante, así que sigue siendo obvio qué falta por completar a mano.
+#
+# classes.names no tiene flag ni entrada en settings.toml, pero ni falta
+# hace — se autodetecta desde source_dataset_dir.
+
+# ── Identidad del dataset ─────────────────────────────────────────────────────
+project:
+  dataset_slug: {{ (dataset_slug or 'REPLACE_WITH_DATASET_SLUG') | tojson }}      # [flag: --dataset-slug]
+  dataset_name: {{ (dataset_name or 'REPLACE_WITH_DATASET_NAME') | tojson }}      # [flag: --dataset-name]
+  version: {{ (version or 'REPLACE_WITH_VERSION') | tojson }}                     # [flag: --version]
+  description: {{ (description or 'REPLACE_WITH_DESCRIPTION') | tojson }}         # [flag: --description]
+  task: object-detection             # fijo para este tipo de dataset
+  annotation_format: YOLO            # fijo para este tipo de dataset
+  # creation_date: '2026-01-01'      # opcional — si se omite, se usa la fecha de hoy en CITATION.cff
+
+# ── Rutas ─────────────────────────────────────────────────────────────────────
+paths:
+  # Debe ser la SALIDA de `donadataset generate real --output <dir>`
+  # (images/<split>/, labels/<split>/, donana_filtered.yaml) — no el dataset
+  # crudo sin procesar.
+  source_dataset_dir: {{ (source_dataset_dir or 'REPLACE_WITH_SOURCE_DATASET_DIR') | tojson }}   # [flag: --source-dataset-dir]
+  # Carpeta donde se crea el export HFH_Z_<slug>/. Si se omite, se usa
+  # export.output_dir_template (por defecto "HFH_Z_{dataset_slug}").
+  output_dir: {{ (output_dir or 'REPLACE_WITH_OUTPUT_DIR') | tojson }}            # [flag: --output-dir]
+
+# ── Splits y estructura del dataset origen (valores estándar) ────────────────
+splits:
+  train: train
+  validation: val
+  test: test
+
+dataset_structure:
+  images_folder_name: images
+  labels_folder_name: labels
+  expected_image_dirs: [images/train, images/val, images/test]
+  expected_label_dirs: [labels/train, labels/val, labels/test]
+
+# ── Clases (OPCIONAL — se autodetecta si se omite) ───────────────────────────
+# Si omites esta sección por completo, 'prepare' busca un YAML directamente
+# dentro de paths.source_dataset_dir con un mapa "names" no vacío (el propio
+# donana_filtered.yaml/donadatasetToy.yaml que escribió 'generate real'/'toy')
+# y lo usa automáticamente. Solo hace falta rellenar esto a mano si tu
+# source_dataset_dir no viene de 'generate' o quieres nombres distintos:
+# classes:
+#   names:
+#     0: REPLACE_WITH_CLASS_0_NAME
+#     1: REPLACE_WITH_CLASS_1_NAME
+#     # ... una entrada por cada clase
+
+# ── Ficheros de imagen/label reconocidos (valores estándar) ──────────────────
+image_files:
+  allowed_extensions: [.jpg, .jpeg, .png]
+  case_sensitive_extensions: false
+  recursive_scan: false
+
+label_files:
+  extension: .txt
+  allow_empty_label_files: true
+  require_label_for_each_image: true
+  allow_label_without_image: false
+
+# ── Validación de labels YOLO (valores estándar) ─────────────────────────────
+validation:
+  validate_class_ids: true
+  validate_normalized_coordinates: true
+  coordinate_min_value: 0.0
+  coordinate_max_value: 1.0
+
+# ── Hashing (valor estándar) ──────────────────────────────────────────────────
+hashing:
+  chunk_size_mb: 8
+
+# ── Sharding — empaquetado en .tar (valores estándar; los dos primeros son
+#    además los únicos admitidos actualmente por el código) ──────────────────
+sharding:
+  archive_format: tar
+  compression: none
+  max_shard_size_gb: 2.0
+
+# ── Nombres de manifests/ficheros de salida (valores estándar) ──────────────
+manifest:
+  manifest_filename: manifest.csv
+  file_hash_manifest_filename: manifest-files-sha256.csv
+  metadata_filename: metadata.csv
+
+output_files:
+  readme_filename: README.md
+  license_filename: LICENSE
+  citation_filename: CITATION.cff
+  yolo_yaml_filename: donana.yaml
+  dataset_info_filename: dataset_info.json
+  local_verification_report_filename: verification_report_local.json
+  # Generado por 'huggingface download', leído por los comandos de zenodo si
+  # algún día se usan:
+  downloaded_verification_report_filename: verification_report_downloaded.json
+
+checksums:
+  checksum_filename: checksums-sha256.txt
+
+local_verification:
+  stop_on_verification_error: true   # si false, 'prepare' no aborta aunque la verificación local falle
+
+# ── Licencia ───────────────────────────────────────────────────────────────
+# 'prepare' no asume ninguna licencia por ti — si no la tienes en settings.toml
+# (HUGGINGFACE.license_id/license_name/license_url) ni pasas los flags, queda
+# como placeholder.
+license:
+  license_id: {{ (license_id or 'REPLACE_WITH_LICENSE_ID') | tojson }}         # [flag: --license-id] ej. CC-BY-4.0
+  license_name: {{ (license_name or 'REPLACE_WITH_LICENSE_NAME') | tojson }}   # [flag: --license-name]
+  license_url: {{ (license_url or 'REPLACE_WITH_LICENSE_URL') | tojson }}     # [flag: --license-url]
+
+# ── CITATION.cff ──────────────────────────────────────────────────────────────
+citation:
+  cff_version: 1.2.0                 # valor estándar (versión del formato CFF)
+  # title: se omite a propósito — si falta, usa project.dataset_name automáticamente
+  message: {{ (message or 'REPLACE_WITH_MESSAGE') | tojson }}   # [flag: --message]
+  type: dataset                      # valor estándar
+  authors:
+    - given_names: {{ (author_given_names or 'REPLACE_WITH_GIVEN_NAMES') | tojson }}      # [flag: --author-given-names]
+      family_names: {{ (author_family_names or 'REPLACE_WITH_FAMILY_NAMES') | tojson }}   # [flag: --author-family-names]
+      affiliation: {{ (author_affiliation or 'REPLACE_WITH_AFFILIATION') | tojson }}       # [flag: --author-affiliation]
+  repository_code: {{ (repository_code or 'REPLACE_WITH_REPOSITORY_CODE') | tojson }}   # [flag: --repository-code] usado también en el README (Contributing)
+  # Derivado de --repo-id (mismo flag que huggingface.repo_id, más abajo):
+  repository_artifact: {{ (('https://huggingface.co/datasets/' + repo_id) if repo_id else 'REPLACE_WITH_HF_USER/REPLACE_WITH_DATASET_SLUG') | tojson }}
+  doi: null                          # se rellena solo si más adelante usas 'zenodo upload'
+
+# ── HuggingFace Hub (RELLENA repo_id — el resto son valores estándar) ────────
+huggingface:
+  repo_id: {{ (repo_id or 'REPLACE_WITH_HF_USER/REPLACE_WITH_DATASET_SLUG') | tojson }}   # [flag: --repo-id] ej. myuser/donadataset
+  repo_type: dataset                 # único valor admitido actualmente
+  private: true                      # crea el repo como privado; 'release' lo hace público al final
+  token_env_var: HF_TOKEN            # variable de entorno con tu token — nunca pongas el token aquí
+  create_repo_if_missing: true
+  commit_message: Upload dataset export   # valor estándar, no hace falta personalizarlo
+  upload_ignore_patterns: ['*.tmp', '*.bak', '__pycache__/', '.DS_Store']
+  upload_delete_patterns: ['*.bak']
+  retry:
+    enabled: true
+    max_attempts: 5
+    initial_wait_minutes: 2
+    incremental_wait: true
+    retry_on_status_codes: [429, 500, 502, 503, 504]
+  # Usados por 'release' (valores estándar):
+  public_visibility_report_filename: hfh_publication_report.json
+  update_config_private_flag: true   # tras hacerlo público, actualiza huggingface.private a false en este YAML
+  public_check_timeout_seconds: 20
+  # Usado por 'sync-doi' (valor estándar):
+  doi_sync_report_filename: hfh_doi_sync_report.json
+
+# ── Export (valores estándar) ────────────────────────────────────────────────
+export:
+  # [flag: --overwrite/--no-overwrite] false si no se pasa ninguno de los dos:
+  overwrite_output_dir: {{ (overwrite_output_dir if overwrite_output_dir is not none else false) | tojson }}
+  fail_if_output_dir_exists: true
+  internal_config_filename: HuggingFaceHub.yaml   # copia de este YAML que 'prepare' deja dentro del export
+  create_logs: true
+  log_filename: hfh_export.log

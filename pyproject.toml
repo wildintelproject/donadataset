@@ -1,20 +1,45 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["cli"]
+packages = ["donadataset", "donadataset.commands", "donadataset.services"]
+
 [project]
 name = "donadataset"
 version = "0.1.0"
 description = "Camera-trap mammal dataset from Doñana National Park"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+  "dynaconf>=3.2.12",
+  "huggingface-hub>=0.23.0",
+  "jinja2>=3.1",
+  "pillow>=10.0.0",
+  "platformdirs>=4.0",
+  "pydantic>=2.9",
+  "pyyaml>=6.0",
+  "requests>=2.31",
+  "rich>=13.0",
+  "typer>=0.15",
+]
+
+[project.scripts]
+cli = "cli:app"
+donadataset = "donadataset.main:app"
 
 [dependency-groups]
 dev = [
   "mkdocs>=1.6.1",
   "mkdocs-material>=9.7.6",
+  "mkdocs-with-pdf>=0.9.3",
   "mike>=2.1.0",
+  "pytest>=8.0",
 ]
 scripts = [
-  "huggingface-hub>=0.23.0",
-  "pillow>=10.0.0",
-  "pyyaml>=6.0",
   "tqdm>=4.66.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit", "tests/integration"]

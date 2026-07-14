@@ -1,0 +1,117 @@
+# DonaDataset — configuración para publicar en B2SHARE (EUDAT), registro
+# enlazado a HuggingFace Hub — mismo patrón que templates/Zenodo.yaml.j2.
+#
+# Usado por: donadataset publish b2share prepare|check-readiness|release|sync-pid
+#
+# B2SHARE NO aloja las imágenes/labels — solo sube ficheros pequeños de
+# metadatos/evidencia (README, LICENSE, CITATION.cff, manifests, checksums,
+# reports), obtenidos de una DESCARGA EN VIVO del repo de HuggingFace Hub, y
+# enlaza al dataset real en HuggingFace Hub vía "alternate_identifier". A
+# cambio, B2SHARE (infraestructura europea EUDAT) te da un PID/DOI permanente
+# alojado en servidores de la UE.
+#
+# ── Cómo usar esta plantilla ──────────────────────────────────────────────────
+# Es una plantilla Jinja2 (.j2), igual que templates/Zenodo.yaml.j2. Hace
+# falta --repo-id, --output-dir (directorio PROPIO de B2SHARE) y
+# --community-id (UUID de tu comunidad EUDAT — solicítala si no la tienes,
+# no se puede adivinar). El resto (título, descripción, licencia, autor) se
+# rellena solo con lo que ya tengas guardado en 'donadataset config set
+# HUGGINGFACE.<campo>=...'.
+#
+#   donadataset publish b2share prepare \
+#     --repo-id tu-usuario/tu-dataset \
+#     --output-dir /donde/quieras/B2SHARE_tu-dataset \
+#     --community-id <uuid-de-tu-comunidad>
+#
+# 'b2share prepare' descarga el repo de HuggingFace Hub en tiempo real, lo
+# verifica (checksums globales + hashes internos de cada tar), crea un draft
+# en B2SHARE y sube los ficheros de evidencia (ya incluidos en esa misma
+# descarga) — igual que 'zenodo prepare'. --dry-run se salta la descarga y la
+# creación del draft por completo (no hace llamadas de red).
+#
+# A diferencia de Zenodo, B2SHARE NO reserva un PID/DOI al crear el draft —
+# solo se asigna al publicar (ver 'release'). Por eso no hay un paso 'upload'
+# aquí: en vez de eso, 'sync-pid' (después de 'release') lee el PID/DOI ya
+# asignado y lo añade a tu CITATION.cff local, para que puedas volver a subir
+# a HuggingFace con el identificador correcto.
+#
+# zenodo.output.*_filename NO existe en esta plantilla a propósito — mismo
+# motivo que se quitó de Zenodo.yaml.j2: un valor no vacío ahí haría que los
+# reports cayeran relativos al directorio de ejecución en vez de dentro de
+# --output-dir.
+
+# ── Export local de HuggingFace (solo lo usa 'sync-pid') ────────────────────
+paths:
+  output_dir: {{ (hfh_output_dir or 'REPLACE_WITH_HFH_OUTPUT_DIR') | tojson }}   # [flag: --hfh-output-dir, solo en 'sync-pid']
+
+huggingface:
+  repo_id: {{ (repo_id or 'REPLACE_WITH_HF_USER/REPLACE_WITH_DATASET_SLUG') | tojson }}   # [flag: --repo-id]
+
+checksums:
+  # Debe coincidir con output_files.checksum_filename del YAML de HuggingFace,
+  # si lo cambiaste de su valor por defecto.
+  checksum_filename: checksums-sha256.txt
+
+# ── B2SHARE ───────────────────────────────────────────────────────────────────
+b2share:
+  enabled: true                # 'b2share prepare' se niega a hacer nada si esto es false
+  environment: {{ environment | tojson }}   # [flag: --environment] "sandbox" (trng-b2share.eudat.eu) para
+                                # pruebas, "production" solo cuando quieras un PID/DOI real
+  token_env_var: B2SHARE_TOKEN  # variable de entorno con tu token — nunca lo pongas aquí
+
+  # UUID de tu comunidad EUDAT B2SHARE — obligatorio, no se puede adivinar.
+  # Solicítala en https://b2share.eudat.eu si aún no tienes una:
+  community: {{ (community_id or 'REPLACE_WITH_COMMUNITY_UUID') | tojson }}   # [flag: --community-id]
+
+  # Directorio PROPIO de B2SHARE (SALIDA): aquí es donde 'b2share prepare'
+  # descarga HuggingFace Hub en tiempo real para verificarlo, y donde copia
+  # todos los ficheros que sube a B2SHARE — separado del export de
+  # HuggingFace de arriba (paths.output_dir), que es una entrada, no esto.
+  output_dir: {{ b2share_output_dir | tojson }}   # [flag: --output-dir]
+
+  # OJO: si pones esto a true, 'b2share prepare' publica el draft
+  # inmediatamente después de crearlo, SALTÁNDOSE 'check-readiness'. Déjalo en
+  # false y usa 'donadataset publish b2share release' cuando de verdad quieras
+  # publicar — es la única vía que pasa por el chequeo de seguridad.
+  publish: false
+
+  titles:
+    - title: {{ (dataset_name + ': verified Hugging Face Hub linked dataset record') | tojson }}
+  descriptions:
+    - description: {{ (description + ' The full dataset files are hosted on Hugging Face Hub. This B2SHARE record provides a European-hosted PID/DOI and stores the metadata, manifests, checksums, and verification reports required to identify and verify the published dataset version.') | tojson }}
+      description_type: Abstract
+  # Sin flag propio — reutiliza lo mismo que 'huggingface prepare' (settings.toml HUGGINGFACE.author_*):
+  creators:
+    - creator_name: {{ (author_given_names + ' ' + author_family_names if author_given_names else author_family_names) | tojson }}
+  open_access: true
+  licence: {{ license_id | tojson }}
+  keywords:
+    - camera traps
+    - object detection
+    - YOLO
+    - computer vision
+    - wildlife monitoring
+    - deep learning
+
+  # Enlace al dataset real en HuggingFace Hub — B2SHARE solo admite un string
+  # (a diferencia de los related_identifiers estructurados de Zenodo), así
+  # que aquí va la URL del dataset; la URL del árbol de ficheros se menciona
+  # dentro de descriptions arriba.
+  alternate_identifier: {{ huggingface_dataset_url | tojson }}
+
+  # Campos específicos de tu comunidad EUDAT (según su esquema propio,
+  # consultable en GET /api/records/<community_id>/schemas/<version>) — se
+  # deja vacío hasta que tengas la comunidad asignada y sepas qué exige:
+  community_specific: {}
+
+  # Comprobación de que la URL de arriba responde de verdad (usado por
+  # 'check-readiness' y 'release'):
+  link_checking:
+    enabled: true
+    timeout_seconds: 20
+    allow_private_hfh_status_codes: [401, 403, 404]
+
+  # b2share.files_to_upload se omite a propósito — por defecto sube los
+  # ficheros de evidencia estándar (README, LICENSE, CITATION.cff, manifests,
+  # checksums, reports) más el downloaded_verification_report. Solo hace
+  # falta esta clave si quieres añadir ficheros extra.

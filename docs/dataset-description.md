@@ -6,52 +6,73 @@ DonaDataset is a collection of camera-trap images annotated in
 [YOLO format](https://docs.ultralytics.com/datasets/detect/) for object detection.
 It covers the mammal species present in
 [Doñana National Park](https://www.miteco.gob.es/es/red-parques-nacionales/nuestros-parques/donana/)
-(Huelva, Spain), one of the most important wetland ecosystems in Europe.
+(Huelva, Spain), one of the most important wetland ecosystems in Europe. It is the
+training dataset behind
+[DonaNet](https://github.com/wildintelproject/donanet), a YOLO-based neural network
+developed as part of the [WildINTEL project](https://wildintel.eu/) for the automated
+monitoring of wildlife through camera-trap imagery.
 
-## Storage
+## Classes
 
-Images and labels are hosted on HuggingFace Hub at
-[wildintelproject/donadataset](https://huggingface.co/datasets/wildintelproject/donadataset),
-published in the [Arias Montano](https://rabida.uhu.es/) institutional repository of the
-[University of Huelva](https://www.uhu.es/), on [Zenodo](https://zenodo.org/), and on
-[Dataverse](https://dataverse.harvard.edu/).
+The dataset covers the following mammal species present in Doñana National Park.
+Class ids match the order in `metadata/classes.yaml` and `metadata/dataset.yaml`.
+
+| ID | Common name       | Scientific name         |
+|----|-------------------|-------------------------|
+| 0  | Red deer          | *Cervus elaphus*        |
+| 1  | Fallow deer       | *Dama dama*             |
+| 2  | Wild boar         | *Sus scrofa*            |
+| 3  | Iberian lynx      | *Lynx pardinus*         |
+| 4  | Red fox           | *Vulpes vulpes*         |
+| 5  | Egyptian mongoose | *Herpestes ichneumon*   |
+| 6  | European rabbit   | *Oryctolagus cuniculus* |
+| 7  | Badger            | *Meles meles*           |
+
+!!! note "Adding new classes"
+    To extend the dataset with new species, add entries to `metadata/classes.yaml`
+    keeping ids contiguous, update `metadata/dataset.yaml` accordingly, and open a
+    pull request. The CI workflow will verify consistency automatically.
+
+## Collection protocol
+
+### Camera traps
+
+Images were collected using camera traps deployed across Doñana National Park.
+Cameras were positioned at known wildlife corridors, water points and feeding areas
+to maximise species coverage.
+
+### Image processing
+
+Raw images are exported in JPEG format. No colour correction or resizing is applied
+before annotation — the model receives images at their original resolution.
+
+### Annotation workflow
+
+Annotations were produced using the YOLO bounding-box format. Each detected animal
+is labelled with:
+
+- **Class id** — species identifier (see [Classes](#classes) above)
+- **Bounding box** — normalised centre coordinates and dimensions
+
+Ambiguous detections (partial occlusion, low confidence) are excluded from the dataset.
 
 ## Dataset splits
 
-| Split   | Purpose                          |
-|---------|----------------------------------|
-| `train` | Model training                   |
-| `val`   | Hyperparameter tuning / monitoring |
-| `test`  | Final evaluation (held-out)      |
+Images are split into `train / val / test` partitions using the
+[DonaNet](https://github.com/wildintelproject/donanet) `prepare-dataset` command
+with the following default ratios:
 
-## Directory layout (after download)
+| Split   | Ratio | Purpose                            |
+|---------|-------|-------------------------------------|
+| `train` | 70 %  | Model training                     |
+| `val`   | 20 %  | Hyperparameter tuning / monitoring |
+| `test`  | 10 %  | Final evaluation (held-out)        |
 
-```
-data/
-├── train/
-│   ├── images/   ← camera-trap images (.jpg)
-│   └── labels/   ← YOLO annotations (.txt)
-├── val/
-│   ├── images/
-│   └── labels/
-└── test/
-    ├── images/
-    └── labels/
-```
+Stratified sampling is applied to ensure each species is represented in all splits.
 
-## Annotation format
+## Storage
 
-Each label file contains one row per detected animal:
-
-```
-<class_id> <x_center> <y_center> <width> <height>
-```
-
-All coordinates are normalised to `[0, 1]` relative to the image dimensions.
-
-## Metadata files
-
-| File | Description |
-|------|-------------|
-| `metadata/classes.yaml` | Maps class ids to common and scientific species names |
-| `metadata/dataset.yaml` | Ultralytics YOLO config — use directly with `donanet train` |
+Images and labels are published across several external repositories — see the
+[Publishing Guide](publishing-guide.md) for the full list and details. For how to
+actually download the data and what you'll find once you do (directory layout,
+annotation format, metadata files), see the [User Guide](user-guide.md).

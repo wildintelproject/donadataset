@@ -1,0 +1,118 @@
+# DonaDataset — configuración para publicar en Zenodo (registro enlazado a HuggingFace Hub).
+#
+# Usado por: donadataset publish zenodo prepare|upload|download|check-readiness|release
+#
+# Zenodo NO aloja las imágenes/labels — solo sube ficheros pequeños de
+# metadatos/evidencia (README, LICENSE, CITATION.cff, manifests, checksums,
+# reports), obtenidos de una DESCARGA EN VIVO del repo de HuggingFace Hub
+# (lo que subió 'huggingface upload' ya los contiene), y enlaza al dataset
+# real en HuggingFace Hub vía "related_identifiers". A cambio, Zenodo te da
+# un DOI permanente para citar el dataset.
+#
+# ── Cómo usar esta plantilla ──────────────────────────────────────────────────
+# Es una plantilla Jinja2 (.j2), igual que templates/HuggingFaceHub.yaml.j2.
+# 'donadataset publish zenodo prepare' la renderiza automáticamente cuando
+# --config apunta a un fichero .j2: lo único que en principio hace falta
+# decirle es --repo-id (cómo conectar con el repo de HuggingFace) y
+# --output-dir (el directorio PROPIO de Zenodo, donde se descarga y se
+# guarda todo) — el resto (título, descripción, licencia, autor, URLs
+# enlazadas a HuggingFace) se rellena solo con lo que ya tengas guardado en
+# 'donadataset config set HUGGINGFACE.<campo>=...' (las mismas claves que usa
+# 'huggingface prepare'), o con REPLACE_WITH_... si tampoco eso está definido.
+#
+#   donadataset publish zenodo prepare \
+#     --repo-id tu-usuario/tu-dataset \
+#     --output-dir /donde/quieras/Zenodo_tu-dataset
+#
+# 'zenodo prepare' descarga el repo de HuggingFace Hub en tiempo real, lo
+# verifica (checksums globales + hashes internos de cada tar) y guarda tanto
+# la copia descargada como el report de esa verificación, además de los
+# demás ficheros de evidencia (ya incluidos en esa misma descarga), dentro
+# de su propio directorio (--output-dir) — así tienes ahí mismo la prueba
+# de que lo publicado coincide con lo que sube a Zenodo. --dry-run se salta
+# la descarga por completo (no hace llamadas de red).
+#
+# paths.output_dir (abajo) NO hace falta para 'prepare'/'check-readiness'/
+# 'release' — solo lo usa 'zenodo upload' (--hfh-output-dir), que necesita
+# escribir el DOI en el export local de HuggingFace antes de volver a
+# subirlo con 'huggingface upload'.
+
+# ── Export local de HuggingFace (solo lo usa 'zenodo upload') ───────────────
+paths:
+  output_dir: {{ (output_dir or 'REPLACE_WITH_HFH_OUTPUT_DIR') | tojson }}   # [flag: --hfh-output-dir, solo en 'upload']
+
+huggingface:
+  repo_id: {{ (repo_id or 'REPLACE_WITH_HF_USER/REPLACE_WITH_DATASET_SLUG') | tojson }}   # [flag: --repo-id]
+
+checksums:
+  # Debe coincidir con output_files.checksum_filename del YAML de HuggingFace,
+  # si lo cambiaste de su valor por defecto.
+  checksum_filename: checksums-sha256.txt
+
+# ── Zenodo ────────────────────────────────────────────────────────────────────
+zenodo:
+  enabled: true                # 'zenodo prepare' se niega a hacer nada si esto es false
+  environment: {{ environment | tojson }}   # [flag: --environment] "sandbox" (sandbox.zenodo.org) para
+                                # pruebas, "production" solo cuando quieras un DOI real
+  token_env_var: ZENODO_TOKEN  # variable de entorno con tu token — nunca lo pongas aquí
+
+  # Directorio PROPIO de Zenodo (SALIDA): aquí es donde 'zenodo prepare'
+  # descarga HuggingFace Hub en tiempo real para verificarlo, y donde copia
+  # todos los ficheros que sube a Zenodo (README, LICENSE, CITATION.cff,
+  # manifests, checksums, reports...) — separado del export de HuggingFace
+  # de arriba (paths.output_dir), que es una entrada, no esto.
+  output_dir: {{ zenodo_output_dir | tojson }}   # [flag: --output-dir]
+
+  # OJO: si pones esto a true, 'zenodo prepare' publica el depósito
+  # inmediatamente después de crearlo, SALTÁNDOSE 'check-readiness'. Déjalo en
+  # false y usa 'donadataset publish zenodo release' cuando de verdad quieras
+  # publicar — es la única vía que pasa por el chequeo de seguridad.
+  publish: false
+
+  upload_type: dataset
+  title: {{ (dataset_name + ': verified Hugging Face Hub linked dataset record') | tojson }}
+  description: {{ (description + ' The full dataset files are hosted on Hugging Face Hub. This Zenodo record provides the DOI and stores the metadata, manifests, checksums, and verification reports required to identify and verify the published dataset version.') | tojson }}
+  # Sin flag propio — reutiliza lo mismo que 'huggingface prepare' (settings.toml HUGGINGFACE.author_*):
+  creators:
+    - name: {{ (author_given_names + ' ' + author_family_names if author_given_names else author_family_names) | tojson }}
+      affiliation: {{ (author_affiliation or 'REPLACE_WITH_AFFILIATION') | tojson }}
+      orcid: null
+  access_right: open
+  license: {{ license_id | lower | tojson }}
+  keywords:
+    - camera traps
+    - object detection
+    - YOLO
+    - computer vision
+    - wildlife monitoring
+    - deep learning
+  notes: >-
+    This is a linked dataset record. The heavy dataset shards are hosted on
+    Hugging Face Hub. This Zenodo record stores metadata, manifests,
+    checksums, and verification reports.
+
+  # URLs mostradas en Zenodo como "related identifiers" — derivadas
+  # automáticamente de huggingface.repo_id (arriba), no hace falta escribirlas:
+  related_identifiers:
+    huggingface_dataset_url: {{ huggingface_dataset_url | tojson }}
+    huggingface_tree_url: {{ huggingface_tree_url | tojson }}
+
+  # Comprobación de que las URLs de arriba responden de verdad (usado por
+  # 'check-readiness' y 'release'):
+  link_checking:
+    enabled: true
+    timeout_seconds: 20
+    allow_private_hfh_status_codes: [401, 403, 404]
+
+  # zenodo.files_to_upload se omite a propósito — por defecto sube los
+  # ficheros de evidencia estándar (README, LICENSE, CITATION.cff, manifests,
+  # checksums, reports) más el downloaded_verification_report. Solo hace
+  # falta esta clave si quieres añadir ficheros extra.
+
+  # zenodo.output.*_filename se omite A PROPÓSITO (a diferencia de versiones
+  # anteriores de esta plantilla): si se rellena aquí, aunque sea con el
+  # mismo nombre por defecto, get_output_filename() lo trata como una ruta
+  # explícita y deja de unirla con zenodo.output_dir — todos los reports
+  # acabarían en el directorio desde el que ejecutes el comando, no dentro de
+  # --output-dir. Sin esta sección, cada fichero cae solo donde debe
+  # (zenodo.output_dir / nombre-por-defecto).

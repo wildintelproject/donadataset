@@ -6,6 +6,10 @@ on:
       - main
     tags:
       - "v*.*.*"
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "README.md"
   workflow_dispatch:
     inputs:
       version:
@@ -24,6 +28,10 @@ on:
 
 permissions:
   contents: write
+
+concurrency:
+  group: docs-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy-docs:

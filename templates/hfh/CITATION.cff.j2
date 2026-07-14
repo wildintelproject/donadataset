@@ -1,0 +1,25 @@
+{# Renderizada por write_citation() en services/huggingface.py. Los fallbacks
+   (cff_version, message, citation_type, date_released) se resuelven en
+   Python antes de llegar aquí, así que siempre llegan ya definidos. #}
+cff-version: {{ cff_version | tojson }}
+title: {{ title | tojson }}
+message: {{ message | tojson }}
+type: {{ citation_type | tojson }}
+authors:
+{% for author in authors %}
+  - given-names: {{ author.given_names | tojson }}
+    family-names: {{ author.family_names | tojson }}
+    affiliation: {{ author.affiliation | tojson }}
+{% endfor %}
+version: {{ version | tojson }}
+date-released: {{ date_released | tojson }}
+license: {{ license_id | tojson }}
+{% if repository_code %}
+repository-code: {{ repository_code | tojson }}
+{% endif %}
+{% if repository_artifact %}
+repository-artifact: {{ repository_artifact | tojson }}
+{% endif %}
+{% if doi %}
+doi: {{ doi | tojson }}
+{% endif %}
