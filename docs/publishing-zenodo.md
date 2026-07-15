@@ -68,10 +68,20 @@ machine happened to have on disk at some earlier point.
 
 The result of the live download-and-verify step described above:
 `status: "passed"/"failed"`, `repo_id`, the local path the download was written to,
-and the counts/errors from re-checking global checksums and internal `.tar` hashes.
-This is generated **fresh every time** `zenodo prepare` runs (never reused from an
-older `huggingface download` run), and it is itself uploaded to Zenodo as one more
-piece of evidence.
+`data_verified` (whether the `data/<split>/*.tar` shards were downloaded and hashed too
+— see `--verify-data` below), and the counts/errors from re-checking global checksums
+and internal `.tar` hashes. This is generated **fresh every time** `zenodo prepare` runs
+(never reused from an older `huggingface download` run), and it is itself uploaded to
+Zenodo as one more piece of evidence.
+
+> 💡 **`--verify-data` / `--no-verify-data` (default: off).** Zenodo never uploads the
+> `.tar` shards — only the small evidence files — so by default `prepare` doesn't even
+> download them from HuggingFace Hub to check them, just the metadata. Pass
+> `--verify-data` to additionally download every shard and re-hash its contents against
+> `manifest-files-sha256.csv`, for extra assurance that the published images/labels
+> themselves (not just the metadata describing them) still match what `huggingface
+> prepare` originally wrote — at the cost of a full dataset download every time you run
+> this command.
 
 ### `zenodo_linked_dataset_record.json`
 

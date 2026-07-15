@@ -72,11 +72,23 @@ momento anterior.
 ### `verification_report_downloaded.json`
 
 El resultado del paso de descarga-y-verificación en vivo descrito arriba:
-`status: "passed"/"failed"`, `repo_id`, la ruta local donde se escribió la descarga, y
-los recuentos/errores de volver a comprobar los checksums globales y los hashes
-internos de los `.tar`. Se genera **fresco cada vez** que se ejecuta `zenodo prepare`
-(nunca se reutiliza de una ejecución anterior de `huggingface download`), y se sube a
-su vez a Zenodo como una pieza más de evidencia.
+`status: "passed"/"failed"`, `repo_id`, la ruta local donde se escribió la descarga,
+`data_verified` (si los shards `data/<split>/*.tar` también se descargaron y
+verificaron — ver `--verify-data` abajo), y los recuentos/errores de volver a
+comprobar los checksums globales y los hashes internos de los `.tar`. Se genera
+**fresco cada vez** que se ejecuta `zenodo prepare` (nunca se reutiliza de una
+ejecución anterior de `huggingface download`), y se sube a su vez a Zenodo como una
+pieza más de evidencia.
+
+> 💡 **`--verify-data` / `--no-verify-data` (por defecto: desactivado).** Zenodo nunca
+> sube los shards `.tar` — solo los ficheros pequeños de evidencia — así que por
+> defecto `prepare` ni siquiera los descarga de HuggingFace Hub para comprobarlos,
+> solo los metadatos. Pasa `--verify-data` para además descargar cada shard y volver a
+> calcular el hash de su contenido contra `manifest-files-sha256.csv`, como garantía
+> extra de que las propias imágenes/etiquetas publicadas (no solo los metadatos que
+> las describen) siguen coincidiendo con lo que escribió originalmente `huggingface
+> prepare` — al coste de una descarga completa del dataset cada vez que ejecutes este
+> comando.
 
 ### `zenodo_linked_dataset_record.json`
 
