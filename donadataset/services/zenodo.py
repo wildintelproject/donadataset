@@ -262,19 +262,31 @@ def get_zenodo_downloaded_report_path(config: Dict[str, Any]) -> Path:
     return get_zenodo_output_dir(config) / "verification_report_downloaded.json"
 
 
-def ensure_fresh_hfh_download_report(config: Dict[str, Any]) -> Dict[str, Any]:
+def ensure_fresh_hfh_download_report(config: Dict[str, Any], verify_data: bool = False) -> Dict[str, Any]:
     """Downloads the HuggingFace Hub repo right now and verifies it against
     the local manifest/checksums, so 'zenodo prepare' never has to trust a
     possibly-stale report from an earlier, separate 'huggingface download'
     run — what's staged in Zenodo's directory is guaranteed to match what's
-    live on HuggingFace Hub at the moment 'zenodo prepare' actually runs."""
+    live on HuggingFace Hub at the moment 'zenodo prepare' actually runs.
+
+    verify_data=False (the default) skips the heavy data/<split>/*.tar
+    shards entirely — Zenodo never uploads them anyway (see module
+    docstring), so by default this only downloads and verifies the small
+    evidence files. Pass verify_data=True for the older, slower behaviour:
+    download every shard too and re-hash its contents against
+    manifest-files-sha256.csv, for an extra guarantee that the published
+    images/labels themselves — not just the metadata describing them —
+    still match what 'prepare' originally wrote."""
     download_dir = get_zenodo_hfh_download_dir(config)
     report_path = get_zenodo_downloaded_report_path(config)
     token = get_token(config)
 
     logging.info("Downloading HuggingFace Hub repository to verify it matches the local export...")
     logging.info("Download directory: %s", download_dir)
-    return download_and_verify_hfh(config, token, download_dir, report_path, delete_after_success=False)
+    logging.info("Verifying data/ shards too: %s", verify_data)
+    return download_and_verify_hfh(
+        config, token, download_dir, report_path, delete_after_success=False, verify_data=verify_data,
+    )
 
 
 def get_default_files_to_upload(config: Dict[str, Any]) -> List[Path]:
@@ -791,6 +803,7 @@ def upload_evidence_files_to_deposition(
 
 def run_zenodo_existing_draft_sync(
     config_path: Path, dry_run: bool = False, template_context: Optional[Dict[str, Any]] = None,
+    verify_data: bool = False,
 ) -> None:
     if not config_path.exists():
         fail(f"Configuration file not found: {config_path}")
@@ -824,7 +837,7 @@ def run_zenodo_existing_draft_sync(
             logging.info("  - %s", path)
         return
 
-    downloaded_report = ensure_fresh_hfh_download_report(config)
+    downloaded_report = ensure_fresh_hfh_download_report(config, verify_data=verify_data)
 
     logging.info("Validating downloaded evidence files...")
     validate_files_to_upload(files_to_upload)
@@ -874,6 +887,7 @@ def run_zenodo_existing_draft_sync(
 
 def run_zenodo_linked_dataset_creation(
     config_path: Path, dry_run: bool = False, template_context: Optional[Dict[str, Any]] = None,
+    verify_data: bool = False,
 ) -> None:
     if not config_path.exists():
         fail(f"Configuration file not found: {config_path}")
@@ -905,7 +919,7 @@ def run_zenodo_linked_dataset_creation(
         logging.info("Dry run enabled. HuggingFace Hub will not be downloaded; no Zenodo deposition will be created.")
         return
 
-    downloaded_report = ensure_fresh_hfh_download_report(config)
+    downloaded_report = ensure_fresh_hfh_download_report(config, verify_data=verify_data)
 
     logging.info("Validating downloaded files configured for Zenodo upload...")
     validate_files_to_upload(files_to_upload)

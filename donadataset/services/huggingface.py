@@ -822,12 +822,18 @@ def read_file_hash_manifest(path: Path) -> List[Dict[str, str]]:
     return read_csv_rows(path)
 
 
-def verify_global_checksums(output_dir: Path, config: Dict[str, Any]) -> Tuple[int, List[str]]:
+def verify_global_checksums(
+    output_dir: Path, config: Dict[str, Any], verify_data: bool = True,
+) -> Tuple[int, List[str]]:
     """
     Verify checksums-sha256.txt.
 
     For every file listed in checksums-sha256.txt, this function recomputes
-    the SHA256 hash and compares it with the expected value.
+    the SHA256 hash and compares it with the expected value. checksums-sha256.txt
+    also lists the data/<split>/*.tar shards themselves (not just metadata) —
+    verify_data=False skips those entries too, since callers that pass it
+    also skip downloading the shards in the first place (see
+    download_repository).
     """
     errors: List[str] = []
     verified = 0
@@ -845,6 +851,9 @@ def verify_global_checksums(output_dir: Path, config: Dict[str, Any]) -> Tuple[i
         errors.append(f"Checksum file is empty: {checksum_filename}")
 
     for rel, expected_digest in expected.items():
+        if not verify_data and (rel == "data" or rel.startswith("data/")):
+            continue
+
         file_path = output_dir / rel
 
         if not file_path.exists():
@@ -1133,9 +1142,14 @@ def authenticate(token: str) -> Dict[str, Any]:
     return info
 
 
-def list_missing_required_files(directory: Path, config: Dict[str, Any]) -> List[str]:
+def list_missing_required_files(
+    directory: Path, config: Dict[str, Any], verify_data: bool = True,
+) -> List[str]:
     """Files/dirs an HFH export must have. Shared by upload's pre-flight check
-    and download's post-download verification — both look at the same layout."""
+    and download's post-download verification — both look at the same layout.
+    verify_data=False skips the data/<split>/ directory check too, since
+    callers that pass it also skip downloading the shards in the first
+    place (see download_repository)."""
     missing: List[str] = []
 
     required_files = [
@@ -1155,10 +1169,11 @@ def list_missing_required_files(directory: Path, config: Dict[str, Any]) -> List
         if not (directory / rel).is_file():
             missing.append(rel)
 
-    for split in get_split_names(config):
-        rel_dir = f"data/{split}"
-        if not (directory / rel_dir).is_dir():
-            missing.append(rel_dir)
+    if verify_data:
+        for split in get_split_names(config):
+            rel_dir = f"data/{split}"
+            if not (directory / rel_dir).is_dir():
+                missing.append(rel_dir)
 
     return missing
 
@@ -1464,14 +1479,23 @@ def get_downloaded_report_path(config: Dict[str, Any]) -> Path:
     ))
 
 
-def download_repository(repo_id: str, repo_type: str, token: str, download_dir: Path) -> Path:
+def download_repository(
+    repo_id: str, repo_type: str, token: str, download_dir: Path, verify_data: bool = True,
+) -> Path:
+    """verify_data=False skips the heavy data/<split>/*.tar shards entirely
+    (ignore_patterns on the snapshot download) — only the small metadata/
+    evidence files are fetched. Used by callers that only need to prove the
+    published *metadata* is internally consistent, not re-download and
+    re-hash the whole dataset every run (see zenodo prepare's --verify-data)."""
     logging.info("Downloading Hugging Face Hub repository...")
     logging.info("Repository: %s", repo_id)
     logging.info("Download directory: %s", download_dir)
+    logging.info("Including data/ shards: %s", verify_data)
 
     ensure_clean_dir(download_dir)
     snapshot_path = snapshot_download(
         repo_id=repo_id, repo_type=repo_type, token=token, local_dir=str(download_dir),
+        ignore_patterns=None if verify_data else ["data/**", "data/*"],
     )
     return Path(snapshot_path)
 
@@ -1487,6 +1511,7 @@ def create_downloaded_verification_report(
     internal_verified_count: int,
     internal_errors: List[str],
     deleted_download_dir: bool,
+    data_verified: bool = True,
 ) -> Dict[str, Any]:
     all_errors = structural_errors + checksum_errors + internal_errors
 
@@ -1499,6 +1524,7 @@ def create_downloaded_verification_report(
         "downloaded_dir_deleted": deleted_download_dir,
         "downloaded_files_count": count_files(downloaded_dir) if downloaded_dir.exists() else 0,
         "downloaded_total_size_bytes": total_size_bytes(downloaded_dir) if downloaded_dir.exists() else 0,
+        "data_verified": data_verified,
         "global_files_verified": checksum_verified_count,
         "internal_tar_members_verified": internal_verified_count,
         "num_errors": len(all_errors),
@@ -1513,13 +1539,20 @@ def create_downloaded_verification_report(
 
 def download_and_verify_hfh(
     config: Dict[str, Any], token: str, download_dir: Path, report_path: Path, delete_after_success: bool,
+    verify_data: bool = True,
 ) -> Dict[str, Any]:
     """Downloads the HFH repo fresh and verifies it against the same
     checksums/manifest 'prepare' wrote, writing (and returning) a report.
     Fails loudly if verification doesn't pass. Shared by 'huggingface
     download' (report kept next to the export) and 'zenodo prepare' (report
     generated live, inside Zenodo's own directory, rather than trusting a
-    possibly-stale report from an earlier, separate download)."""
+    possibly-stale report from an earlier, separate download).
+
+    verify_data=False skips the data/<split>/*.tar shards entirely — not
+    downloaded, not checked against checksums-sha256.txt, and no internal
+    tar member hashing — leaving only the small metadata/evidence files
+    verified. The report's own "data_verified" field records which mode
+    was used, so nobody mistakes a metadata-only pass for a full one."""
     repo_id = get_repo_id(config)
     repo_type = get_repo_type(config)
 
@@ -1527,7 +1560,7 @@ def download_and_verify_hfh(
     user_info = authenticate(token)
     logging.info("Authenticated as: %s", user_info.get("name", "unknown"))
 
-    downloaded_path = download_repository(repo_id, repo_type, token, download_dir)
+    downloaded_path = download_repository(repo_id, repo_type, token, download_dir, verify_data=verify_data)
 
     logging.info("Download completed.")
     logging.info("Downloaded path: %s", downloaded_path)
@@ -1535,13 +1568,17 @@ def download_and_verify_hfh(
     logging.info("Downloaded size: %s", format_size(total_size_bytes(downloaded_path)))
 
     logging.info("Validating downloaded folder structure...")
-    structural_errors = list_missing_required_files(downloaded_path, config)
+    structural_errors = list_missing_required_files(downloaded_path, config, verify_data=verify_data)
 
     logging.info("Verifying global checksums...")
-    checksum_verified_count, checksum_errors = verify_global_checksums(downloaded_path, config)
+    checksum_verified_count, checksum_errors = verify_global_checksums(downloaded_path, config, verify_data=verify_data)
 
-    logging.info("Verifying internal tar file hashes...")
-    internal_verified_count, internal_errors = verify_tar_internal_hashes(downloaded_path, config)
+    if verify_data:
+        logging.info("Verifying internal tar file hashes...")
+        internal_verified_count, internal_errors = verify_tar_internal_hashes(downloaded_path, config)
+    else:
+        logging.info("Skipping internal tar file hashes (verify_data=False, shards were not downloaded).")
+        internal_verified_count, internal_errors = 0, []
 
     all_errors = structural_errors + checksum_errors + internal_errors
     deleted_download_dir = False
@@ -1565,6 +1602,7 @@ def download_and_verify_hfh(
         internal_verified_count=internal_verified_count,
         internal_errors=internal_errors,
         deleted_download_dir=deleted_download_dir,
+        data_verified=verify_data,
     )
 
     if report["status"] == "passed":

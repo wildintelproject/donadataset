@@ -98,6 +98,15 @@ def prepare(
     sync_existing_draft: bool = typer.Option(
         ZENODO_DEFAULTS.sync_existing_draft, "--sync-existing-draft", help=_zenodo_help("sync_existing_draft"),
     ),
+    verify_data: bool = typer.Option(
+        False, "--verify-data/--no-verify-data",
+        help=(
+            "Descarga también los shards .tar de HuggingFace Hub y verifica sus hashes "
+            "internos (más lento, más ancho de banda y disco — se queda igualmente en "
+            "local, nunca se sube a Zenodo). Por defecto (--no-verify-data) solo se "
+            "descargan y verifican los ficheros pequeños de evidencia."
+        ),
+    ),
 ) -> None:
     """Crea (o sincroniza) un registro Zenodo enlazado y sube los ficheros de evidencia.
 
@@ -107,6 +116,8 @@ def prepare(
 
     Los shards pesados se quedan en HuggingFace Hub — Zenodo solo aloja
     metadata, manifests, checksums y reports de verificación, y reserva un DOI.
+    Por eso, por defecto, ni siquiera se descargan para verificarlos (usa
+    --verify-data si quieres esa comprobación extra de todas formas).
     """
     zenodo_service.setup_logging()
     template_context = _build_template_context(output_dir, repo_id, environment=environment.value)
@@ -114,10 +125,12 @@ def prepare(
         if sync_existing_draft:
             zenodo_service.run_zenodo_existing_draft_sync(
                 DEFAULT_TEMPLATE_FILE, dry_run=dry_run, template_context=template_context,
+                verify_data=verify_data,
             )
         else:
             zenodo_service.run_zenodo_linked_dataset_creation(
                 DEFAULT_TEMPLATE_FILE, dry_run=dry_run, template_context=template_context,
+                verify_data=verify_data,
             )
     except Exception as exc:
         logging.error("Zenodo linked dataset creation failed: %s", exc)
@@ -325,6 +338,15 @@ def pipeline(
         False, "--no-config-update",
         help="No actualizar el YAML local con el DOI/estado tras publicar.",
     ),
+    verify_data: bool = typer.Option(
+        False, "--verify-data/--no-verify-data",
+        help=(
+            "Descarga también los shards .tar de HuggingFace Hub y verifica sus hashes "
+            "internos en el paso 'prepare' (más lento, más ancho de banda y disco). Por "
+            "defecto (--no-verify-data) solo se descargan y verifican los ficheros "
+            "pequeños de evidencia."
+        ),
+    ),
 ) -> None:
     """Ejecuta de un tirón: prepare -> upload -> check-readiness -> release.
 
@@ -340,10 +362,12 @@ def pipeline(
         if sync_existing_draft:
             zenodo_service.run_zenodo_existing_draft_sync(
                 DEFAULT_TEMPLATE_FILE, dry_run=False, template_context=prepare_context,
+                verify_data=verify_data,
             )
         else:
             zenodo_service.run_zenodo_linked_dataset_creation(
                 DEFAULT_TEMPLATE_FILE, dry_run=False, template_context=prepare_context,
+                verify_data=verify_data,
             )
     except Exception as exc:
         logging.error("Zenodo linked dataset creation failed: %s", exc)

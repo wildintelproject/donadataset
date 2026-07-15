@@ -120,6 +120,39 @@ def test_prepare_dry_run_does_not_require_a_pre_existing_downloaded_report(
     assert "will not be downloaded" in result.output.lower()
 
 
+def test_prepare_defaults_to_not_verifying_data_shards(tmp_path: Path, monkeypatch):
+    """'zenodo prepare' never uploads the data/<split>/*.tar shards to
+    Zenodo — only the small evidence files — so by default it shouldn't
+    even download/verify them either (see verify_data on
+    ensure_fresh_hfh_download_report). --verify-data opts back into the
+    old, slower full download+verify behaviour."""
+    captured = {}
+
+    def _fake_ensure_fresh_hfh_download_report(config, verify_data=False):
+        captured["verify_data"] = verify_data
+        raise RuntimeError("stop before any real network call")
+
+    monkeypatch.setattr(
+        zenodo_service, "ensure_fresh_hfh_download_report", _fake_ensure_fresh_hfh_download_report,
+    )
+    monkeypatch.setenv("ZENODO_TOKEN", "zenodo_dummy")
+
+    result = runner.invoke(app, [
+        "publish", "zenodo", "prepare",
+        "--repo-id", "myuser/donadataset-test", "--output-dir", str(tmp_path / "Zenodo"),
+    ])
+    assert result.exit_code == 1
+    assert captured["verify_data"] is False
+
+    result = runner.invoke(app, [
+        "publish", "zenodo", "prepare",
+        "--repo-id", "myuser/donadataset-test", "--output-dir", str(tmp_path / "Zenodo"),
+        "--verify-data",
+    ])
+    assert result.exit_code == 1
+    assert captured["verify_data"] is True
+
+
 # ── templates/Zenodo.yaml.j2 (Jinja2 template rendered by 'zenodo prepare') ──
 
 def test_prepare_renders_jinja_template_using_only_repo_id_and_output_dir(tmp_path: Path):
