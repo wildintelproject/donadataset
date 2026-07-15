@@ -16,7 +16,7 @@ from rich.console import Console
 
 from donadataset.commands import hf_config_commands
 from donadataset.commands.config_commands import _apply_update
-from donadataset.config import DEFAULT_CONFIG_FILE, REPO_ROOT, HuggingFaceSettings, get_app_documents_dir, load_settings, settings
+from donadataset.config import DEFAULT_CONFIG_FILE, REPO_ROOT, HuggingFaceSettings, get_hfh_output_dir, load_settings, settings
 from donadataset.services import huggingface as hf_service
 from donadataset.services.common import setup_logging
 
@@ -35,7 +35,7 @@ DEFAULT_TEMPLATE_FILE = REPO_ROOT / "templates" / "hfh" / "HuggingFaceHub.yaml.j
 # (se fijan al importar el módulo, por eso --help ya muestra el valor real:
 # donadataset config set HUGGINGFACE.<campo>=... para cambiarlos).
 HF_DEFAULTS = settings.HUGGINGFACE
-DEFAULT_OUTPUT_DIR = get_app_documents_dir() / "HFH"
+DEFAULT_OUTPUT_DIR = get_hfh_output_dir(HF_DEFAULTS.repo_id)
 
 
 def _git_tag_version() -> Optional[str]:

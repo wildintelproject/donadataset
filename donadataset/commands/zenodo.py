@@ -16,7 +16,7 @@ from donadataset.commands import zenodo_config_commands
 from donadataset.commands.huggingface import _resolved_config_path as _hf_resolved_config_path
 from donadataset.commands.huggingface import _warn_if_token_missing as _hf_warn_if_token_missing
 from donadataset.commands.huggingface import _wizard_resolve_repo_id
-from donadataset.config import REPO_ROOT, ZenodoSettings, get_app_documents_dir, settings
+from donadataset.config import REPO_ROOT, ZenodoSettings, get_app_documents_dir, get_hfh_output_dir, settings
 from donadataset.services import huggingface as hf_service
 from donadataset.services import zenodo as zenodo_service
 
@@ -41,7 +41,7 @@ DEFAULT_TEMPLATE_FILE = REPO_ROOT / "templates" / "Zenodo.yaml.j2"
 # zenodo lo encuentra sin que tengas que repetirlo.
 HF_DEFAULTS = settings.HUGGINGFACE
 ZENODO_DEFAULTS = settings.ZENODO
-DEFAULT_HFH_OUTPUT_DIR = get_app_documents_dir() / "HFH"
+DEFAULT_HFH_OUTPUT_DIR = get_hfh_output_dir(HF_DEFAULTS.repo_id)
 
 # Directorio PROPIO de zenodo (SALIDA): aquí descarga HuggingFace Hub en
 # tiempo real y guarda todo lo que sube a Zenodo. Por defecto, hermano del

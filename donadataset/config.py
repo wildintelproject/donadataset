@@ -32,6 +32,18 @@ def get_app_documents_dir() -> Path:
     return get_documents_dir() / APP_NAME
 
 
+def get_hfh_output_dir(repo_id: Optional[str] = None) -> Path:
+    """Directorio por defecto del export local de HuggingFace Hub —
+    <Documents>/donadataset/HFH/<repo_id> cuando repo_id ya está configurado
+    (para no mezclar exports de distintos repos en la misma carpeta), o
+    <Documents>/donadataset/HFH a secas si todavía no lo está. Usado como
+    default de --output-dir en 'huggingface prepare'/etc., y de
+    --hfh-output-dir en 'zenodo'/'b2share' — mismo cálculo en los tres sitios
+    para que sus defaults sigan coincidiendo sin tener que pasarlo a mano."""
+    base = get_app_documents_dir() / "HFH"
+    return (base / repo_id) if repo_id else base
+
+
 class GenerateSettings(BaseModel):
     source: Path = Field(
         default_factory=lambda: get_app_documents_dir() / "source",

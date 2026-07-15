@@ -8,6 +8,8 @@ from donadataset.config import (
     GenerateSettings,
     GenerateToySettings,
     Settings,
+    get_app_documents_dir,
+    get_hfh_output_dir,
     load_settings,
 )
 
@@ -75,3 +77,15 @@ def test_load_settings_rejects_invalid_toml_value(tmp_path: Path):
 
     with pytest.raises(ValidationError):
         load_settings(config_file)
+
+
+# ── get_hfh_output_dir ───────────────────────────────────────────────────────
+
+def test_get_hfh_output_dir_nests_under_repo_id_when_configured():
+    result = get_hfh_output_dir("wildintelproject/donadataset")
+    assert result == get_app_documents_dir() / "HFH" / "wildintelproject/donadataset"
+
+
+def test_get_hfh_output_dir_falls_back_to_flat_hfh_when_repo_id_unset():
+    assert get_hfh_output_dir(None) == get_app_documents_dir() / "HFH"
+    assert get_hfh_output_dir("") == get_app_documents_dir() / "HFH"
