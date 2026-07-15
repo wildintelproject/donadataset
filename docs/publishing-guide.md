@@ -13,21 +13,40 @@ platform serves a different community — from machine learning researchers to e
 and data managers — ensuring that DonaDataset can be found and cited regardless of the
 field or tool a user works with.
 
+Everything starts on the maintainer's local machine and is uploaded to **HuggingFace
+Hub**, which acts as the single source of truth. From there, the dataset (or the parts
+of it relevant to each platform — see [What is stored where](#what-is-stored-where)) is
+published out to the other repositories:
+
+```mermaid
+flowchart LR
+    Local["💻 Local machine<br/>(images, labels, docs, scripts)"] -->|upload everything| HF["🤗 HuggingFace Hub<br/>(source of truth)"]
+
+    HF --> ZN[Zenodo]
+    HF --> GB[GBIF]
+    HF --> B2["B2SHARE 🇪🇺"]
+```
+
 Although there are many repositories available worldwide, the following have been selected
 based on their relevance to the dataset's scope (biodiversity, computer vision, open
 science), their alignment with the EU funding context of the WildINTEL project, and
 their adoption by the international research community:
 
-| Repository | Type | DOI | Audience | Implementation status |
-|---|---|-----|---|---|
-| [HuggingFace Hub](#1-huggingface-hub) | Specialised (ML) | Yes | AI / ML community | Testing |
-| [Zenodo](#2-zenodo) | Open science archive | Yes | Scientific community | Testing |
-| [Dataverse](#3-dataverse) | Research data repository | Yes | Scientific community | Not implemented |
-| [Arias Montano (UHU)](#4-arias-montano-university-of-huelva) | Institutional repository | Yes | University of Huelva | Not implemented |
-| [Roboflow Universe](#5-roboflow-universe) | Specialised (CV / YOLO) | No  | Computer vision community | Not implemented |
-| [Kaggle Datasets](#6-kaggle-datasets) | Generalised (ML) | Yes | ML community | Not implemented |
-| [GBIF](#7-gbif) | Biodiversity data | Yes | Ecology / biology community | Testing |
-| [B2SHARE (EUDAT)](#8-b2share-eudat) | European research data | Yes | EU scientific community | Testing |
+<table>
+<thead>
+<tr><th>Repository</th><th>Type</th><th>DOI</th><th>Audience</th><th>Implementation status</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="../publishing-huggingface/">HuggingFace Hub</a></td><td>Specialised (ML)</td><td>Yes</td><td>AI / ML community</td><td>Testing</td></tr>
+<tr><td><a href="../publishing-zenodo/">Zenodo</a></td><td>Open science archive</td><td>Yes</td><td>Scientific community</td><td>Testing</td></tr>
+<tr><td><a href="../publishing-gbif/">GBIF</a></td><td>Biodiversity data</td><td>Yes</td><td>Ecology / biology community</td><td>Testing</td></tr>
+<tr><td><a href="../publishing-b2share/">B2SHARE (EUDAT)</a></td><td>European research data</td><td>Yes</td><td>EU scientific community</td><td>Testing</td></tr>
+<tr class="status-planned"><td>Dataverse</td><td>Research data repository</td><td>Yes</td><td>Scientific community</td><td>Under consideration</td></tr>
+<tr class="status-planned"><td>Arias Montano (UHU)</td><td>Institutional repository</td><td>Yes</td><td>University of Huelva</td><td>Under consideration</td></tr>
+<tr class="status-planned"><td>Roboflow Universe</td><td>Specialised (CV / YOLO)</td><td>No</td><td>Computer vision community</td><td>Under consideration</td></tr>
+<tr class="status-planned"><td>Kaggle Datasets</td><td>Generalised (ML)</td><td>Yes</td><td>ML community</td><td>Under consideration</td></tr>
+</tbody>
+</table>
 
 ---
 
@@ -35,12 +54,14 @@ their adoption by the international research community:
 
 DonaDataset is made up of the following types of content:
 
-- **Images** — the raw camera-trap photographs captured in Doñana National Park.
-  Large binary files that form the bulk of the dataset.
-
-- **Labels** — one annotation file per image in YOLO format. Each row describes a
-  detected animal: species class identifier, bounding box coordinates, and confidence
-  score. Labels are what turn raw photographs into a supervised training dataset.
+- **Images + Labels** — the raw camera-trap photographs captured in Doñana National
+  Park (large binary files that form the bulk of the dataset), together with one YOLO
+  annotation file per image (species class identifier, bounding box coordinates,
+  confidence score) that turns those raw photographs into a supervised training
+  dataset. Some repositories host these files directly (✅); others deliberately don't
+  and instead link back to where they actually live on HuggingFace Hub (🔗) — e.g.
+  Zenodo's `related_identifiers`, B2SHARE's `alternate_identifier`, or GBIF's
+  `media.filePath` when built with `--link-media-to-huggingface`.
 
 - **Species catalogue** — the file `metadata/classes.yaml`, which maps each numeric
   class identifier to the common and scientific name of the corresponding mammal species.
@@ -63,457 +84,132 @@ others in citable scientific records or biodiversity standards — it is not alw
 to store images and metadata together in the same place. The table below shows what is
 stored in each repository:
 
-| Repository | Images | Labels | Species catalogue | Scripts | Documentation | Camtrap DP package |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| HuggingFace Hub | ✅ | ✅ | | | | |
-| Dataverse | ✅ | ✅ | ✅ | | | |
-| Roboflow Universe | ✅ | ✅ | | | | |
-| Kaggle | ✅ | ✅ | ✅ | | | |
-| B2SHARE (EUDAT) 🇪🇺 | ✅ | ✅ | ✅ | ✅ | ✅ | |
-| Zenodo | | | ✅ | ✅ | ✅ | |
-| Arias Montano (UHU) | | | ✅ | ✅ | ✅ | |
-| GBIF | | | ✅ | | | ✅ |
+| Repository | Images + Labels | Species catalogue | Scripts | Documentation | Camtrap DP package |
+|---|:---:|:---:|:---:|:---:|:---:|
+| GitHub repository | 🔗 | ✅ | ✅ | ✅ | |
+| HuggingFace Hub | ✅ | ✅ | | | |
+| Zenodo | 🔗 | ✅ | | | |
+| GBIF | 🔗 | ✅ | | | ✅ |
+| B2SHARE (EUDAT) 🇪🇺 | 🔗 | ✅ | | | |
+
+> ℹ️ On **HuggingFace Hub**, images and labels aren't uploaded as loose files — they're
+> packaged together inside `.tar` shards (`data/<split>/*.tar`), each one bundling
+> matching `images/<split>/...` and `labels/<split>/...` files for a batch of the
+> dataset. See
+> [publishing-huggingface.md](publishing-huggingface.md#4-how-we-upload-it-every-file-explained)
+> for the full breakdown of what's inside a shard.
 
 ---
 
-## 1. HuggingFace Hub
+## Generating the dataset
 
-**URL:** https://huggingface.co/datasets/wildintelproject/donadataset
-
-HuggingFace Hub is the leading platform for sharing machine learning models and datasets.
-It provides version control, a built-in dataset viewer, and a Python library for
-programmatic access, making it the primary reference for the AI and machine learning
-research community. It is used as the **primary source of truth** for DonaDataset images
-and labels.
-
-### First-time setup
-
-1. Create an account at [huggingface.co](https://huggingface.co) and join the
-   **wildintelproject** organisation.
-2. Install the HuggingFace CLI:
-   ```bash
-   pip install huggingface-hub
-   huggingface-cli login   # paste your access token
-   ```
-3. Create the dataset repository on the web:
-   **New → Dataset → wildintelproject/donadataset** (set to Public, CC BY 4.0).
-
-### Uploading images and labels
+Before anything can be published anywhere, the raw annotated source has to be turned
+into the clean, split YOLO dataset that every publishing path reads from:
 
 ```bash
-# Upload a specific split (e.g. train)
-huggingface-cli upload wildintelproject/donadataset ./data/train train \
-  --repo-type dataset
-
-# Upload all splits at once
-for split in train val test; do
-  huggingface-cli upload wildintelproject/donadataset ./data/$split $split \
-    --repo-type dataset
-done
+donadataset generate real
 ```
 
-### Updating the dataset card
+### What it expects as input
 
-The dataset card is the `README.md` inside the HuggingFace repository (not this GitHub repo).
-Edit it directly on the HuggingFace web UI or push a `README.md` via the CLI.
+- `--source` (default `GENERATE.source`, `<Documents>/donadataset/source`) — the raw
+  camera-trap dataset, **already split** into `images/<train,val,test>/` and
+  `labels/<train,val,test>/`. `generate real` does not split anything itself; the
+  splits have to already exist in the source.
+- `--classes-map` (default `metadata/source_classes.yaml`) — a flat `id: name` YAML
+  mapping of the **source** dataset's own original class scheme (18 classes, ids 0–17
+  today). This is the upstream annotation scheme, not the project's own public
+  `metadata/classes.yaml`.
+- One YOLO `.txt` label per image, at the same relative path under `labels/<split>/` —
+  images without a matching label are dropped and counted separately in the summary.
 
-### On every new version
+> 💡 [`examples/source_dataset`](https://github.com/wildintelproject/donadataset/tree/main/examples/source_dataset)
+> in this repository is a small mock dataset laid out exactly like this, deliberately
+> covering every branch of the pipeline below (a dropped class, a missing label, a
+> duplicate image under two extensions, a mixed kept/removed label, and plain
+> pass-through images) — see its own `README.md` for the full breakdown of what each
+> file exercises, and a ready-to-run command to try it.
 
-1. Upload the new/updated images and labels as above.
-2. Update the version tag in the dataset card.
-3. Update `metadata/dataset.yaml` in this GitHub repo if splits or class IDs changed.
+### What it does
 
----
+- Drops every image whose label contains any of `--remove-class-id` (default `10, 17`
+  — Homo sapiens and Vehicle in the source scheme) entirely.
+- Remaps the remaining old class ids to new, consecutive ids (closing the gaps left by
+  the removed classes) and rewrites every kept label file with the new ids.
+- Detects and drops duplicate images within each split, per `--duplicate-key-mode`:
+  `stem` (default — same filename, regardless of subdirectory) or `relative_stem`
+  (same relative path only). When duplicates are found, one copy is kept, preferring
+  whichever candidate has a label file.
+- Prints a per-split summary (`total_images`, `duplicate_groups`,
+  `duplicated_images_removed`, `kept_images`, `removed_images`, `missing_labels`,
+  `removed_missing_labels`, plus a `total_control` consistency check) and the full
+  old → new class id mapping — nothing is written to a report file, only printed to
+  the console.
 
-## 2. Zenodo
+### What it generates as output
 
-**URL:** https://zenodo.org
+Writes to `--output` (default `GENERATE.output`, `<Documents>/donadataset/output` —
+**emptied completely** before generating):
 
-Zenodo is an open-access repository operated by CERN (Geneva, Switzerland) that enables
-researchers to share and preserve any research output — datasets, software, papers, or
-presentations. It assigns persistent DOIs and is widely adopted across all scientific
-disciplines as a reliable, long-term archive.
-
-> ⚠️ **What Zenodo hosts:** Zenodo archives the contents of **this GitHub repository**
-> (metadata, scripts, documentation). **The images and labels are NOT stored in Zenodo** —
-> they live on HuggingFace Hub. The Zenodo deposit exists to provide a citable DOI for the
-> dataset and to ensure long-term preservation of the code and metadata.
-
-### First-time setup — GitHub integration (recommended)
-
-1. Log in at [zenodo.org](https://zenodo.org) with your GitHub account.
-2. Go to **Account → GitHub**.
-3. Find **wildintelproject/donadataset** and toggle it **ON**.
-4. Zenodo will now watch this repository for new releases.
-
-### Publishing a new version
-
-1. In this GitHub repository, create a new release:
-   **Releases → Draft a new release → Create tag** (e.g. `v1.1.0`) → **Publish release**.
-2. Zenodo automatically creates a new deposit and mints a DOI within a few minutes.
-3. Go to the Zenodo deposit, review the metadata (title, authors, licence, description),
-   and click **Publish** if it is not published automatically.
-4. Copy the DOI badge URL and update it in `README.md`:
-   ```markdown
-   [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
-   ```
-
-> **Note:** Zenodo archives the GitHub repository contents (code + metadata), not the images
-> themselves (those live on HuggingFace). Include a clear note in the Zenodo description
-> pointing to HuggingFace for the actual data files.
-
----
-
-## 3. Dataverse
-
-**URL:** https://dataverse.harvard.edu (or another Dataverse instance if preferred)
-
-Dataverse is an open-source research data repository platform originally developed by
-Harvard University and now adopted by hundreds of institutions worldwide. It is designed
-specifically for sharing, citing, and archiving research datasets, with support for rich
-metadata, versioning, and persistent identifiers (DOI).
-
-> 📦 **What Dataverse hosts:** Dataverse acts as a **mirror** of the actual dataset —
-> images and labels — for the scientific community. It is the primary alternative to
-> HuggingFace Hub for researchers who prefer a traditional academic data repository.
->
-> ⚠️ **File size limit:** Harvard Dataverse has a **2.5 GB per-file** limit. Split the
-> data by split (`train.zip`, `val.zip`, `test.zip`) before uploading to stay within
-> this limit.
-
-### First-time setup
-
-1. Create an account at [dataverse.harvard.edu](https://dataverse.harvard.edu).
-2. Request access to or create a **Dataverse collection** for WildINTEL / University of Huelva.
-3. Click **Add Data → New Dataset**.
-
-### Filling in the metadata
-
-| Field | Value |
-|---|---|
-| Title | DonaDataset: Camera-trap mammal dataset from Doñana National Park |
-| Author | WildINTEL project team |
-| Contact | (project contact email) |
-| Description | (copy from `docs/dataset-description.md`) |
-| Subject | Earth and Environmental Sciences |
-| Licence | CC BY 4.0 |
-| Related publication | (add DOI of associated paper when available) |
-
-### Preparing and uploading files
-
-1. Package each split as a zip archive (max 2.5 GB per file):
-   ```bash
-   zip -r data/train.zip  data/train/
-   zip -r data/val.zip    data/val/
-   zip -r data/test.zip   data/test/
-   ```
-2. Upload via the web UI, or use the
-   [Dataverse API](https://guides.dataverse.org/en/latest/api/native-api.html):
-   ```bash
-   for split in train val test; do
-     curl -H "X-Dataverse-key: $DATAVERSE_API_TOKEN" \
-          -X POST \
-          -F "file=@data/${split}.zip" \
-          "https://dataverse.harvard.edu/api/datasets/:persistentId/add?persistentId=doi:10.7910/DVN/XXXXXX"
-   done
-   ```
-3. Also upload `metadata/classes.yaml` and `metadata/dataset.yaml` as supplementary files.
-
-### On every new version
-
-1. Open the existing dataset on Dataverse.
-2. Click **Edit Dataset → Add New Files**, upload the updated zip archives.
-3. Increment the version number and click **Publish**.
-
----
-
-## 4. Arias Montano (University of Huelva)
-
-**URL:** https://rabida.uhu.es
-
-Arias Montano is the institutional open-access repository of the University of Huelva,
-managed by the university library service. Its purpose is to preserve and give visibility
-to the scientific output produced by the university's researchers, ensuring long-term
-access and compliance with open-access mandates.
-
-> 📦 **What Arias Montano hosts:** like Zenodo, Arias Montano archives the contents of
-> **this GitHub repository** (metadata, scripts, documentation). **The images and labels
-> are NOT stored here** — they live on HuggingFace Hub and Dataverse. The deposit exists
-> to provide an institutional citable record at the University of Huelva.
-
-Arias Montano is the institutional open-access repository of the University of Huelva,
-managed by the university library service. Deposits are made by request.
-
-### Steps
-
-1. Contact the **Biblioteca de la Universidad de Huelva** to open a deposit:
-   - Web: [https://www.uhu.es/biblioteca/](https://www.uhu.es/biblioteca/)
-   - Email: biblioteca@uhu.es
-2. Provide the following information:
-   - Title, authors, abstract (in Spanish and English).
-   - Licence: CC BY 4.0.
-   - Type of resource: *Dataset*.
-   - Links to HuggingFace Hub, Dataverse, and Zenodo (DOI).
-   - Associated publication or project (WildINTEL / Biodiversa+).
-3. The library will assign a permanent handle/URI and confirm the deposit.
-4. Update `README.md` replacing the generic Arias Montano link with the specific record URL.
-
-### On every new version
-
-Contact the library again to add a new version record linked to the existing deposit.
-
----
-
-## 5. Roboflow Universe
-
-**URL:** https://universe.roboflow.com
-
-Roboflow Universe is a community platform specialised in computer vision datasets. It
-supports YOLO and other annotation formats natively, and provides tools to explore,
-augment, and version datasets. Its Python SDK allows direct integration into training
-pipelines, making it the reference hub for the object detection and computer vision
-community.
-
-> 📦 **What Roboflow hosts:** images and labels in YOLO format — a mirror of the actual
-> dataset oriented to the computer vision community. Roboflow natively supports YOLO splits
-> and provides an API for direct integration into training pipelines.
-
-### First-time setup
-
-1. Create an account at [roboflow.com](https://roboflow.com) and create a workspace for
-   **WildINTEL** (or use an existing one).
-2. Click **New Project → Object Detection**.
-3. Set the project name to `donadataset`, licence to **CC BY 4.0**, and annotation format
-   to **YOLOv8**.
-
-### Uploading images and labels
-
-```bash
-pip install roboflow
-
-python - <<'EOF'
-from roboflow import Roboflow
-rf = Roboflow(api_key="YOUR_API_KEY")
-project = rf.workspace("wildintelproject").project("donadataset")
-
-for split in ["train", "val", "test"]:
-    project.upload(
-        image_path=f"data/{split}/images",
-        annotation_path=f"data/{split}/labels",
-        split=split,
-        num_workers=4,
-    )
-EOF
+```
+output/
+├── images/<split>/...     ← kept images, same relative paths as the source
+├── labels/<split>/...     ← remapped YOLO labels
+└── donana_filtered.yaml   ← nc, names, and absolute image paths per split
 ```
 
-### On every new version
+This is exactly the `images/<split>/` + `labels/<split>/` layout that `donadataset
+publish huggingface prepare`/`pipeline` (and, through it, `publish all`) expect at
+`--source-dataset-dir` — see [Publishing map](#publishing-map) below.
 
-1. Upload the new images and labels as above.
-2. Create a new **Version** in the Roboflow UI (Generate → Version).
-3. Update the version link in `README.md` if needed.
-
----
-
-## 6. Kaggle Datasets
-
-**URL:** https://www.kaggle.com/datasets
-
-Kaggle is the world's largest data science and machine learning competition platform,
-owned by Google. Its dataset repository offers high visibility within the ML community
-and integrates directly with Kaggle Notebooks, allowing users to explore and use the
-data without any local setup.
-
-> 📦 **What Kaggle hosts:** images and labels — a mirror of the actual dataset oriented
-> to the ML community. Kaggle provides high visibility and easy integration with Kaggle
-> Notebooks.
-
-### First-time setup
-
-1. Create an account at [kaggle.com](https://www.kaggle.com) and join or create the
-   **wildintelproject** organisation.
-2. Install the Kaggle CLI:
-   ```bash
-   pip install kaggle
-   # Place your kaggle.json token in ~/.kaggle/kaggle.json
-   ```
-3. Create a `dataset-metadata.json` in the project root:
-   ```json
-   {
-     "title": "DonaDataset — Camera-trap mammals from Doñana",
-     "id": "wildintelproject/donadataset",
-     "licenses": [{"name": "CC BY 4.0"}]
-   }
-   ```
-
-### Uploading images and labels
-
-```bash
-# Package splits (max 20 GB total on free tier)
-zip -r kaggle_upload/train.zip data/train/
-zip -r kaggle_upload/val.zip   data/val/
-zip -r kaggle_upload/test.zip  data/test/
-cp metadata/classes.yaml metadata/dataset.yaml kaggle_upload/
-
-# Create or update the dataset
-kaggle datasets create -p kaggle_upload/     # first time
-kaggle datasets version -p kaggle_upload/ -m "v1.1.0 — description of changes"
-```
-
-### On every new version
-
-Run `kaggle datasets version` with the updated zip archives and a descriptive message.
+> ℹ️ `donadataset generate toy` is a related but separate command: it doesn't touch the
+> raw source at all, it *subsamples* an already-generated `generate real` output
+> (capped per class, with a random seed) — useful for a fast local test run, not part
+> of the publishing path.
 
 ---
 
-## 7. GBIF
+## Publishing map
 
-**URL:** https://www.gbif.org
+**[HuggingFace Hub](publishing-huggingface.md)**
 
-GBIF (Global Biodiversity Information Facility) is the world's largest open-access
-aggregator of biodiversity data, hosted in Copenhagen and funded by governments
-worldwide. It indexes hundreds of millions of species occurrence records from research
-institutions, natural history museums, and citizen science projects, and is the
-reference platform for ecologists, conservation biologists, and environmental policy
-makers.
+The primary source of truth — the only platform storing the actual images and YOLO
+labels. Covers first-time account/token setup, every exported file explained, and the
+full `prepare` → `upload` → `release` → DOI sync sequence (manual, non-interactive
+`pipeline`, or interactive `wizard`).
 
-> 📋 **What GBIF hosts:** camera-trap data in **[Camtrap DP](https://camtrap-dp.tdwg.org/)**
-> format — NOT the raw images or YOLO labels (those live on
-> [HuggingFace Hub](#1-huggingface-hub)). GBIF converts it internally to Darwin Core
-> Occurrence records. Camtrap DP is the TDWG/GBIF standard for camera-trap data,
-> natively supported by IPT v3+.
+**[Zenodo](publishing-zenodo.md)**
 
-> ℹ️ **Two publishing paths, and nothing to fill in by hand.** This pipeline tracks no
-> real per-camera GPS or deployment dates, so `gbif prepare` invents reasonable
-> placeholders itself (one deployment per split, EXIF-derived photo dates where
-> available) instead of asking you for a CSV. The IPT itself has no upload API, but
-> GBIF's separate Registry API lets you register a dataset directly, without an IPT, if
-> you host the archive yourself. See the
-> dedicated [GBIF publishing guide](publishing-gbif.md) for exactly what's derived vs.
-> invented and the full command-by-command walkthrough; this section only summarises it.
+A linked dataset record that provides a citable, permanent DOI — metadata and evidence
+only, the images and labels themselves stay on HuggingFace Hub. Covers first-time
+account/token setup, every uploaded file explained, and the full sequence up to the
+final, irreversible publish.
 
-### First-time setup
+**[GBIF](publishing-gbif.md)**
 
-1. Create an account at [gbif.org](https://www.gbif.org) and request an **organisation**
-   account for WildINTEL (or use the University of Huelva's existing GBIF node).
-2. Either install the [GBIF IPT](https://www.gbif.org/ipt) v3+ (or use a hosted instance)
-   if publishing manually, or register an **installation** (any type — doesn't have to be
-   an IPT) if publishing via `gbif register`'s Registry API path.
+Converts the dataset into a Camtrap DP package for the biodiversity/ecology community,
+published either through a manual IPT upload or the scripted Registry API. Covers
+first-time account setup, exactly what `gbif prepare` derives from the data vs. invents
+as a placeholder, and both publishing paths.
 
-### Preparing the Camtrap DP package
+**[B2SHARE (EUDAT)](publishing-b2share.md)** 🇪🇺
 
-```bash
-donadataset publish gbif prepare --source-dataset-dir ./output
-```
-
-No CSV to fill in. `prepare` scans the YOLO dataset, treats each split (train/val/test)
-as one illustrative deployment inside Doñana, reads each photo's date from its EXIF (or
-estimates one otherwise), and writes `datapackage.json` + `deployments.csv` +
-`media.csv` + `observations.csv` into a `.zip`. See
-[publishing-gbif.md](publishing-gbif.md#3-what-gbif-prepare-invents-and-why) for exactly
-what's derived from the data vs. invented as a placeholder.
-
-### Publishing
-
-**Manual, through an IPT v3+:**
-
-1. Upload the Camtrap DP `.zip` as the resource's source file.
-2. Publish the resource from the IPT UI — it will be indexed within 24–48 hours.
-
-**Scripted, through the Registry API (no IPT):** host the `.zip` yourself at a public
-URL, then:
-
-```bash
-export GBIF_USERNAME=... GBIF_PASSWORD=...
-donadataset publish gbif register --archive-url https://your-host/donadataset-camtrap-dp.zip
-```
-
-Either way, GBIF assigns a DOI; update `README.md` with the GBIF dataset link.
-
-### On every new version
-
-Re-run `gbif prepare` (it always regenerates the whole package, nothing to keep in sync
-by hand), then either upload the new Camtrap DP `.zip` to the IPT and trigger a re-crawl,
-or re-run `gbif register` with the same (re-uploaded) `--archive-url`.
-
----
-
-## 8. B2SHARE (EUDAT)
-
-**URL:** https://b2share.eudat.eu
-
-B2SHARE is a research data sharing service provided by EUDAT, the European collaborative
-data infrastructure funded by the European Commission. It offers secure, long-term storage
-on servers located within the European Union, making it the most appropriate repository
-for EU-funded research projects that need to comply with data sovereignty and open-science
-mandates such as those of Horizon Europe and Biodiversa+.
-
-> 🇪🇺 **What B2SHARE hosts:** B2SHARE is the **European copy** of the full dataset —
-> images, labels, and the code + metadata from this GitHub repository. It is part of
-> the EUDAT European research infrastructure, making it especially appropriate given the
-> Biodiversa+ / EU funding of this project. It is the only mirror where **all data
-> resides on European servers**.
->
-> ⚠️ **Storage limit:** 10 GB per record by default. Request an extension if the dataset
-> exceeds this. Package data as zip archives split by dataset split to stay within limits.
-
-### First-time setup
-
-1. Log in at [b2share.eudat.eu](https://b2share.eudat.eu) using your institutional account
-   or ORCID.
-2. Click **Upload → Create new record**.
-3. Select or create the **WildINTEL** community (or use the generic *Biodiversity* community).
-
-### Filling in the metadata
-
-| Field | Value |
-|---|---|
-| Title | DonaDataset: Camera-trap mammal dataset from Doñana National Park |
-| Authors | WildINTEL project team |
-| Description | (copy from `docs/dataset-description.md`) |
-| Community | Biodiversity / WildINTEL |
-| Licence | CC BY 4.0 |
-| Funding | Biodiversa+ Joint Research Call 2022–2023 |
-| Related identifiers | Zenodo DOI, HuggingFace URL, GBIF DOI |
-
-### Uploading files
-
-Upload both the image archives and the GitHub release:
-
-```bash
-# 1. Package image splits
-zip -r b2share_upload/train.zip data/train/
-zip -r b2share_upload/val.zip   data/val/
-zip -r b2share_upload/test.zip  data/test/
-
-# 2. Add metadata files
-cp metadata/classes.yaml metadata/dataset.yaml b2share_upload/
-
-# 3. Add the GitHub release archive (code + docs)
-curl -L https://github.com/wildintelproject/donadataset/archive/refs/tags/vX.Y.Z.zip \
-     -o b2share_upload/donadataset-vX.Y.Z.zip
-```
-
-Then upload all files in `b2share_upload/` through the B2SHARE web UI.
-
-### On every new version
-
-Create a new record version on B2SHARE and upload the updated zip archives and release archive.
+The European copy of the dataset's metadata and evidence, hosted entirely on EU
+servers — the same linked-record pattern as Zenodo. Covers first-time
+account/community/token setup, every uploaded file explained, and the full publishing
+sequence.
 
 ---
 
 ## Checklist for a new dataset release
 
-**Images + labels (data mirrors)**
+**Images + labels**
 - [ ] Upload new images and labels to **HuggingFace Hub**.
-- [ ] Upload updated zip archives to **Dataverse** and publish the new version.
-- [ ] Upload updated images and labels to **Roboflow Universe** and create a new version.
-- [ ] Upload updated zip archives to **Kaggle Datasets** (`kaggle datasets version`).
 
 **Code + metadata (archive)**
 - [ ] Update `metadata/classes.yaml` and `metadata/dataset.yaml` if needed.
 - [ ] Create a **GitHub release** (triggers Zenodo automatically).
 - [ ] Review and publish the **Zenodo** deposit; update the DOI badge in `README.md`.
-- [ ] Notify **Arias Montano** library to register the new version.
 
 **European copy — images + code (B2SHARE)**
 - [ ] Upload updated zip archives + release archive to **B2SHARE** and publish the new version.
@@ -539,12 +235,8 @@ sequenceDiagram
     box GitHub Actions (automated)
         participant GA as publish.yml
     end
-    participant DV as Dataverse
-    participant RF as Roboflow Universe
-    participant KG as Kaggle
     participant B2 as B2SHARE 🇪🇺
     participant ZN as Zenodo
-    participant AM as Arias Montano
     participant GB as GBIF
 
     note over M,GB: ── 1. Before the release (manual) ───────────────────────
@@ -558,17 +250,11 @@ sequenceDiagram
     GH-->>ZN: Webhook → deposit created automatically
     GH->>GA: Trigger publish.yml
 
-    note over M,GB: ── 3. GitHub Actions distributes to all mirrors ──────────
+    note over M,GB: ── 3. GitHub Actions distributes to remaining mirrors ────
 
     GA->>HF: Download images + labels
     HF-->>GA: ✓ Data received
     GA->>GA: Package splits into zip archives
-    GA->>DV: Upload zips + metadata → publish new version
-    DV-->>GA: ✓ DOI assigned
-    GA->>RF: Upload images + labels (YOLO format)
-    RF-->>GA: ✓ Version published
-    GA->>KG: Upload zips + metadata
-    KG-->>GA: ✓ Version published
     GA->>GH: Download release archive (code + docs)
     GA->>B2: Upload zips + release archive (European copy)
     B2-->>GA: ✓ DOI assigned
@@ -583,9 +269,6 @@ sequenceDiagram
     M->>GB: Upload Camtrap DP package to IPT (or gbif register)
     GB-->>M: ✓ Dataset indexed · DOI assigned
 
-    M->>AM: Submit deposit request (code + metadata + DOIs)
-    AM-->>M: ✓ Handle / URI assigned
-
     M->>GH: Update README.md with all DOI badges and record URLs
 ```
 
@@ -593,31 +276,61 @@ sequenceDiagram
 
 ## Automating the publication of new versions
 
-Almost the entire publication process can be automated. The only steps that require
-manual intervention are uploading the images to HuggingFace Hub (the primary source),
-reviewing the Zenodo deposit, publishing on GBIF, and notifying Arias Montano.
+Almost the entire publication process can be automated, in one of two independent
+ways — they are not steps of the same pipeline, pick one:
 
-### What is automated vs. manual
+- **Locally, with the `donadataset publish all` CLI** — needs the dataset and every
+  integration's credentials ready beforehand (see [Prerequisites](#prerequisites)
+  below); the command uploads to HuggingFace Hub itself as its first step, then
+  continues to Zenodo, B2SHARE, and GBIF. Nothing needs to already be published
+  anywhere before you run it.
+- **Via GitHub Actions** — the opposite precondition on the data side: this workflow
+  only *distributes* what's already on HuggingFace Hub, it never uploads to it. The
+  dataset has to be pushed there manually first (Step 1 below); only then does creating
+  a GitHub release trigger the rest.
 
-| Step | How |
-|---|---|
-| HuggingFace Hub | ❌ Manual — run `scripts/upload.py` locally before the release |
-| Dataverse | ✅ GitHub Actions (`publish.yml`) |
-| Roboflow Universe | ✅ GitHub Actions (`publish.yml`) |
-| Kaggle | ✅ GitHub Actions (`publish.yml`) |
-| B2SHARE 🇪🇺 | ✅ GitHub Actions (`publish.yml`) |
-| Zenodo | ✅ Automatic webhook triggered by the GitHub release |
-| GBIF | ⚠️ Partial — `gbif prepare` is scriptable, but uploading/publishing still needs either the IPT UI or `gbif register` run by hand |
-| Arias Montano | ❌ Manual — contact biblioteca@uhu.es |
+Either way, the steps that still require manual intervention are the same: reviewing
+the Zenodo deposit before it publishes, and publishing on GBIF.
 
-### The `donadataset publish all` CLI pipeline
+### Prerequisites
 
-Separately from the GitHub Actions workflow above, the `donadataset` CLI itself can drive
-**HuggingFace Hub, Zenodo, B2SHARE, and GBIF** end to end in one command:
+Both options below need two things ready first:
+
+1. **The dataset generated** — see [Generating the dataset](#generating-the-dataset)
+   above for what `donadataset generate real` expects as input and produces as output.
+2. **Credentials for every integration you're publishing to** — an access token
+   (HuggingFace Hub, Zenodo, B2SHARE) or username/password (GBIF), each stored once via
+   `donadataset publish <repo> config set token` (or the matching environment
+   variable) — see the "First-time setup" section of the
+   [HuggingFace Hub](publishing-huggingface.md#first-time-setup),
+   [Zenodo](publishing-zenodo.md#first-time-setup),
+   [B2SHARE](publishing-b2share.md#first-time-setup), and
+   [GBIF](publishing-gbif.md#first-time-setup) guides. `publish all`/`pipeline` fail
+   with a clear error naming whichever token is still missing, rather than getting
+   partway through and stalling silently. GitHub Actions doesn't read any of this —
+   it uses its own repository Secrets instead (Step 4 below).
+3. **A git tag for this version.** `huggingface pipeline` (and `publish all` through
+   it) auto-detects the version from git: if `HEAD` is exactly on a tag like `v1.1.0`
+   when you run it, that tag (minus the `v`) becomes the published version in
+   `dataset_info.json`/`CITATION.cff`; otherwise it's left as the placeholder
+   `REPLACE_WITH_VERSION`, since neither `publish all` nor this call to `pipeline`
+   passes an explicit `--version`. Tag it first: `git tag v1.1.0 && git push origin
+   v1.1.0`. Option B needs the exact same tag too — Step 2 below creates the GitHub
+   release based on it, rather than creating a new one inline.
+
+### Option A: Locally, with `donadataset publish all`
+
+The `donadataset` CLI can drive **HuggingFace Hub, Zenodo, B2SHARE, and GBIF** end to
+end in one command, starting from the dataset generated above:
 
 ```bash
 donadataset publish all
 ```
+
+`publish all` itself takes no `--source-dataset-dir` flag — it delegates straight to
+`huggingface pipeline`, which defaults to `GENERATE.output` (see above). If you
+generated the dataset somewhere else, reconfigure that setting first rather than
+trying to pass a path on the `publish all` command line.
 
 It runs each integration's `pipeline` in the order they depend on each other
 (HuggingFace Hub → Zenodo → B2SHARE → GBIF), reusing whatever you've already saved with
@@ -638,42 +351,49 @@ donadataset publish all --exclude b2share      # skip B2SHARE this time
 donadataset publish all --dry-run              # preview the full plan first
 ```
 
+### Option B: Via GitHub Actions
+
+| Step | How |
+|---|---|
+| HuggingFace Hub | ❌ Manual — must already be uploaded before creating the release (Step 1 below) |
+| Zenodo | ✅ Automatic webhook triggered by the GitHub release |
+| B2SHARE 🇪🇺 | ✅ GitHub Actions (`publish.yml`) |
+| GBIF | ⚠️ Partial — `gbif prepare` is scriptable, but uploading/publishing still needs either the IPT UI or `gbif register` run by hand |
+
 ---
 
-### Step 1 — Upload images to HuggingFace Hub (local)
+#### Step 1 — Upload images to HuggingFace Hub (local, prerequisite)
 
 Before creating the release, the maintainer must upload the new or updated images and
-labels from their local machine. This is done with `scripts/upload.py`, which is included
-in this repository:
+labels from their local machine, and make the repository public — the workflow below
+only distributes from HuggingFace Hub, it does not populate it or publish it. Use the
+same CLI wizard described in the [HuggingFace Hub guide](publishing-huggingface.md):
 
 ```bash
-# Set up the environment (first time only)
-./setup.sh
-source .venv/bin/activate
-
-# Upload all splits to HuggingFace Hub
-python scripts/upload.py
-
-# Upload a single split
-python scripts/upload.py --split train
+donadataset publish huggingface wizard
 ```
 
-The script reads the `HF_TOKEN` environment variable (or prompts for it) and pushes
-the contents of `data/` to the HuggingFace Hub dataset repository.
-
-> ⚠️ Make sure the images are in `data/train/`, `data/val/`, and `data/test/` before
-> running the script.
+Walks through prepare → upload → make public → generate the DOI (manual, on the web) →
+reflect it locally, asking for confirmation before the irreversible "make public" step.
+See [publishing-huggingface.md](publishing-huggingface.md#5-commands-to-publish) for
+the full walkthrough, including the non-interactive `pipeline` alternative and the
+manual step-by-step commands.
 
 ---
 
-### Step 2 — Create a GitHub release (triggers automation)
+#### Step 2 — Create a GitHub release (triggers automation)
 
-Once the images are on HuggingFace Hub, create a new release in this GitHub repository:
+Once the images are on HuggingFace Hub, tag the version and create the release **based
+on that tag** in this GitHub repository:
 
-1. Go to **Releases → Draft a new release**.
-2. Create a new tag following [semantic versioning](https://semver.org/): `vX.Y.Z`.
-3. Write a release description summarising the changes.
-4. Click **Publish release**.
+1. Tag the commit and push the tag, following [semantic versioning](https://semver.org/):
+   `git tag vX.Y.Z && git push origin vX.Y.Z`.
+2. Go to **Releases → Draft a new release**.
+3. Select the tag you just pushed (don't type a new one here — the release has to be
+   built on the tag from step 1, the same one HuggingFace Hub's version metadata is
+   based on).
+4. Write a release description summarising the changes.
+5. Click **Publish release**.
 
 This single action triggers two things simultaneously:
 - **Zenodo** automatically archives this repository and creates a new deposit.
@@ -681,14 +401,15 @@ This single action triggers two things simultaneously:
 
 ---
 
-### Step 3 — GitHub Actions distributes to all mirrors
+#### Step 3 — GitHub Actions distributes to remaining mirrors
 
 The workflow `publish.yml` runs automatically on GitHub's servers. It:
 
 1. Frees up disk space on the runner (~30 GB recovered).
-2. Downloads the full dataset from **HuggingFace Hub**.
+2. Downloads the full dataset from **HuggingFace Hub** (this is why Step 1 has to have
+   happened already — there is nothing to download otherwise).
 3. Packages each split into a zip archive (`train.zip`, `val.zip`, `test.zip`).
-4. Uploads the archives to **Dataverse**, **Roboflow Universe**, **Kaggle**, and **B2SHARE**.
+4. Uploads the archive to **B2SHARE**.
 5. Writes a summary in the GitHub release page listing completed and pending steps.
 
 If any individual mirror upload fails, the others continue — each step uses
@@ -700,7 +421,7 @@ If any individual mirror upload fails, the others continue — each step uses
 
 ---
 
-### Step 4 — Configure GitHub Secrets (one-time setup)
+#### Step 4 — Configure GitHub Secrets (one-time setup)
 
 Before using the workflow for the first time, add the following secrets in the repository:
 **Settings → Secrets and variables → Actions → New repository secret**
@@ -708,12 +429,5 @@ Before using the workflow for the first time, add the following secrets in the r
 | Secret | Platform | How to obtain |
 |---|---|---|
 | `HF_TOKEN` | HuggingFace Hub | huggingface.co → Settings → Access Tokens |
-| `DATAVERSE_API_TOKEN` | Dataverse | dataverse.harvard.edu → Account → API Token |
-| `DATAVERSE_DOI` | Dataverse | Persistent ID of the dataset, e.g. `doi:10.7910/DVN/XXXXXX` |
-| `ROBOFLOW_API_KEY` | Roboflow | roboflow.com → Settings → Roboflow API |
-| `ROBOFLOW_WORKSPACE` | Roboflow | Workspace slug, e.g. `wildintelproject` |
-| `ROBOFLOW_PROJECT` | Roboflow | Project slug, e.g. `donadataset` |
-| `KAGGLE_USERNAME` | Kaggle | kaggle.com → Settings → API |
-| `KAGGLE_KEY` | Kaggle | kaggle.com → Settings → API |
 | `B2SHARE_API_TOKEN` | B2SHARE | b2share.eudat.eu → Account → Personal access tokens |
 | `B2SHARE_BUCKET_ID` | B2SHARE | File bucket ID from the record's JSON (`links.files`) |

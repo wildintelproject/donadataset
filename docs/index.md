@@ -25,14 +25,19 @@ annotated, and dataset splits.
 How to download the dataset and what you'll find once you do: directory layout,
 annotation format, and metadata files.
 
-**[About](about.md)**
-
-Background on DonaDataset, the WildINTEL project, and funding.
-
 **[Publishing Guide](publishing-guide.md)** — for maintainers
 
 Step-by-step guide to publishing and keeping the dataset synchronized across HuggingFace
 Hub, Zenodo, B2SHARE, GBIF, and the other external repositories.
+
+**[Features](features.md)**
+
+What makes DonaDataset and the `donadataset` CLI stand out: dataset characteristics and
+CLI capabilities (wizards, `publish all`, config management, and more).
+
+**[About](about.md)**
+
+Background on DonaDataset, the WildINTEL project, and funding.
 
 ---
 

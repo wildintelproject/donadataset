@@ -4,15 +4,20 @@ Gestiona únicamente los parámetros de entrada; toda la lógica de
 preparación/actualización/descarga vive en donadataset.services.zenodo.
 """
 import logging
+import os
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Any, Callable, Optional
 
 import typer
 from rich.console import Console
 
 from donadataset.commands import zenodo_config_commands
+from donadataset.commands.huggingface import _resolved_config_path as _hf_resolved_config_path
+from donadataset.commands.huggingface import _warn_if_token_missing as _hf_warn_if_token_missing
+from donadataset.commands.huggingface import _wizard_resolve_repo_id
 from donadataset.config import REPO_ROOT, ZenodoSettings, get_app_documents_dir, settings
+from donadataset.services import huggingface as hf_service
 from donadataset.services import zenodo as zenodo_service
 
 console = Console()
@@ -388,3 +393,196 @@ def pipeline(
         raise typer.Exit(1) from exc
 
     console.print("\n[bold green]✔  Pipeline completado.[/bold green]")
+
+
+# ── wizard ────────────────────────────────────────────────────────────────
+
+def _run_wizard_step(label: str, action: Callable[[], Any], *, allow_skip: bool = False) -> Any:
+    """Runs `action`, retrying/skipping/aborting interactively on failure —
+    unlike 'pipeline', which just crashes on the first exception. Returns
+    whatever `action` returns (None if the step was skipped). Mirrors
+    donadataset.commands.huggingface._run_wizard_step."""
+    while True:
+        console.print(f"\n[bold cyan]── {label} ──[/bold cyan]")
+        try:
+            return action()
+        except Exception as exc:
+            logging.error("%s falló: %s", label, exc)
+            options = "[r]eintentar" + (" / [s]altar" if allow_skip else "") + " / [a]bortar"
+            choice = typer.prompt(f"¿Qué quieres hacer? {options}", default="r").strip().lower()
+            if choice.startswith("r"):
+                continue
+            if allow_skip and choice.startswith("s"):
+                console.print("[yellow]Paso saltado — puedes completarlo más tarde a mano.[/yellow]")
+                return None
+            console.print("[red]Abortado.[/red]")
+            raise typer.Exit(1) from exc
+
+
+@app.command("wizard")
+def wizard(
+    hfh_output_dir: Optional[str] = typer.Option(
+        str(DEFAULT_HFH_OUTPUT_DIR), "--hfh-output-dir",
+        help="Directorio del export de HuggingFace ya existente (el mismo --output-dir de 'huggingface prepare').",
+    ),
+    output_dir: Optional[str] = typer.Option(
+        str(DEFAULT_ZENODO_OUTPUT_DIR), "--output-dir",
+        help="Directorio propio de Zenodo: aquí se descarga HuggingFace Hub en tiempo real y se guarda todo lo que se sube a Zenodo.",
+    ),
+) -> None:
+    """Asistente interactivo: te guía paso a paso por todo el proceso de publicación en Zenodo.
+
+    A diferencia de 'pipeline' (que ejecuta todo de un tirón, se detiene en
+    seco si algo falla, y solo pausa para que reflejes el DOI en HuggingFace
+    a mano), el wizard explica cada fase antes de ejecutarla, te pregunta el
+    repo_id si todavía no lo has configurado, detecta si ya existe un
+    depósito vinculado (para ofrecerte sincronizarlo en vez de crear uno
+    nuevo), hace la re-subida a HuggingFace Hub por ti automáticamente, te
+    pide confirmación antes de publicar de forma DEFINITIVA e IRREVERSIBLE,
+    y si un paso falla te deja reintentarlo o abortar en vez de terminar en
+    seco. Los valores de identidad del dataset (nombre, licencia, autor...)
+    salen de 'donadataset publish huggingface config' — el wizard no te los
+    vuelve a preguntar.
+    """
+    console.print("[bold]Asistente de publicación en Zenodo[/bold]")
+    console.print(
+        "Fases: 1) crear/sincronizar el depósito Zenodo enlazado y reservar el DOI  "
+        "2) reflejar el DOI en la metadata local  3) volver a subir a HuggingFace Hub "
+        "(para publicar el DOI)  4) comprobar que todo está listo  5) publicar de forma "
+        "definitiva (irreversible).\n"
+    )
+
+    repo_id = _wizard_resolve_repo_id()
+    environment = ZENODO_DEFAULTS.environment or "sandbox"
+    console.print(
+        f"Entorno: [bold]{environment}[/bold] "
+        "(cambia con 'donadataset publish zenodo config set environment')."
+    )
+    if environment == "production":
+        if not typer.confirm(
+            "Estás en 'production' — esto reserva y puede publicar un DOI real de Zenodo "
+            "(no de sandbox). ¿Continuar?",
+            default=False,
+        ):
+            console.print(
+                "[yellow]Abortado.[/yellow] Cambia a sandbox con "
+                "[bold]donadataset publish zenodo config set environment=sandbox[/bold] "
+                "si querías probar antes."
+            )
+            raise typer.Exit(0)
+
+    prepare_context = _build_template_context(output_dir, repo_id, environment=environment)
+    config = zenodo_service.load_config_source(DEFAULT_TEMPLATE_FILE, **prepare_context)
+
+    token_env_var = zenodo_service.get_zenodo_token_env_var(config)
+    if not (os.environ.get(token_env_var) or settings.ZENODO.token):
+        console.print(f"[red]✘  No hay ningún token de Zenodo configurado ({token_env_var}).[/red]")
+        console.print(
+            "   Consigue uno en [bold]https://"
+            f"{'sandbox.' if environment == 'sandbox' else ''}zenodo.org/account/settings/applications/tokens/new/"
+            "[/bold] y expórtalo:"
+        )
+        console.print(f"   [bold]export {token_env_var}='...'[/bold]")
+        console.print(
+            "   o guárdalo de forma permanente: "
+            "[bold]donadataset publish zenodo config set token[/bold]"
+        )
+        raise typer.Exit(1)
+
+    # ── Fase 1/5: prepare ──────────────────────────────────────────────────
+    linked_record_path = zenodo_service.get_linked_record_path(config)
+    sync_existing_draft = False
+    if linked_record_path.is_file():
+        existing_record = zenodo_service.read_json(linked_record_path)
+        console.print(
+            f"\nYa existe un depósito Zenodo vinculado en [bold]{linked_record_path}[/bold] "
+            f"(deposition_id={existing_record.get('deposition_id')}, "
+            f"DOI reservado={existing_record.get('reserved_doi') or 'aún no'})."
+        )
+        sync_existing_draft = typer.confirm(
+            "¿Sincronizarlo (en vez de crear un depósito nuevo)?", default=True,
+        )
+
+    def _do_prepare() -> None:
+        if sync_existing_draft:
+            zenodo_service.run_zenodo_existing_draft_sync(
+                DEFAULT_TEMPLATE_FILE, dry_run=False, template_context=prepare_context,
+            )
+        else:
+            zenodo_service.run_zenodo_linked_dataset_creation(
+                DEFAULT_TEMPLATE_FILE, dry_run=False, template_context=prepare_context,
+            )
+
+    _run_wizard_step("Fase 1/5: prepare", _do_prepare)
+
+    linked_record = zenodo_service.read_json(linked_record_path)
+    reserved_doi = linked_record.get("reserved_doi")
+    if reserved_doi:
+        console.print(f"[green]✔  DOI reservado: {reserved_doi}[/green]")
+    else:
+        console.print("[yellow]⚠  Todavía no se ha reservado un DOI — revisa el depósito en Zenodo.[/yellow]")
+
+    # ── Fase 2/5: upload (DOI -> metadata local) ────────────────────────────
+    upload_context = _build_template_context(
+        output_dir, repo_id, hfh_output_dir=hfh_output_dir, environment=environment,
+    )
+    console.print(
+        f"\nSe va a insertar el DOI en la copia local de la metadata de HuggingFace Hub en "
+        f"[bold]{hfh_output_dir}[/bold] (README, CITATION.cff, dataset_info.json) y a "
+        "recalcular checksums."
+    )
+    _run_wizard_step(
+        "Fase 2/5: upload (DOI -> metadata local)",
+        lambda: zenodo_service.run_update_local_metadata_with_doi(
+            DEFAULT_TEMPLATE_FILE, dry_run=False, no_backup=False, template_context=upload_context,
+        ),
+    )
+
+    # ── Fase 3/5: re-subida a HuggingFace Hub (publica el DOI) ──────────────
+    hf_config_path = _hf_resolved_config_path(hfh_output_dir)
+    console.print(
+        f"\nEl DOI ya está en tu metadata local — falta reflejarlo en el repo público de "
+        f"[bold]{repo_id}[/bold] en HuggingFace Hub."
+    )
+    _hf_warn_if_token_missing(hf_config_path, required_permission="write")
+    _run_wizard_step(
+        "Fase 3/5: re-subida a HuggingFace Hub",
+        lambda: hf_service.run_upload(hf_config_path, dry_run=False),
+    )
+
+    # ── Fase 4/5: check-readiness (solo lectura) ────────────────────────────
+    readiness_context = _build_template_context(output_dir, repo_id, environment=environment)
+    _run_wizard_step(
+        "Fase 4/5: check-readiness",
+        lambda: zenodo_service.run_check_release_readiness(DEFAULT_TEMPLATE_FILE, template_context=readiness_context),
+    )
+
+    # ── Fase 5/5: release (irreversible) ─────────────────────────────────────
+    console.print(
+        "\nEl siguiente paso publica el depósito de Zenodo de forma "
+        "[bold red]DEFINITIVA e IRREVERSIBLE[/bold red] — una vez publicado no se puede "
+        "despublicar ni editar sus ficheros."
+    )
+    if not typer.confirm("¿Continuar y publicar ahora?", default=False):
+        console.print(
+            "\n[yellow]De acuerdo, lo dejo como draft.[/yellow] Cuando quieras publicarlo, "
+            "vuelve a ejecutar el wizard o usa 'donadataset publish zenodo release'."
+        )
+        raise typer.Exit(0)
+
+    release_context = _build_template_context(output_dir, repo_id, environment=environment)
+    _run_wizard_step(
+        "Fase 5/5: release",
+        lambda: zenodo_service.run_release(
+            DEFAULT_TEMPLATE_FILE, dry_run=False, skip_readiness_check=False,
+            no_config_update=False, template_context=release_context,
+        ),
+    )
+
+    publication_report = zenodo_service.read_json(zenodo_service.get_publication_report_path(config))
+    record_url = publication_report.get("record_url")
+    console.print(
+        "\n[bold green]✔  Publicación en Zenodo completada"
+        + (f": {record_url}" if record_url else "")
+        + "[/bold green]"
+    )

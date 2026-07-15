@@ -124,6 +124,16 @@ only adds this one file, it doesn't touch anything else in the repo.
 
 ## 5. Publishing — two ways to get the package into GBIF
 
+### First-time setup
+
+1. Create an account at [gbif.org](https://www.gbif.org) and request an
+   **organisation** account for WildINTEL (or use the University of Huelva's existing
+   GBIF node).
+2. Either install the [GBIF IPT](https://www.gbif.org/ipt) v3+ (or use a hosted
+   instance) if publishing manually (5a below), or register an **installation** (any
+   type — doesn't have to be an IPT) if publishing via `gbif register`'s Registry API
+   path (5b below).
+
 ### 5a. Through an IPT (manual)
 
 1. Run `donadataset publish gbif prepare`.

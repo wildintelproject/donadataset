@@ -89,6 +89,20 @@ the same directory for a complete local audit trail.
 
 ## 5. Commands to publish
 
+### First-time setup
+
+1. Log in at [b2share.eudat.eu](https://b2share.eudat.eu) (or
+   [trng-b2share.eudat.eu](https://trng-b2share.eudat.eu) for the sandbox) using your
+   institutional account or ORCID.
+2. Request a **community** UUID for WildINTEL at b2share.eudat.eu if you don't have one
+   yet — there is no sensible default, every command that touches the network fails
+   with a clear error until this is set. Store it via `donadataset publish b2share
+   config set community_id=<uuid>`.
+3. Create a personal access token and set it as `B2SHARE_TOKEN`, or store it once via
+   `donadataset publish b2share config set token`.
+
+### Publishing a new version
+
 B2SHARE publication happens **after** the dataset is already on HuggingFace Hub (see the
 [HuggingFace guide](publishing-huggingface.md#5-commands-to-publish)):
 

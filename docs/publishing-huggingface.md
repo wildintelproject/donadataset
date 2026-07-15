@@ -161,6 +161,23 @@ built the export they're citing.
 
 ## 5. Commands to publish
 
+### First-time setup
+
+1. Create an account at [huggingface.co](https://huggingface.co) and join the
+   **wildintelproject** organisation.
+2. Set up the project's own environment (not the raw `huggingface-cli`):
+   ```bash
+   ./setup.sh
+   source .venv/bin/activate
+   ```
+3. Get an access token with write permission at
+   [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens), and set it
+   as `HF_TOKEN`, or store it once via `donadataset publish huggingface config set
+   token`.
+4. Set `repo_id` (e.g. `wildintelproject/donadataset`) via `donadataset publish
+   huggingface config set repo_id=wildintelproject/donadataset` — the repository is
+   created automatically on first upload if it doesn't exist yet.
+
 ### The full sequence, visually
 
 ```mermaid

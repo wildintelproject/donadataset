@@ -28,6 +28,7 @@ theme:
 
   features:
     - navigation.top
+    - navigation.footer
     - search.highlight
     - content.code.copy
     - content.code.annotate
@@ -43,6 +44,9 @@ extra:
     - icon: simple/huggingface
       link: https://huggingface.co/wildintelproject
       name: WildINTEL on HuggingFace Hub
+    - icon: simple/zenodo
+      link: https://zenodo.org/communities/wildintelproject
+      name: WildINTEL on Zenodo
     - icon: fontawesome/brands/facebook
       link: https://www.facebook.com/people/WildIntel/61556603674655/
       name: WildINTEL on Facebook
@@ -55,6 +59,9 @@ extra:
 
 extra_css:
   - stylesheets/extras.css
+
+extra_javascript:
+  - javascripts/mermaid-zoom.js
 
 markdown_extensions:
   - toc:
@@ -78,6 +85,24 @@ markdown_extensions:
 
 plugins:
   - search
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          name: English
+          default: true
+          build: true
+        - locale: es
+          name: Español
+          build: true
+          nav_translations:
+            Home: Inicio
+            Dataset Description: Descripción del dataset
+            User Guide: Guía de usuario
+            Publishing: Publicación
+            Overview (all repositories): Visión general (todos los repositorios)
+            Features: Características
+            About: Acerca de
   # Solo se activa con la variable de entorno ENABLE_PDF_EXPORT=1 (la pone
   # 'uv run cli docs pdf') — generar el PDF añade tiempo de build (WeasyPrint
   # renderiza cada página), así que 'docs serve'/'docs build' normales no
@@ -102,4 +127,5 @@ nav:
       - Zenodo: publishing-zenodo.md
       - B2SHARE: publishing-b2share.md
       - GBIF: publishing-gbif.md
+  - Features: features.md
   - About: about.md

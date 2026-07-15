@@ -97,6 +97,17 @@ directory for a single, complete audit trail of the whole release.
 
 ## 5. Commands to publish
 
+### First-time setup
+
+1. Create an account at [zenodo.org](https://zenodo.org) (use `sandbox.zenodo.org`
+   first to test the whole flow without minting a real DOI).
+2. Create a personal access token (**Applications → Personal access tokens**, scopes
+   `deposit:write` + `deposit:actions`).
+3. Set it as `ZENODO_TOKEN`, or store it once via `donadataset publish zenodo config
+   set token`.
+
+### Publishing a new version
+
 Zenodo publication happens **after** the dataset is already on HuggingFace Hub (steps
 1–4 of the [HuggingFace guide](publishing-huggingface.md#5-commands-to-publish)), and
 the final, irreversible "publish" step happens **after** HuggingFace Hub has been made
@@ -131,6 +142,32 @@ Or run steps 1, 2, 5, and 6 in one go with `pipeline` (it pauses between `upload
 ```bash
 donadataset publish zenodo pipeline --repo-id <your-user>/<dataset-slug>
 ```
+
+### The easy way: `wizard`
+
+```bash
+donadataset publish zenodo wizard
+```
+
+Guides you through the same six steps interactively, one phase at a time. Unlike
+`pipeline` (which crashes on the first error and always creates a brand-new draft),
+`wizard`:
+
+- Asks for `--repo-id` if you haven't configured one yet (same prompt as
+  `donadataset publish huggingface wizard`, shares the same `settings.toml` value), and
+  offers to save it so you aren't asked again.
+- Detects an existing linked Zenodo draft in `--output-dir` and asks whether to
+  synchronise it (`--sync-existing-draft`) instead of always creating a new one.
+- Does step 3 (re-upload to HuggingFace Hub) for you automatically, instead of leaving it
+  as a manual step you have to remember.
+- Warns you before touching `production` if `zenodo.environment` isn't `sandbox`.
+- Asks for explicit confirmation before the final publish — the one step that's
+  irreversible.
+- If any step fails (network hiccup, transient API error...), lets you retry it or abort
+  instead of just exiting.
+
+Not to be confused with `donadataset publish zenodo config wizard`, which only edits
+`settings.toml` fields and doesn't publish anything.
 
 There is no `--config` flag on any of these commands: they always render the single
 bundled Jinja2 template (`templates/Zenodo.yaml.j2`) using `--repo-id`/`--output-dir`

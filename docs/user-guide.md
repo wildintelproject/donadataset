@@ -13,7 +13,7 @@ DonaDataset is published across several public repositories — see the
 from the **main repository, HuggingFace Hub**, where it's published as `.tar` shards
 (`data/<split>/*.tar`, one or more per split) rather than loose files, to keep the
 number of individual objects in the repository manageable. You don't need to deal with
-that directly — pick one of the two methods below.
+that directly — pick one of the methods below.
 
 ### The easy way: `scripts/download.py`
 
@@ -66,11 +66,30 @@ Each shard's internal paths already start with `images/<split>/...` and
 `labels/<split>/...`, so extracting straight into `data/` reconstructs the same layout
 `scripts/download.py` produces automatically.
 
+### The browser way: no install at all
+
+You can also get the data straight from HuggingFace Hub without installing anything —
+browse to
+[huggingface.co/datasets/wildintelproject/donadataset/tree/main](https://huggingface.co/datasets/wildintelproject/donadataset/tree/main)
+and either:
+
+- Click into `data/<split>/` and download each `.tar` shard individually (there's no
+  single "download everything" button on the page, so this is only convenient for a
+  handful of shards), or
+- Use the **"Clone repository"** button on the page (or
+  `git clone https://huggingface.co/datasets/wildintelproject/donadataset`, which needs
+  [git-lfs](https://git-lfs.com/) installed) to get the whole repository, shards
+  included, in one go.
+
+Either way you end up with the same `.tar` shards as the other two methods — extract
+them yourself exactly as shown in
+["The manual way"](#the-manual-way-huggingface-cli-python) above.
+
 !!! note "Not to be confused with `donadataset publish huggingface download`"
     That command belongs to the [Publishing Guide](publishing-huggingface.md) — it's a
     maintainer tool that re-downloads the whole repo to verify checksums after an
     upload, requires an `HF_TOKEN`, and doesn't extract anything for training. If you
-    just want the data, use one of the two methods above instead.
+    just want the data, use one of the methods above instead.
 
 ## 2. What you'll find
 
