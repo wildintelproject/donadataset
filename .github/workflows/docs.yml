@@ -53,10 +53,7 @@ jobs:
         uses: astral-sh/setup-uv@v4
 
       - name: Install doc dependencies
-        run: |
-          uv pip install --system \
-            mkdocs-material \
-            mike
+        run: uv sync
 
       - name: Configure git
         run: |
@@ -95,16 +92,16 @@ jobs:
           MIKE_ARGS="--push --update-aliases"
 
           if [[ -n "$ALIAS" ]]; then
-            mike deploy $MIKE_ARGS "$VERSION" "$ALIAS"
+            uv run mike deploy $MIKE_ARGS "$VERSION" "$ALIAS"
           else
-            mike deploy $MIKE_ARGS "$VERSION"
+            uv run mike deploy $MIKE_ARGS "$VERSION"
           fi
 
           if [[ "$SET_DEFAULT" == "true" ]] || \
              ([[ "${{ github.ref }}" == refs/tags/* ]] && [[ -n "$ALIAS" ]]); then
-            mike set-default --push "$ALIAS"
+            uv run mike set-default --push "$ALIAS"
             echo "✅ Default version set → $ALIAS ($VERSION)"
           fi
 
       - name: List published versions
-        run: mike list
+        run: uv run mike list
