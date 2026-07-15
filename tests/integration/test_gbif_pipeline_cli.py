@@ -1,9 +1,13 @@
-"""Integration tests for 'publish gbif pipeline' (prepare --upload-to-huggingface
---link-media-to-huggingface -> register), the command donadataset.commands.publish_all
-shells out to for the GBIF phase of 'publish all'.
+"""Integration tests for 'publish gbif pipeline' (prepare -> upload -> register;
+media.filePath always links to HuggingFace Hub in both), the command
+donadataset.commands.publish_all shells out to for the GBIF phase of 'publish all'.
 
-Every network-touching call (HuggingFace Hub upload, GBIF Registry API) is
-monkeypatched, so nothing here reaches a real external service.
+Every network-touching call (the actual push to HuggingFace Hub, GBIF Registry
+API) is monkeypatched, so nothing here reaches a real external service. The
+local staging step (copying the .zip into the HFH export and regenerating its
+checksums-sha256.txt, see gbif_service.run_upload) is exercised for real
+against a real local 'huggingface prepare' export, since it's all local
+filesystem work.
 """
 import json
 from pathlib import Path
@@ -13,10 +17,12 @@ from typer.testing import CliRunner
 
 from donadataset.main import app
 from donadataset.services import gbif as gbif_service
+from donadataset.services import huggingface as hf_service
 
 runner = CliRunner()
 
-FAKE_ARCHIVE_URL = "https://huggingface.co/datasets/someuser/somedataset/resolve/main/donadataset-camtrap-dp.zip"
+REPO_ID = "someuser/somedataset"
+FAKE_ARCHIVE_URL = f"https://huggingface.co/datasets/{REPO_ID}/resolve/main/somedataset-camtrap-dp.zip"
 
 
 class _FakeResponse:
@@ -30,25 +36,29 @@ class _FakeResponse:
         return self._payload
 
 
-def _generate_real_dataset(tmp_path: Path, example_source_dataset: Path) -> Path:
+def _generate_real_dataset_and_hfh_export(tmp_path: Path, example_source_dataset: Path) -> tuple[Path, Path]:
+    """generate real -> huggingface prepare (a real local export, so
+    'gbif upload's local staging — copy the .zip in, regenerate
+    checksums-sha256.txt — runs for real, not mocked) -> copies manifest.csv
+    into the loose YOLO output, same as test_gbif_cli.py's
+    _generate_real_dataset. Returns (real_output, hfh_output_dir)."""
     real_output = tmp_path / "real"
     result = runner.invoke(app, [
         "generate", "real", "--source", str(example_source_dataset), "--output", str(real_output),
     ])
     assert result.exit_code == 0, result.output
-    return real_output
 
+    hfh_output_dir = tmp_path / "HFH"
+    hfh_result = runner.invoke(app, [
+        "publish", "huggingface", "prepare",
+        "--source-dataset-dir", str(real_output),
+        "--output-dir", str(hfh_output_dir),
+        "--repo-id", REPO_ID,
+    ])
+    assert hfh_result.exit_code == 0, hfh_result.output
+    (real_output / "manifest.csv").write_bytes((hfh_output_dir / "manifest.csv").read_bytes())
 
-def _fake_shard_urls(real_output: Path) -> Dict[str, str]:
-    """'pipeline' always runs with --link-media-to-huggingface too, so it
-    also needs fetch_hfh_shard_urls mocked — one fake shard URL per split,
-    same shape as test_gbif_cli.py's equivalent helper."""
-    urls: Dict[str, str] = {}
-    for split in ("train", "val", "test"):
-        shard_url = f"https://huggingface.co/datasets/someuser/somedataset/resolve/main/data/{split}/{split}-00000.tar"
-        for label_path in (real_output / "labels" / split).glob("*.txt"):
-            urls[label_path.stem] = shard_url
-    return urls
+    return real_output, hfh_output_dir
 
 
 def _patch_registry_api(monkeypatch, calls: list):
@@ -69,16 +79,20 @@ def _patch_registry_api(monkeypatch, calls: list):
     monkeypatch.setattr(gbif_service.requests, "get", fake_get)
 
 
-def test_pipeline_chains_prepare_url_straight_into_register(
+def test_pipeline_chains_prepare_upload_url_straight_into_register(
     tmp_path: Path, example_source_dataset: Path, monkeypatch,
 ):
     monkeypatch.setenv("GBIF_USERNAME", "user")
     monkeypatch.setenv("GBIF_PASSWORD", "pass")
-    real_output = _generate_real_dataset(tmp_path, example_source_dataset)
+    monkeypatch.setenv("HF_TOKEN", "hf_dummy")
+    real_output, hfh_output_dir = _generate_real_dataset_and_hfh_export(tmp_path, example_source_dataset)
     output_dir = tmp_path / "gbif_out"
 
-    monkeypatch.setattr(gbif_service, "upload_archive_to_huggingface", lambda archive_path, repo_id: FAKE_ARCHIVE_URL)
-    monkeypatch.setattr(gbif_service, "fetch_hfh_shard_urls", lambda repo_id: _fake_shard_urls(real_output))
+    hf_upload_calls: list = []
+    monkeypatch.setattr(
+        hf_service, "run_upload",
+        lambda config_path, dry_run=False, allow_patterns=None: hf_upload_calls.append(allow_patterns),
+    )
     registry_calls: list = []
     _patch_registry_api(monkeypatch, registry_calls)
 
@@ -86,16 +100,25 @@ def test_pipeline_chains_prepare_url_straight_into_register(
         "publish", "gbif", "pipeline",
         "--source-dataset-dir", str(real_output),
         "--output-dir", str(output_dir),
-        "--hf-repo-id", "someuser/somedataset",
+        "--hf-repo-id", REPO_ID,
+        "--hfh-output-dir", str(hfh_output_dir),
         "--publishing-organization-key", "00000000-0000-0000-0000-000000000001",
         "--installation-key", "00000000-0000-0000-0000-000000000002",
     ])
 
     assert result.exit_code == 0, result.output
-    assert (output_dir / "donadataset-camtrap-dp.zip").exists()
+    assert (output_dir / "somedataset-camtrap-dp.zip").exists()
 
-    # The URL run_prepare returned (from the monkeypatched upload) is exactly
-    # what got registered as the CAMTRAP_DP endpoint — no manual copy-paste.
+    # 'upload' staged the .zip into the HFH export and regenerated its
+    # checksums, then pushed exactly those two files (never the rest of the
+    # already-published export).
+    assert (hfh_output_dir / "somedataset-camtrap-dp.zip").exists()
+    assert hf_upload_calls == [["somedataset-camtrap-dp.zip", "checksums-sha256.txt"]]
+    checksums_text = (hfh_output_dir / "checksums-sha256.txt").read_text()
+    assert "somedataset-camtrap-dp.zip" in checksums_text
+
+    # The URL 'upload' produced is exactly what got registered as the
+    # CAMTRAP_DP endpoint — no manual copy-paste.
     endpoint_post_calls = [call for call in registry_calls if call[0] == "POST" and call[1].endswith("/endpoint")]
     assert endpoint_post_calls, registry_calls
     assert endpoint_post_calls[0][2] == {"type": "CAMTRAP_DP", "url": FAKE_ARCHIVE_URL}
@@ -105,27 +128,31 @@ def test_pipeline_chains_prepare_url_straight_into_register(
     assert record["dataset_key"] == "11111111-1111-1111-1111-111111111111"
 
 
-def test_pipeline_fails_without_gbif_credentials_after_prepare_succeeds(
+def test_pipeline_fails_without_gbif_credentials_after_prepare_and_upload_succeed(
     tmp_path: Path, example_source_dataset: Path, monkeypatch,
 ):
     monkeypatch.delenv("GBIF_USERNAME", raising=False)
     monkeypatch.delenv("GBIF_PASSWORD", raising=False)
-    real_output = _generate_real_dataset(tmp_path, example_source_dataset)
+    monkeypatch.setenv("HF_TOKEN", "hf_dummy")
+    real_output, hfh_output_dir = _generate_real_dataset_and_hfh_export(tmp_path, example_source_dataset)
     output_dir = tmp_path / "gbif_out"
 
-    monkeypatch.setattr(gbif_service, "upload_archive_to_huggingface", lambda archive_path, repo_id: FAKE_ARCHIVE_URL)
-    monkeypatch.setattr(gbif_service, "fetch_hfh_shard_urls", lambda repo_id: _fake_shard_urls(real_output))
+    monkeypatch.setattr(
+        hf_service, "run_upload", lambda config_path, dry_run=False, allow_patterns=None: None,
+    )
 
     result = runner.invoke(app, [
         "publish", "gbif", "pipeline",
         "--source-dataset-dir", str(real_output),
         "--output-dir", str(output_dir),
-        "--hf-repo-id", "someuser/somedataset",
+        "--hf-repo-id", REPO_ID,
+        "--hfh-output-dir", str(hfh_output_dir),
         "--publishing-organization-key", "00000000-0000-0000-0000-000000000001",
         "--installation-key", "00000000-0000-0000-0000-000000000002",
     ])
 
     assert result.exit_code == 1
     assert "gbif_username" in result.output.lower()
-    # prepare's own artifacts (built before register ever runs) are still there.
-    assert (output_dir / "donadataset-camtrap-dp.zip").exists()
+    # prepare's and upload's own artifacts (built before register ever runs) are still there.
+    assert (output_dir / "somedataset-camtrap-dp.zip").exists()
+    assert (hfh_output_dir / "somedataset-camtrap-dp.zip").exists()

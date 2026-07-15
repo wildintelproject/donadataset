@@ -32,16 +32,43 @@ def get_app_documents_dir() -> Path:
     return get_documents_dir() / APP_NAME
 
 
-def get_hfh_output_dir(repo_id: Optional[str] = None) -> Path:
-    """Directorio por defecto del export local de HuggingFace Hub —
-    <Documents>/donadataset/HFH/<repo_id> cuando repo_id ya está configurado
-    (para no mezclar exports de distintos repos en la misma carpeta), o
-    <Documents>/donadataset/HFH a secas si todavía no lo está. Usado como
-    default de --output-dir en 'huggingface prepare'/etc., y de
-    --hfh-output-dir en 'zenodo'/'b2share' — mismo cálculo en los tres sitios
-    para que sus defaults sigan coincidiendo sin tener que pasarlo a mano."""
-    base = get_app_documents_dir() / "HFH"
+def _get_platform_output_dir(platform: str, repo_id: Optional[str] = None) -> Path:
+    """<Documents>/donadataset/<platform>/<repo_id> cuando repo_id ya está
+    configurado (para no mezclar exports de distintos repos en la misma
+    carpeta), o <Documents>/donadataset/<platform> a secas si todavía no lo
+    está. Un único cálculo compartido por get_hfh_output_dir/
+    get_zenodo_output_dir/get_b2share_output_dir/get_gbif_output_dir, para
+    que sus defaults sigan coincidiendo entre sí sin tener que pasarlos a
+    mano."""
+    base = get_app_documents_dir() / platform
     return (base / repo_id) if repo_id else base
+
+
+def get_hfh_output_dir(repo_id: Optional[str] = None) -> Path:
+    """Directorio por defecto del export local de HuggingFace Hub. Usado
+    como default de --output-dir en 'huggingface prepare'/etc., y de
+    --hfh-output-dir en 'zenodo'/'b2share'."""
+    return _get_platform_output_dir("HFH", repo_id)
+
+
+def get_zenodo_output_dir(repo_id: Optional[str] = None) -> Path:
+    """Directorio PROPIO de Zenodo (su --output-dir, no el --hfh-output-dir
+    de entrada)."""
+    return _get_platform_output_dir("Zenodo", repo_id)
+
+
+def get_b2share_output_dir(repo_id: Optional[str] = None) -> Path:
+    """Directorio PROPIO de B2SHARE (su --output-dir, no el
+    --hfh-output-dir de entrada)."""
+    return _get_platform_output_dir("B2SHARE", repo_id)
+
+
+def get_gbif_output_dir(repo_id: Optional[str] = None) -> Path:
+    """Directorio por defecto del paquete Camtrap DP generado por
+    'gbif prepare' (su --output-dir)."""
+    return _get_platform_output_dir("GBIF", repo_id)
+
+
 
 
 class GenerateSettings(BaseModel):
@@ -237,6 +264,16 @@ class ZenodoSettings(BaseModel):
             "zenodo_linked_dataset_record.json)."
         ),
     )
+    communities: Optional[str] = Field(
+        default="wildintelproject",
+        description=(
+            "Comunidades de Zenodo a las que enviar el depósito al crearlo, separadas por "
+            "comas (ej. wildintelproject,biodiversity). Cada comunidad puede requerir "
+            "aprobación de su curador salvo que seas tú. 'zenodo prepare --communities' "
+            "permite elegir un subconjunto de estas para una ejecución concreta. "
+            "(zenodo.communities)"
+        ),
+    )
     token: Optional[str] = Field(
         default=None,
         description=(
@@ -293,16 +330,20 @@ class B2ShareSettings(BaseModel):
 class GBIFSettings(BaseModel):
     """Valores por defecto reutilizados entre ejecuciones de 'publish gbif
     prepare/register'. 'prepare' genera un paquete Camtrap DP (datapackage.json
-    + deployments/media/observations.csv) — estos campos alimentan su
-    metadata (title/description/license/contributors...); 'register' además
-    usa environment/*_key/registry_language para hablar con la Registry API
-    de GBIF directamente (sin pasar por un IPT — ver
-    donadataset.services.gbif). Los nombres de las variables de entorno
-    (GBIF_USERNAME/GBIF_PASSWORD) se quedan fijos en services/gbif.py, igual
-    que HF_TOKEN — pero sus VALORES pueden guardarse aquí como alternativa a
-    exportarlas cada sesión (campos 'username'/'password' más abajo; las
-    variables de entorno, si están definidas, siempre ganan). La Registry
-    API usa Basic Auth, no un token único."""
+    + deployments/media/observations.csv); 'register' usa
+    environment/*_key/registry_language para hablar con la Registry API de
+    GBIF directamente (sin pasar por un IPT — ver donadataset.services.gbif).
+    Deliberadamente NO hay aquí dataset_name/description/license_*/
+    rights_holder/contact_name — 'gbif prepare' los reutiliza directamente
+    de HUGGINGFACE.dataset_name/description/license_*/author_affiliation/
+    author_family_names (mismo patrón que ya siguen Zenodo y B2SHARE), para
+    no mantener duplicados que puedan desincronizarse. Los nombres de las
+    variables de entorno (GBIF_USERNAME/GBIF_PASSWORD) se quedan fijos en
+    services/gbif.py, igual que HF_TOKEN — pero sus VALORES pueden guardarse
+    aquí como alternativa a exportarlas cada sesión (campos
+    'username'/'password' más abajo; las variables de entorno, si están
+    definidas, siempre ganan). La Registry API usa Basic Auth, no un token
+    único."""
     environment: Optional[Literal["sandbox", "production"]] = Field(
         default="sandbox",
         description=(
@@ -332,53 +373,15 @@ class GBIFSettings(BaseModel):
             "de la Registry API al registrar el dataset. (gbif.registry_language)"
         ),
     )
-    dataset_name: Optional[str] = Field(
-        default="DonaDataset",
-        description="Nombre del dataset, usado como 'title' del datapackage.json (gbif.dataset_name).",
-    )
-    description: Optional[str] = Field(
-        default=(
-            "Camera-trap biodiversity data for mammal species from Doñana National Park, "
-            "Spain, in Camtrap DP format."
-        ),
-        description="Descripción del dataset en el datapackage.json (gbif.description).",
-    )
-    license_id: Optional[str] = Field(
-        default="CC-BY-4.0", description="Identificador de licencia, ej. CC-BY-4.0 (gbif.license_id).",
-    )
-    license_name: Optional[str] = Field(
-        default="Creative Commons Attribution 4.0 International",
-        description="Nombre completo de la licencia (gbif.license_name).",
-    )
-    license_url: Optional[str] = Field(
-        default="https://creativecommons.org/licenses/by/4.0/",
-        description="URL de la licencia, usada en licenses[].path del datapackage.json (gbif.license_url).",
-    )
-    rights_holder: Optional[str] = Field(
-        default="University of Huelva",
-        description="Titular de los derechos sobre los datos, usado como contributors[].organization (gbif.rights_holder).",
-    )
     institution_code: Optional[str] = Field(
         default="UHU",
         description="Código de institución publicadora (gbif.institution_code).",
-    )
-    contact_name: Optional[str] = Field(
-        default="WildINTEL",
-        description="Nombre del contacto técnico del dataset, usado como contributors[].title (gbif.contact_name).",
     )
     contact_email: Optional[str] = Field(
         default=None,
         description=(
             "Email del contacto técnico del dataset — no se puede adivinar, hay que "
             "rellenarlo. (gbif.contact_email)"
-        ),
-    )
-    classified_by: Optional[str] = Field(
-        default="DonaDataset YOLO pipeline",
-        description=(
-            "Quién/qué generó las clasificaciones (observations.classifiedBy) — un "
-            "modelo, no una persona, así que classificationMethod siempre es 'machine'. "
-            "(gbif.classified_by)"
         ),
     )
     username: Optional[str] = Field(

@@ -75,14 +75,35 @@ labels/train/example.txt
 
 The export includes:
 
-```text
-checksums-sha256.txt
-manifest.csv
-manifest-files-sha256.csv
-verification_report_local.json
-```
+- `checksums-sha256.txt` — SHA-256 hash of every shard and metadata/documentation
+  file, for verifying nothing was corrupted or truncated after downloading.
+- `manifest.csv` — one row per image, with its file paths, which shard it's packed
+  into, individual image/label hashes, and object/class counts.
+- `manifest-files-sha256.csv` — the same information as `manifest.csv`, flattened to
+  one row per file (image and label as separate rows), the format used to verify
+  hashes of individual files inside a shard.
+- `validation_report.json` — result of validating the source YOLO labels before
+  packaging (class ids in range, normalized coordinates, no orphan labels...). Issues
+  found here would have already stopped the export, so a published copy always
+  reports no errors.
+- `verification_report_local.json` — result of re-verifying this very export right
+  after it was built (global checksums recomputed, and every file inside every shard
+  re-hashed against `manifest-files-sha256.csv`).
 
 Use these files to verify downloaded shards and internal image/label hashes.
+
+## Metadata files
+
+Also included, useful for scripts and reproducibility rather than for training itself:
+
+- `dataset_info.json` — machine-readable summary of the whole export: dataset
+  name/slug/version, total image/label counts, the class map, and — per split —
+  image/label/shard counts and the list of shard filenames.
+- `metadata.csv` — a lighter version of `manifest.csv` without file sizes or hashes,
+  meant for quick exploration (e.g. loading into pandas) without the extra columns.
+- `HuggingFaceHub.yaml` — the resolved configuration this export was built from,
+  read automatically by this project's own publishing tools. Not needed to use the
+  dataset for training.
 
 ## Example extraction
 
@@ -125,7 +146,7 @@ This work is part of the [WildINTEL project](https://wildintel.eu/), funded by t
 
 ## License
 
-This dataset is released under: `{{ license_id }}`.
+This dataset is released under: `{{ license_id }}`. See the `LICENSE` file for the full text.
 
 ## Citation
 

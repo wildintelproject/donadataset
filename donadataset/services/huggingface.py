@@ -1353,10 +1353,13 @@ def upload_hfh_folder(
     commit_message: str,
     ignore_patterns: Optional[List[str]],
     delete_patterns: Optional[List[str]],
+    allow_patterns: Optional[List[str]] = None,
 ) -> str:
     logging.info("Uploading folder to Hugging Face Hub...")
     logging.info("Local folder: %s", output_dir)
     logging.info("Repository: %s", repo_id)
+    if allow_patterns:
+        logging.info("Upload allow patterns (only these are pushed): %s", allow_patterns)
     if ignore_patterns:
         logging.info("Upload ignore patterns: %s", ignore_patterns)
     if delete_patterns:
@@ -1368,6 +1371,7 @@ def upload_hfh_folder(
         repo_type=repo_type,
         token=token,
         commit_message=commit_message,
+        allow_patterns=allow_patterns,
         ignore_patterns=ignore_patterns,
         delete_patterns=delete_patterns,
     )
@@ -1382,7 +1386,11 @@ def get_private(config: Dict[str, Any]) -> bool:
     return as_bool(get_nested(config, ["huggingface", "private"], True), True)
 
 
-def run_upload(config_path: Path, dry_run: bool = False) -> None:
+def run_upload(config_path: Path, dry_run: bool = False, allow_patterns: Optional[List[str]] = None) -> None:
+    """allow_patterns restricts the upload to matching files only (e.g. just
+    a CITATION.cff + checksums file changed by 'zenodo sync-doi') instead of
+    re-pushing the whole export folder — validation still runs against the
+    full folder either way, since that's cheap and catches a stale export."""
     if not config_path.exists():
         fail(f"Configuration file not found: {config_path}")
 
@@ -1411,6 +1419,8 @@ def run_upload(config_path: Path, dry_run: bool = False) -> None:
 
     logging.info("Files to upload: %d", file_count)
     logging.info("Total upload size: %s", format_size(total_size))
+    if allow_patterns:
+        logging.info("Upload allow patterns (only these are pushed): %s", allow_patterns)
     logging.info("Upload ignore patterns: %s", ignore_patterns)
     logging.info("Remote delete patterns: %s", delete_patterns)
     logging.info("Retry enabled: %s", retry_config["enabled"])
@@ -1448,6 +1458,7 @@ def run_upload(config_path: Path, dry_run: bool = False) -> None:
         operation=lambda: upload_hfh_folder(
             output_dir=output_dir, repo_id=repo_id, repo_type=repo_type, token=token,
             commit_message=commit_message, ignore_patterns=ignore_patterns, delete_patterns=delete_patterns,
+            allow_patterns=allow_patterns,
         ),
         retry_config=retry_config,
     )

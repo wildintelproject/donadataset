@@ -13,9 +13,10 @@ import json
 import logging
 import shutil
 import sys
+import tarfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import yaml
 from jinja2 import Environment
@@ -162,3 +163,45 @@ def ensure_clean_dir(path: Path) -> None:
 def remove_dir_if_exists(path: Path) -> None:
     if path.exists():
         shutil.rmtree(path)
+
+
+# ── Extracción de shards .tar (HuggingFace Hub -> árbol YOLO) ────────────────
+#
+# 'huggingface prepare' empaqueta images/<split>/+labels/<split>/ en shards
+# data/<split>/*.tar; estas utilidades hacen la operación inversa —
+# reconstruir ese mismo árbol YOLO a partir de shards ya descargados o ya
+# presentes en local. No son específicas de ningún integración concreta:
+# las usan tanto 'zenodo download' como 'gbif prepare'.
+
+def find_tar_files(download_dir: Path) -> List[Path]:
+    tar_files = sorted(p for p in download_dir.rglob("*.tar") if ".git" not in p.parts)
+    if not tar_files:
+        fail(f"No .tar files were found in: {download_dir}")
+
+    logging.info("Found %d .tar files.", len(tar_files))
+    for tar_path in tar_files:
+        logging.info("  - %s", tar_path.relative_to(download_dir))
+
+    return tar_files
+
+
+def is_safe_tar_member(destination: Path, member_name: str) -> bool:
+    """Prevent path traversal attacks when extracting tar files."""
+    destination = destination.resolve()
+    target = (destination / member_name).resolve()
+    try:
+        target.relative_to(destination)
+        return True
+    except ValueError:
+        return False
+
+
+def safe_extract_tar(tar_path: Path, destination: Path) -> int:
+    logging.info("Extracting: %s", tar_path.name)
+    with tarfile.open(tar_path, "r") as tar:
+        members = tar.getmembers()
+        for member in members:
+            if not is_safe_tar_member(destination, member.name):
+                fail(f"Unsafe path inside {tar_path.name}: {member.name}")
+        tar.extractall(destination)
+    return len(members)

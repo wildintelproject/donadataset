@@ -7,30 +7,30 @@ nativamente). Camtrap DP es un Frictionless Data Package: un
 `datapackage.json` describiendo tres tablas (`deployments.csv`,
 `media.csv`, `observations.csv`).
 
-Dos operaciones:
+Tres operaciones:
 
 - `run_prepare`: escanea el dataset YOLO ya limpio (el mismo que usa
   `huggingface prepare`) y genera el paquete Camtrap DP completo, sin pedir
-  nada relleno a mano. Como este pipeline no rastrea GPS ni fecha de
-  despliegue por cámara en ningún punto, se asume **un deployment por
-  split** (train/val/test) con coordenadas fijas ilustrativas dentro de
-  Doñana; la fecha de cada imagen se lee de su EXIF si existe, y si no,
-  se reparte dentro del rango que sí tenga EXIF en ese split (o, si
-  ninguna imagen del split tiene EXIF, dentro de un año-placeholder fijo).
-  Todo esto queda anotado en `deploymentComments`/`mediaComments` para que
-  no se confunda con datos reales.
-- `run_register`: aloja tú mismo el `.zip` generado en una URL pública (el
-  IPT no tiene API de subida) y usa este comando para registrar/actualizar
-  el dataset en el Registry de GBIF (endpoint tipo CAMTRAP_DP) — mismo
-  patrón de "registro enlazado" que donadataset.services.zenodo/b2share con
-  HuggingFace Hub.
-
-`run_prepare(upload_to_huggingface=True)` sube además el `.zip` ya generado
-como un fichero suelto al repo de HuggingFace Hub ya publicado (mismo
-repo_id que usan 'huggingface prepare'/'upload') — no reempaqueta nada del
-export de HFH, solo añade este fichero, para tener una URL persistente
-lista para `gbif register --archive-url` sin depender de alojarlo en otro
-sitio tú mismo.
+  nada relleno a mano. Puramente local — no sube nada a ningún sitio. Como
+  este pipeline no rastrea GPS ni fecha de despliegue por cámara en ningún
+  punto, se asume **un deployment por split** (train/val/test) con
+  coordenadas fijas ilustrativas dentro de Doñana; la fecha de cada imagen
+  se lee de su EXIF si existe, y si no, se reparte dentro del rango que sí
+  tenga EXIF en ese split (o, si ninguna imagen del split tiene EXIF,
+  dentro de un año-placeholder fijo). Todo esto queda anotado en
+  `deploymentComments`/`mediaComments` para que no se confunda con datos
+  reales.
+- `run_upload`: sube el `.zip` que ya generó `run_prepare` al repo de
+  HuggingFace Hub ya publicado (mismo repo_id que usan `huggingface
+  prepare`/`upload`) — lo copia al export local de HuggingFace Hub y
+  regenera su checksums-sha256.txt, mismo patrón de "sincroniza local,
+  vuelve a subir solo lo cambiado" que usa `zenodo sync-doi`. Da una URL
+  persistente lista para `gbif register --archive-url` sin depender de
+  alojarlo en otro sitio tú mismo.
+- `run_register`: usa esa URL (la de `run_upload`, o una que hayas alojado
+  tú mismo en otro sitio) para registrar/actualizar el dataset en el
+  Registry de GBIF (endpoint tipo CAMTRAP_DP) — mismo patrón de "registro
+  enlazado" que donadataset.services.zenodo/b2share con HuggingFace Hub.
 """
 from __future__ import annotations
 
@@ -45,13 +45,28 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
-from huggingface_hub import hf_hub_download
-from huggingface_hub import upload_file as hf_upload_file
 from PIL import Image
 
+from donadataset.config import get_gbif_output_dir, get_hfh_output_dir
 from donadataset.config import settings as global_settings
-from donadataset.services.common import fail, read_json, utc_now_iso, write_json
-from donadataset.services.huggingface import get_classes, scan_dataset, stop_if_validation_errors
+from donadataset.services.common import (
+    fail,
+    find_tar_files,
+    read_checksums,
+    read_json,
+    safe_extract_tar,
+    sha256_file,
+    utc_now_iso,
+    write_json,
+)
+from donadataset.services.huggingface import verify_global_checksums
+from donadataset.services.huggingface import (
+    download_repository,
+    find_source_names_yaml,
+    get_classes,
+    scan_dataset,
+    stop_if_validation_errors,
+)
 
 # ── Camtrap DP generation ───────────────────────────────────────────────────
 
@@ -105,6 +120,11 @@ OBSERVATION_FIELDNAMES = [
     "observationLevel", "observationType", "scientificName", "count",
     "classificationMethod", "classifiedBy",
 ]
+
+# Not configurable — every label in this dataset was produced by human
+# review, so this is a fact about the dataset, not a per-run setting.
+CLASSIFICATION_METHOD = "human"
+CLASSIFIED_BY = "WildINTEL experts"
 
 
 def _to_iso(value: datetime) -> str:
@@ -194,8 +214,7 @@ def build_camtrap_dp_resources(
     items: List[Any],
     classes: Dict[int, str],
     *,
-    classified_by: str,
-    shard_url_by_image_id: Optional[Dict[str, str]] = None,
+    shard_url_by_image_id: Dict[str, str],
 ) -> Tuple[List[Dict[str, str]], List[Dict[str, str]], List[Dict[str, str]]]:
     """Builds the three Camtrap DP tables from a scanned dataset.
 
@@ -205,13 +224,12 @@ def build_camtrap_dp_resources(
     'count'), or a single 'blank' observation for images whose only class is
     'Empty' (or that have no boxes at all).
 
-    shard_url_by_image_id, when given (see fetch_hfh_shard_urls), maps every
-    item's image_id to the persistent URL of the HuggingFace Hub .tar shard
-    it was actually packed into by 'huggingface prepare' — used as
-    media.filePath instead of the local relative path. It must cover every
-    item; a missing image_id fails loudly rather than silently falling back,
-    since that means the source dataset used here doesn't match what's
-    actually published."""
+    shard_url_by_image_id (see read_local_shard_urls) maps every item's
+    image_id to the persistent URL of the HuggingFace Hub .tar shard it was
+    actually packed into by 'huggingface prepare' — used as media.filePath.
+    It must cover every item; a missing image_id fails loudly rather than
+    silently falling back to a local path, since that means the source
+    dataset used here doesn't match what's actually published."""
     deployment_rows: List[Dict[str, str]] = []
     media_rows: List[Dict[str, str]] = []
     observation_rows: List[Dict[str, str]] = []
@@ -249,21 +267,17 @@ def build_camtrap_dp_resources(
 
             media_comments = [] if is_real else ["timestamp estimated: no EXIF datetime found in the source image"]
 
-            if shard_url_by_image_id is not None:
-                if item.image_id not in shard_url_by_image_id:
-                    fail(
-                        f"Image {item.image_id!r} has no entry in the HuggingFace Hub manifest.csv — "
-                        "the local source dataset doesn't match what's published. Re-run 'huggingface "
-                        "prepare'/'upload' with the same source dataset before 'gbif prepare "
-                        "--link-media-to-huggingface'."
-                    )
-                file_path = shard_url_by_image_id[item.image_id]
-                media_comments.append(
-                    f"filePath points to the .tar shard containing {item.image_abs_path.name} on "
-                    "HuggingFace Hub, not an individually downloadable file."
+            if item.image_id not in shard_url_by_image_id:
+                fail(
+                    f"Image {item.image_id!r} has no entry in the HuggingFace Hub manifest.csv — "
+                    "the local source dataset doesn't match what's published. Re-run 'huggingface "
+                    "prepare'/'upload' with the same source dataset before 'gbif prepare'."
                 )
-            else:
-                file_path = item.image_rel_path
+            file_path = shard_url_by_image_id[item.image_id]
+            media_comments.append(
+                f"filePath points to the .tar shard containing {item.image_abs_path.name} on "
+                "HuggingFace Hub, not an individually downloadable file."
+            )
 
             media_rows.append({
                 "mediaID": item.image_id,
@@ -271,7 +285,7 @@ def build_camtrap_dp_resources(
                 "captureMethod": "activityDetection",
                 "timestamp": _to_iso(timestamp),
                 "filePath": file_path,
-                "fileName": item.image_abs_path.name,
+                "fileName": item.image_rel_path,
                 "fileMediatype": MEDIA_TYPES_BY_EXTENSION.get(extension, "application/octet-stream"),
                 "mediaComments": " ".join(media_comments),
             })
@@ -294,8 +308,8 @@ def build_camtrap_dp_resources(
                     "observationType": "blank",
                     "scientificName": "",
                     "count": "",
-                    "classificationMethod": "machine",
-                    "classifiedBy": classified_by,
+                    "classificationMethod": CLASSIFICATION_METHOD,
+                    "classifiedBy": CLASSIFIED_BY,
                 })
                 continue
 
@@ -311,8 +325,8 @@ def build_camtrap_dp_resources(
                     "observationType": "animal",
                     "scientificName": classes.get(class_id, ""),
                     "count": str(observed_species[class_id]),
-                    "classificationMethod": "machine",
-                    "classifiedBy": classified_by,
+                    "classificationMethod": CLASSIFICATION_METHOD,
+                    "classifiedBy": CLASSIFIED_BY,
                 })
 
     return deployment_rows, media_rows, observation_rows
@@ -403,69 +417,102 @@ def _write_csv(rows: List[Dict[str, str]], fieldnames: List[str], path: Path) ->
 
 
 HUGGINGFACE_TOKEN_ENV_VAR = "HF_TOKEN"
+HFH_CHECKSUMS_FILENAME = "checksums-sha256.txt"  # matches write_checksums()'s own default
 
 
-def upload_archive_to_huggingface(archive_path: Path, repo_id: Optional[str]) -> str:
-    """Uploads the already-built Camtrap DP .zip as a single extra file to
-    an existing HuggingFace Hub dataset repo — the same repo_id used by
-    'huggingface prepare'/'upload', which must already exist there (this
-    does not create it, and does not touch anything else already in the
-    repo). Returns the resulting persistent download URL, ready to pass
-    straight to 'gbif register --archive-url'."""
+def run_upload(
+    output_dir: Path, repo_id: Optional[str], hfh_output_dir: Optional[Path] = None, *, dry_run: bool = False,
+) -> Tuple[str, str, Optional[Path]]:
+    """Stages the already-built Camtrap DP .zip (see run_prepare) into the
+    local HuggingFace Hub export and regenerates that export's
+    checksums-sha256.txt — the same "sync local metadata, then re-upload
+    just the changed files" pattern 'zenodo sync-doi' uses, so the actual
+    push (a scoped 'huggingface upload') stays in commands/gbif.py, right
+    next to the rest of the HuggingFace Hub wiring. hfh_output_dir, if
+    given, always wins; otherwise it's resolved the same "local first,
+    download-and-cache otherwise" way as run_prepare's own source dataset
+    (see resolve_gbif_hfh_output_dir). Returns (archive_filename,
+    checksums_filename, resolved_hfh_output_dir) — the caller needs the
+    first two for allow_patterns and the persistent download URL, and the
+    third to build the HuggingFace Hub config path for the actual push.
+    resolved_hfh_output_dir is None only when dry_run=True and nothing is
+    local yet (nothing to stage, so there's nothing to push either)."""
     if not repo_id or "REPLACE_WITH" in repo_id:
         fail(
             "A valid HuggingFace repo_id is required to upload the Camtrap DP archive. "
             "Pass --hf-repo-id, or set one with 'donadataset publish huggingface config "
             "set repo_id=user_or_org/dataset'."
         )
-    token = os.environ.get(HUGGINGFACE_TOKEN_ENV_VAR)
-    if not token:
+
+    archive_candidates = sorted(output_dir.glob("*-camtrap-dp.zip"))
+    if not archive_candidates:
+        fail(f"No Camtrap DP package found in {output_dir}. Run 'gbif prepare' first.")
+    if len(archive_candidates) > 1:
         fail(
-            f"Environment variable {HUGGINGFACE_TOKEN_ENV_VAR} is not defined. "
-            f"Set it with: export {HUGGINGFACE_TOKEN_ENV_VAR}='hf_xxxxxxxxxxxxxxxxxxxxxxxxx' "
-            "(needs write access to the repo)."
+            f"Several Camtrap DP packages found in {output_dir}: "
+            f"{[p.name for p in archive_candidates]}. Re-run 'gbif prepare --overwrite' so "
+            "only one remains before uploading."
+        )
+    archive_path = archive_candidates[0]
+
+    resolved_hfh_output_dir = resolve_gbif_hfh_output_dir(repo_id, hfh_output_dir, dry_run=dry_run)
+    if resolved_hfh_output_dir is None:
+        return archive_path.name, HFH_CHECKSUMS_FILENAME, None
+
+    if not resolved_hfh_output_dir.is_dir():
+        fail(
+            f"HuggingFace Hub export folder not found: {resolved_hfh_output_dir}. Run "
+            "'huggingface prepare' for this dataset first — 'gbif upload' adds the archive "
+            "to that local export and refreshes its checksums before pushing."
         )
 
-    logging.info("Uploading %s to HuggingFace Hub repo %s...", archive_path.name, repo_id)
-    try:
-        hf_upload_file(
-            path_or_fileobj=str(archive_path),
-            path_in_repo=archive_path.name,
-            repo_id=repo_id,
-            repo_type="dataset",
-            token=token,
-            commit_message=f"Add Camtrap DP package ({archive_path.name})",
+    if dry_run:
+        logging.info(
+            "Dry run enabled. Would copy %s into %s and regenerate %s.",
+            archive_path.name, resolved_hfh_output_dir, HFH_CHECKSUMS_FILENAME,
         )
-    except Exception as exc:
-        fail(f"Could not upload {archive_path.name} to HuggingFace Hub repo {repo_id}: {exc}")
+        return archive_path.name, HFH_CHECKSUMS_FILENAME, resolved_hfh_output_dir
 
-    return f"https://huggingface.co/datasets/{repo_id}/resolve/main/{archive_path.name}"
+    logging.info("Copying %s into the HuggingFace Hub export...", archive_path.name)
+    shutil.copy2(archive_path, resolved_hfh_output_dir / archive_path.name)
+
+    logging.info("Regenerating %s...", HFH_CHECKSUMS_FILENAME)
+    regenerate_hfh_checksums(resolved_hfh_output_dir, [archive_path.name])
+
+    logging.info("Verifying regenerated checksums...")
+    checksum_verified_count, checksum_errors = verify_global_checksums(resolved_hfh_output_dir, {})
+    if checksum_errors:
+        for error in checksum_errors:
+            logging.error(error)
+        fail("The Camtrap DP archive was copied, but checksum verification failed.")
+    logging.info("Checksums verified: %d", checksum_verified_count)
+
+    return archive_path.name, HFH_CHECKSUMS_FILENAME, resolved_hfh_output_dir
 
 
 HFH_MANIFEST_FILENAME = "manifest.csv"  # matches huggingface.py's write_manifest_csv() default
 
 
-def fetch_hfh_shard_urls(repo_id: Optional[str]) -> Dict[str, str]:
-    """Downloads manifest.csv from an already-published HuggingFace Hub
-    dataset repo (a small file, not the .tar shards themselves) and returns
-    {image_id: persistent shard URL} — the .tar each image was actually
-    packed into by 'huggingface prepare', which is the closest thing to a
+def read_local_shard_urls(source_dir: Path, repo_id: str) -> Dict[str, str]:
+    """media.filePath always links to HuggingFace Hub — no opt-in flag.
+    Reads manifest.csv straight from source_dir (the same local HFH copy
+    'gbif prepare' already resolved images/labels from — see
+    resolve_gbif_source_dataset_dir) instead of fetching it over the
+    network: this is the exact file that produced the images being
+    scanned, so it can never describe a different snapshot, and it works
+    even before the repo has ever been published (an explicit
+    --source-dataset-dir must still point at a real 'huggingface prepare'
+    output for this to exist). Returns {image_id: persistent shard URL} —
+    the .tar each image was actually packed into, the closest thing to a
     real per-image URL this pipeline can offer (see
     build_camtrap_dp_resources for why it's the shard, not the image
     itself)."""
-    if not repo_id or "REPLACE_WITH" in repo_id:
+    manifest_path = source_dir / HFH_MANIFEST_FILENAME
+    if not manifest_path.is_file():
         fail(
-            "A valid HuggingFace repo_id is required to link media.filePath to HuggingFace Hub. "
-            "Pass --hf-repo-id, or set one with 'donadataset publish huggingface config "
-            "set repo_id=user_or_org/dataset'."
-        )
-
-    try:
-        manifest_path = hf_hub_download(repo_id=repo_id, repo_type="dataset", filename=HFH_MANIFEST_FILENAME)
-    except Exception as exc:
-        fail(
-            f"Could not download {HFH_MANIFEST_FILENAME} from HuggingFace Hub repo {repo_id}: {exc}. "
-            "Has 'huggingface prepare'/'upload' been run for this repo yet?"
+            f"{HFH_MANIFEST_FILENAME} not found in {source_dir}. 'gbif prepare' always links "
+            "media.filePath to the HuggingFace Hub .tar shard, which needs this file — run "
+            "'huggingface prepare' for this dataset first."
         )
 
     base_url = f"https://huggingface.co/datasets/{repo_id}/resolve/main"
@@ -478,10 +525,204 @@ def fetch_hfh_shard_urls(repo_id: Optional[str]) -> Dict[str, str]:
     return urls
 
 
+# ── Resolución del dataset fuente desde HuggingFace Hub ──────────────────────
+#
+# 'gbif prepare' necesita leer cada imagen (EXIF) y cada label (conteo de
+# cajas) — a diferencia de Zenodo, que solo copia ficheros de evidencia ya
+# existentes, esto obliga a tener el dataset YOLO completo en disco. Por eso
+# NO se descarga en vivo cada vez (como sí hace Zenodo): primero se reutiliza
+# lo que 'huggingface prepare' ya dejó en local, y solo se descarga de la red
+# si no está.
+
+def _looks_like_hfh_export(directory: Path) -> bool:
+    """True if `directory` looks like a real 'huggingface prepare' output:
+    a YOLO-style YAML with a 'names' mapping directly inside it, plus at
+    least one packed data/<split>/*.tar shard."""
+    if not directory.is_dir():
+        return False
+    if find_source_names_yaml(directory) is None:
+        return False
+    return any(directory.glob("data/*/*.tar"))
+
+
+def _looks_like_extracted_yolo_dataset(directory: Path) -> bool:
+    """True if `directory` already has an extracted images/<split>/+labels/<split>/
+    tree, a names YAML, and manifest.csv — i.e. a previous 'gbif prepare' run
+    already did the tar-extraction work AND media.filePath's shard-URL lookup
+    has what it needs, so it can be reused as-is. manifest.csv is checked too
+    (not just the images/labels tree) so a cache extracted before
+    manifest.csv started traveling with it gets re-synced instead of being
+    silently reused half-broken."""
+    if not directory.is_dir():
+        return False
+    if find_source_names_yaml(directory) is None:
+        return False
+    if not (directory / HFH_MANIFEST_FILENAME).is_file():
+        return False
+    return any(directory.glob("images/*/*"))
+
+
+def get_gbif_hfh_download_dir(repo_id: str) -> Path:
+    """Lives INSIDE get_gbif_output_dir() (--output-dir) on purpose, named
+    after what it holds — a HuggingFace Hub download, extracted in place.
+    'run_prepare's own --overwrite handling only ever touches the Camtrap DP
+    deliverables (deployments/media/observations.csv, datapackage.json, the
+    .zip), never this directory, so it survives across runs regardless of
+    --overwrite."""
+    return get_gbif_output_dir(repo_id) / "hfh_download"
+
+
+def extract_hfh_export_to_yolo_source(source_dir: Path, extracted_dir: Path) -> Path:
+    """source_dir and extracted_dir may be the SAME directory (the
+    freshly-downloaded case, see resolve_gbif_source_dataset_dir) — nothing
+    here force-deletes extracted_dir first, so extracting in place is safe;
+    tarfile.extractall() onto files that already match is a no-op."""
+    if _looks_like_extracted_yolo_dataset(extracted_dir):
+        logging.info("Reusing already-extracted YOLO dataset: %s", extracted_dir)
+        return extracted_dir
+
+    logging.info("Extracting HuggingFace Hub shards from %s into %s...", source_dir, extracted_dir)
+    extracted_dir.mkdir(parents=True, exist_ok=True)
+
+    for tar_path in find_tar_files(source_dir):
+        safe_extract_tar(tar_path, extracted_dir)
+
+    names_yaml = find_source_names_yaml(source_dir)
+    if names_yaml is None:
+        fail(f"Could not find a YOLO-style YAML with a 'names' mapping inside {source_dir}.")
+    if names_yaml.parent != extracted_dir:
+        shutil.copy2(names_yaml, extracted_dir / names_yaml.name)
+
+    # media.filePath always links to HuggingFace Hub (see read_local_shard_urls),
+    # which needs manifest.csv sitting right next to the extracted images —
+    # not just the tar shards themselves.
+    manifest_path = source_dir / HFH_MANIFEST_FILENAME
+    if manifest_path.is_file() and manifest_path.parent != extracted_dir:
+        shutil.copy2(manifest_path, extracted_dir / HFH_MANIFEST_FILENAME)
+
+    return extracted_dir
+
+
+def resolve_gbif_source_dataset_dir(
+    repo_id: Optional[str], explicit_source_dataset_dir: Optional[Path],
+) -> Path:
+    """--source-dataset-dir, if given explicitly, always wins (skips
+    HuggingFace Hub entirely — useful to try 'gbif prepare' before anything
+    is published). Otherwise resolves the dataset from --repo-id: reuses
+    hfh_download/ as-is if a previous run already extracted it there;
+    failing that, reuses the local 'huggingface prepare' export at
+    <Documents>/donadataset/HFH/<repo_id> if it's already there, downloading
+    it fresh into hfh_download/ only when neither is available. Either way,
+    the .tar shards get extracted once into that same hfh_download/ and
+    reused on later runs instead of re-extracting every time."""
+    if explicit_source_dataset_dir is not None:
+        return explicit_source_dataset_dir
+
+    if not repo_id or "REPLACE_WITH" in repo_id:
+        fail(
+            "Either --source-dataset-dir or a valid --repo-id (huggingface.repo_id) is "
+            "required so 'gbif prepare' knows where to read images/labels from."
+        )
+
+    download_dir = get_gbif_hfh_download_dir(repo_id)
+    if _looks_like_extracted_yolo_dataset(download_dir):
+        logging.info("Reusing already-extracted YOLO dataset: %s", download_dir)
+        return download_dir
+
+    hfh_output_dir = get_hfh_output_dir(repo_id)
+    if _looks_like_hfh_export(hfh_output_dir):
+        logging.info("Found a local HuggingFace Hub export already on disk: %s", hfh_output_dir)
+        source_dir = hfh_output_dir
+    else:
+        logging.info(
+            "No local HuggingFace Hub export found at %s — downloading the published repo "
+            "%s into %s instead...", hfh_output_dir, repo_id, download_dir,
+        )
+        token = os.environ.get(HUGGINGFACE_TOKEN_ENV_VAR) or None
+        download_repository(
+            repo_id=repo_id, repo_type="dataset", token=token, download_dir=download_dir, verify_data=True,
+        )
+        source_dir = download_dir
+
+    return extract_hfh_export_to_yolo_source(source_dir, download_dir)
+
+
+def resolve_gbif_hfh_output_dir(
+    repo_id: Optional[str], explicit_hfh_output_dir: Optional[Path], *, dry_run: bool = False,
+) -> Optional[Path]:
+    """Same "local first, download-and-cache otherwise" resolution as
+    resolve_gbif_source_dataset_dir, but for the RAW HuggingFace Hub export
+    'gbif upload' needs (tar shards + README/CITATION.cff/manifest.csv/
+    checksums-sha256.txt as actually published — not the images/labels/
+    tree resolve_gbif_source_dataset_dir extracts for scanning). Reuses the
+    very same hfh_download/ cache 'gbif prepare' already populates; that
+    directory may ALSO carry prepare's own extracted images/labels/ from an
+    earlier run, but run_upload's checksum regeneration only ever re-hashes
+    files already listed in checksums-sha256.txt plus the new archive,
+    never a fresh directory scan (see regenerate_hfh_checksums), so that
+    clutter can never leak into what gets re-published. dry_run never
+    downloads — if neither location has the export yet, it logs what would
+    happen and returns None."""
+    if explicit_hfh_output_dir is not None:
+        return explicit_hfh_output_dir
+
+    hfh_output_dir = get_hfh_output_dir(repo_id)
+    if _looks_like_hfh_export(hfh_output_dir):
+        return hfh_output_dir
+
+    download_dir = get_gbif_hfh_download_dir(repo_id)
+    if _looks_like_hfh_export(download_dir):
+        return download_dir
+
+    if dry_run:
+        logging.info(
+            "Dry run enabled. Neither %s nor %s has a local HuggingFace Hub export yet — "
+            "would download the published repo %s into %s.",
+            hfh_output_dir, download_dir, repo_id, download_dir,
+        )
+        return None
+
+    logging.info(
+        "No local HuggingFace Hub export found at %s or %s — downloading the published repo "
+        "%s into %s instead...", hfh_output_dir, download_dir, repo_id, download_dir,
+    )
+    token = os.environ.get(HUGGINGFACE_TOKEN_ENV_VAR) or None
+    download_repository(
+        repo_id=repo_id, repo_type="dataset", token=token, download_dir=download_dir, verify_data=True,
+    )
+    return download_dir
+
+
+def regenerate_hfh_checksums(hfh_output_dir: Path, extra_relative_paths: List[str]) -> Path:
+    """Recomputes checksums-sha256.txt from exactly the files it ALREADY
+    lists (re-hashed from disk, not trusted as-is) plus extra_relative_paths
+    — deliberately never a fresh directory scan (unlike huggingface.py's own
+    write_checksums), so local-only clutter that was never part of the
+    published HuggingFace Hub repo (e.g. 'gbif prepare's own extracted
+    images/labels/ sitting inside a shared hfh_download/ cache — see
+    resolve_gbif_hfh_output_dir) can never leak into what gets
+    re-published."""
+    checksum_path = hfh_output_dir / HFH_CHECKSUMS_FILENAME
+    if not checksum_path.is_file():
+        fail(
+            f"{HFH_CHECKSUMS_FILENAME} not found in {hfh_output_dir} — can't safely refresh it "
+            "without the existing file list. Run 'huggingface prepare' for this dataset first."
+        )
+    existing = read_checksums(checksum_path)
+    relative_paths = sorted(set(existing) | set(extra_relative_paths))
+
+    with checksum_path.open("w", encoding="utf-8") as f:
+        for rel in relative_paths:
+            f.write(f"{sha256_file(hfh_output_dir / rel)}  {rel}\n")
+
+    return checksum_path
+
+
 def run_prepare(
-    source_dataset_dir: Path,
+    source_dataset_dir: Optional[Path],
     output_dir: Path,
     *,
+    repo_id: Optional[str] = None,
     dataset_slug: str = "donadataset",
     dataset_name: str = "DonaDataset",
     description: str = "",
@@ -492,16 +733,20 @@ def run_prepare(
     institution_code: str = "",
     contact_name: str = "",
     contact_email: Optional[str] = None,
-    classified_by: str = "DonaDataset YOLO pipeline",
     overwrite: bool = False,
-    upload_to_huggingface: bool = False,
-    link_media_to_huggingface: bool = False,
-    hf_repo_id: Optional[str] = None,
-) -> Optional[str]:
-    """Returns the persistent HuggingFace Hub URL of the uploaded archive when
-    upload_to_huggingface=True (so callers like 'gbif pipeline' can chain it
-    straight into run_register without the user copy-pasting it), None
-    otherwise."""
+) -> None:
+    """Purely local — never uploads anything (see run_upload for that).
+    media.filePath always links to the HuggingFace Hub .tar shard each
+    image was packed into — there is no local-relative-path mode — so
+    repo_id is required even when --source-dataset-dir is used explicitly."""
+    if not repo_id or "REPLACE_WITH" in repo_id:
+        fail(
+            "A valid HuggingFace repo_id is required — media.filePath always links to the "
+            "HuggingFace Hub .tar shard each image was packed into. Pass --hf-repo-id, or "
+            "set one with 'donadataset publish huggingface config set repo_id=user_or_org/dataset'."
+        )
+
+    source_dataset_dir = resolve_gbif_source_dataset_dir(repo_id, source_dataset_dir)
     if not source_dataset_dir.is_dir():
         fail(f"Source dataset directory not found: {source_dataset_dir}")
 
@@ -514,15 +759,11 @@ def run_prepare(
         fail(f"No valid images found under {source_dataset_dir}.")
 
     classes = get_classes(config)
-
-    shard_url_by_image_id: Optional[Dict[str, str]] = None
-    if link_media_to_huggingface:
-        logging.info("Fetching %s from HuggingFace Hub repo %s...", HFH_MANIFEST_FILENAME, hf_repo_id)
-        shard_url_by_image_id = fetch_hfh_shard_urls(hf_repo_id)
+    shard_url_by_image_id = read_local_shard_urls(source_dataset_dir, repo_id)
 
     logging.info("Reading EXIF capture dates and building Camtrap DP deployments/media/observations...")
     deployment_rows, media_rows, observation_rows = build_camtrap_dp_resources(
-        items, classes, classified_by=classified_by, shard_url_by_image_id=shard_url_by_image_id,
+        items, classes, shard_url_by_image_id=shard_url_by_image_id,
     )
     if not deployment_rows:
         fail(f"No deployments were generated — is {source_dataset_dir} empty for every split?")
@@ -532,13 +773,32 @@ def run_prepare(
         len(deployment_rows), len(media_rows), len(observation_rows),
     )
 
-    if output_dir.exists():
+    # Only the Camtrap DP deliverables are checked/cleared here — never the
+    # whole directory. --output-dir also hosts hfh_download/ (see
+    # get_gbif_hfh_download_dir), which must survive across runs regardless
+    # of --overwrite, and whose mere presence would otherwise make every
+    # first run look like "output already exists".
+    existing_package_files = [
+        path for path in [
+            output_dir / DEPLOYMENTS_FILENAME,
+            output_dir / MEDIA_FILENAME,
+            output_dir / OBSERVATIONS_FILENAME,
+            output_dir / DATAPACKAGE_FILENAME,
+            *output_dir.glob("*-camtrap-dp.zip"),
+        ]
+        if path.exists()
+    ]
+
+    if existing_package_files:
         if not overwrite:
             fail(
-                f"Output directory already exists: {output_dir}. "
-                "Delete it yourself, or re-run with --overwrite to let 'prepare' delete and recreate it."
+                f"A Camtrap DP package already exists in {output_dir}. "
+                "Delete it yourself, or re-run with --overwrite to let 'prepare' replace it."
             )
-        shutil.rmtree(output_dir)
+        logging.info("Removing existing Camtrap DP package files before regenerating...")
+        for path in existing_package_files:
+            path.unlink()
+
     output_dir.mkdir(parents=True, exist_ok=True)
 
     _write_csv(deployment_rows, DEPLOYMENT_FIELDNAMES, output_dir / DEPLOYMENTS_FILENAME)
@@ -559,22 +819,12 @@ def run_prepare(
             zf.write(output_dir / filename, arcname=filename)
 
     logging.info("Camtrap DP package ready: %s", archive_path)
-
-    if upload_to_huggingface:
-        persistent_url = upload_archive_to_huggingface(archive_path, hf_repo_id)
-        logging.info("Camtrap DP package uploaded to HuggingFace Hub: %s", persistent_url)
-        logging.info(
-            "Register it with: donadataset publish gbif register --archive-url %s", persistent_url,
-        )
-        return persistent_url
-
     logging.info(
         "Either upload it to your GBIF IPT (v3+, supports Camtrap DP natively) by hand, or "
-        "host it yourself at a public URL (e.g. re-run with --upload-to-huggingface) and run "
-        "'donadataset publish gbif register --archive-url <that URL>' to register it via the "
-        "Registry API instead."
+        "run 'donadataset publish gbif upload' to host it yourself on the already-published "
+        "HuggingFace Hub repo, then run 'donadataset publish gbif register --archive-url "
+        "<that URL>' to register it via the Registry API."
     )
-    return None
 
 
 # ── register ──────────────────────────────────────────────────────────────
