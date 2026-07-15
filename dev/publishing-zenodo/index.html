@@ -10,17 +10,19 @@
       
       
       
-        <link rel="canonical" href="https://wildintelproject.github.io/donadataset/dev/about/">
+        <link rel="canonical" href="https://wildintelproject.github.io/donadataset/dev/publishing-zenodo/">
       
       
-        <link rel="prev" href="../publishing-gbif/">
+        <link rel="prev" href="../publishing-huggingface/">
       
+      
+        <link rel="next" href="../publishing-b2share/">
       
       
         
           <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../es/about/" hreflang="es">
+          <link rel="alternate" href="../es/publishing-zenodo/" hreflang="es">
         
       
       
@@ -29,7 +31,7 @@
     
     
       
-        <title>About - DonaDataset</title>
+        <title>Zenodo - DonaDataset</title>
       
     
     
@@ -82,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#about" class="md-skip">
+        <a href="#publishing-to-zenodo" class="md-skip">
           Skip to content
         </a>
       
@@ -121,7 +123,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              About
+              Zenodo
             
           </span>
         </div>
@@ -174,7 +176,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../es/about/" hreflang="es" class="md-select__link">
+            <a href="../es/publishing-zenodo/" hreflang="es" class="md-select__link">
               Español
             </a>
           </li>
@@ -370,18 +372,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -402,7 +406,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -473,10 +477,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../publishing-zenodo/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Zenodo
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -492,6 +523,183 @@
   
 
       </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-is-zenodo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What is Zenodo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-zenodo-allows-uploading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What Zenodo allows uploading
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-what-we-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. What we upload
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-how-we-upload-it-every-file-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. How we upload it — every file, explained
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. How we upload it — every file, explained">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evidence-files-fetched-from-the-live-huggingface-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence files fetched from the live HuggingFace download
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification_report_downloadedjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verification_report_downloaded.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zenodo_linked_dataset_recordjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        zenodo_linked_dataset_record.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zenodo_deposition_responsejson-zenodo_file_verification_reportjson-zenodo_link_verification_reportjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        zenodo_deposition_response.json / zenodo_file_verification_report.json / zenodo_link_verification_report.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadata_update_reportjson-zenodo_publish_responsejson-zenodo_publication_reportjson-public_release_readiness_reportjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        metadata_update_report.json / zenodo_publish_response.json / zenodo_publication_report.json / public_release_readiness_report.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-commands-to-publish" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Commands to publish
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Commands to publish">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-time-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-time setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-a-new-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing a new version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-easy-way-wizard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The easy way: wizard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -591,37 +799,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    About
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
         
   
   
@@ -637,50 +818,6 @@
   
 
       </a>
-      
-        
-
-  
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#donadataset-wildintel" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DonaDataset &amp; WildINTEL
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#funding" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Funding
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -714,10 +851,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#donadataset-wildintel" class="md-nav__link">
+  <a href="#1-what-is-zenodo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DonaDataset &amp; WildINTEL
+        1. What is Zenodo
       
     </span>
   </a>
@@ -725,13 +862,146 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#funding" class="md-nav__link">
+  <a href="#2-what-zenodo-allows-uploading" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Funding
+        2. What Zenodo allows uploading
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-what-we-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. What we upload
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-how-we-upload-it-every-file-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. How we upload it — every file, explained
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. How we upload it — every file, explained">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#evidence-files-fetched-from-the-live-huggingface-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence files fetched from the live HuggingFace download
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification_report_downloadedjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verification_report_downloaded.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zenodo_linked_dataset_recordjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        zenodo_linked_dataset_record.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zenodo_deposition_responsejson-zenodo_file_verification_reportjson-zenodo_link_verification_reportjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        zenodo_deposition_response.json / zenodo_file_verification_report.json / zenodo_link_verification_report.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadata_update_reportjson-zenodo_publish_responsejson-zenodo_publication_reportjson-public_release_readiness_reportjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        metadata_update_report.json / zenodo_publish_response.json / zenodo_publication_report.json / public_release_readiness_report.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-commands-to-publish" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Commands to publish
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Commands to publish">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-time-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-time setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-a-new-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing a new version
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-easy-way-wizard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The easy way: wizard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -755,25 +1025,162 @@
   
 
 
-<h1 id="about">About</h1>
-<h2 id="donadataset-wildintel">DonaDataset &amp; WildINTEL</h2>
-<p><strong>DonaDataset</strong> is the training dataset behind
-<a href="https://github.com/wildintelproject/donanet">DonaNet</a>, a
-<a href="https://docs.ultralytics.com/">YOLO</a>-based neural network developed as part of the
-<a href="https://wildintel.eu/">WildINTEL project</a>, an initiative dedicated to the automated monitoring
-of wildlife through artificial intelligence and camera-trap imagery.</p>
-<p>The dataset focuses on the mammal species that inhabit
-<a href="https://www.miteco.gob.es/es/red-parques-nacionales/nuestros-parques/donana/">Doñana National Park</a>
-(Spain), one of the most important wetland ecosystems in Europe.</p>
+<h1 id="publishing-to-zenodo">Publishing to Zenodo</h1>
+<p>This guide explains how DonaDataset is published to <strong>Zenodo</strong> using the <code>donadataset</code>
+CLI. It is aimed at the <strong>dataset maintainer</strong>.</p>
 <hr />
-<h2 id="funding">Funding</h2>
-<p>This work is part of the <a href="https://wildintel.eu/">WildINTEL project</a>, funded by the
-<a href="https://www.biodiversa.eu/">Biodiversa+</a> Joint Research Call 2022–2023 <em>"Improved transnational
-monitoring of biodiversity and ecosystem change for science and society (BiodivMon)"</em>.</p>
-<p>Biodiversa+ is the European co-funded biodiversity partnership supporting excellent research on
-biodiversity with an impact for policy and society. Biodiversa+ is part of the European Biodiversity
-Strategy for 2030 that aims to put Europe's biodiversity on a path to recovery by 2030 and is
-co-funded by the European Commission.</p>
+<h2 id="1-what-is-zenodo">1. What is Zenodo</h2>
+<p><a href="https://zenodo.org">Zenodo</a> is an open-access research data repository operated by
+CERN (Geneva, Switzerland). Researchers use it to archive and share any research
+output — datasets, software, papers, presentations — and it assigns a permanent
+<strong>DOI</strong> (Digital Object Identifier) to every published record. Zenodo also runs a
+<strong>Sandbox</strong> instance (<code>sandbox.zenodo.org</code>) with an identical API, used for testing
+without touching real DOIs.</p>
+<p>Unlike HuggingFace Hub, Zenodo is not designed as a bulk file-hosting service for
+machine-learning datasets — it's a <strong>citable, long-term archive</strong>. That's exactly the
+role it plays here: it doesn't compete with HuggingFace Hub, it complements it.</p>
+<h2 id="2-what-zenodo-allows-uploading">2. What Zenodo allows uploading</h2>
+<p>A Zenodo record can technically hold files of any type, including large binary data.
+<strong>In this project we deliberately don't use it that way.</strong> DonaDataset follows Zenodo's
+own recommended pattern for datasets that are already hosted elsewhere: a
+<strong>linked dataset record</strong> — Zenodo hosts only the metadata and evidence that prove the
+dataset exists, is verified, and where to find it, while the actual images/labels stay
+on HuggingFace Hub (see the <a href="../publishing-huggingface/">HuggingFace guide</a>).</p>
+<p>This is enforced by <code>related_identifiers</code> in the Zenodo record's metadata: explicit
+links to the HuggingFace dataset page and its file tree, so anyone landing on the DOI
+page sees immediately "the data lives here."</p>
+<h2 id="3-what-we-upload">3. What we upload</h2>
+<p><code>donadataset publish zenodo prepare</code> does <strong>not</strong> need a local copy of the HuggingFace
+export to get the evidence files from. Instead, it:</p>
+<ol>
+<li>Connects to HuggingFace Hub (<code>--repo-id</code>) and <strong>downloads the repository live</strong>, into
+   its own directory (<code>--output-dir</code>).</li>
+<li>Verifies that download against the same checksums/manifest the export was built
+   with (global checksums + internal <code>.tar</code> member hashes).</li>
+<li>Picks the small evidence files out of that same downloaded copy (never the <code>.tar</code>
+   shards — those stay HuggingFace-only) and uploads them to a new Zenodo deposition.</li>
+<li>Reserves a DOI for that deposition.</li>
+</ol>
+<p>So "what we upload" is: <strong>the evidence files already present in the HuggingFace
+repository</strong> (the same ones described in the
+<a href="../publishing-huggingface/#4-how-we-upload-it-every-file-explained">HuggingFace guide</a>),
+plus one new report generated by this download-and-verify step, plus a JSON record
+tying it all together. Nothing here is written by hand — it's all produced by the
+commands in section 5.</p>
+<h2 id="4-how-we-upload-it-every-file-explained">4. How we upload it — every file, explained</h2>
+<h3 id="evidence-files-fetched-from-the-live-huggingface-download">Evidence files fetched from the live HuggingFace download</h3>
+<p>These are the same files already described in the
+<a href="../publishing-huggingface/#4-how-we-upload-it-every-file-explained">HuggingFace guide</a> —
+<code>README.md</code>, <code>LICENSE</code>, <code>CITATION.cff</code>, <code>HuggingFaceHub.yaml</code>, <code>donana.yaml</code>,
+<code>dataset_info.json</code>, <code>metadata.csv</code>, <code>manifest.csv</code>, <code>manifest-files-sha256.csv</code>,
+<code>checksums-sha256.txt</code>, <code>validation_report.json</code>, <code>verification_report_local.json</code> — just
+fetched fresh from HuggingFace Hub instead of read from a local pre-upload folder. This
+guarantees what Zenodo receives matches exactly what's currently public, not what your
+machine happened to have on disk at some earlier point.</p>
+<h3 id="verification_report_downloadedjson"><code>verification_report_downloaded.json</code></h3>
+<p>The result of the live download-and-verify step described above:
+<code>status: "passed"/"failed"</code>, <code>repo_id</code>, the local path the download was written to,
+and the counts/errors from re-checking global checksums and internal <code>.tar</code> hashes.
+This is generated <strong>fresh every time</strong> <code>zenodo prepare</code> runs (never reused from an
+older <code>huggingface download</code> run), and it is itself uploaded to Zenodo as one more
+piece of evidence.</p>
+<h3 id="zenodo_linked_dataset_recordjson"><code>zenodo_linked_dataset_record.json</code></h3>
+<p>The <strong>result</strong> of creating the Zenodo deposition — written locally after <code>prepare</code>
+succeeds, and also uploaded to Zenodo as a file in the same deposition:
+<code>deposition_id</code>, <code>record_id</code>, <code>reserved_doi</code>, <code>doi_url</code>, <code>record_url</code>, the Zenodo
+environment (<code>sandbox</code>/<code>production</code>), and a <code>huggingface_verification</code> block summarising
+the download-and-verify step above. Later commands (<code>upload</code>, <code>check-readiness</code>,
+<code>release</code>) all read this file to know which existing deposition they're working with.</p>
+<h3 id="zenodo_deposition_responsejson-zenodo_file_verification_reportjson-zenodo_link_verification_reportjson"><code>zenodo_deposition_response.json</code> / <code>zenodo_file_verification_report.json</code> / <code>zenodo_link_verification_report.json</code></h3>
+<p>Local-only audit trail (not uploaded to Zenodo itself): the raw API response for the
+deposition after files were uploaded, a check that every uploaded file's size/hash
+matches what Zenodo reports back, and a check that the <code>related_identifiers</code> URLs
+(the links to HuggingFace) actually resolve.</p>
+<h3 id="metadata_update_reportjson-zenodo_publish_responsejson-zenodo_publication_reportjson-public_release_readiness_reportjson"><code>metadata_update_report.json</code> / <code>zenodo_publish_response.json</code> / <code>zenodo_publication_report.json</code> / <code>public_release_readiness_report.json</code></h3>
+<p>Written by the later steps in section 5 (<code>upload</code>, <code>release</code>, <code>check-readiness</code>
+respectively) — not part of the initial <code>prepare</code> upload, but living in the same
+directory for a single, complete audit trail of the whole release.</p>
+<h2 id="5-commands-to-publish">5. Commands to publish</h2>
+<h3 id="first-time-setup">First-time setup</h3>
+<ol>
+<li>Create an account at <a href="https://zenodo.org">zenodo.org</a> (use <code>sandbox.zenodo.org</code>
+   first to test the whole flow without minting a real DOI).</li>
+<li>Create a personal access token (<strong>Applications → Personal access tokens</strong>, scopes
+   <code>deposit:write</code> + <code>deposit:actions</code>).</li>
+<li>Set it as <code>ZENODO_TOKEN</code>, or store it once via <code>donadataset publish zenodo config
+   set token</code>.</li>
+</ol>
+<h3 id="publishing-a-new-version">Publishing a new version</h3>
+<p>Zenodo publication happens <strong>after</strong> the dataset is already on HuggingFace Hub (steps
+1–4 of the <a href="../publishing-huggingface/#5-commands-to-publish">HuggingFace guide</a>), and
+the final, irreversible "publish" step happens <strong>after</strong> HuggingFace Hub has been made
+public:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Create the Zenodo draft, download+verify HuggingFace Hub live, upload evidence,</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1">#    and reserve a DOI. Uses sandbox.zenodo.org by default (see templates/Zenodo.yaml.j2).</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ZENODO_TOKEN</span><span class="o">=</span><span class="s1">&#39;xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&#39;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>prepare<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># 2. Insert the reserved DOI into your local HuggingFace export&#39;s metadata</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">#    (CITATION.cff, dataset_info.json, README.md) and recompute checksums</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>upload<span class="w"> </span>--hfh-output-dir<span class="w"> </span>&lt;export-dir&gt;
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># 3. Re-upload to HuggingFace Hub so the DOI is reflected in the public files</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>upload
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1"># 4. Make the HuggingFace repository public (if not done already)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>release
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1"># 5. Final read-only safety check before publishing for real</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>check-readiness<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="c1"># 6. Publish the Zenodo draft — IRREVERSIBLE, do this only after step 5 passes</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>release<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
+</code></pre></div>
+<p>Or run steps 1, 2, 5, and 6 in one go with <code>pipeline</code> (it pauses between <code>upload</code> and
+<code>check-readiness</code> so you can do steps 3–4 in between):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>pipeline<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
+</code></pre></div>
+<h3 id="the-easy-way-wizard">The easy way: <code>wizard</code></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>wizard
+</code></pre></div>
+<p>Guides you through the same six steps interactively, one phase at a time. Unlike
+<code>pipeline</code> (which crashes on the first error and always creates a brand-new draft),
+<code>wizard</code>:</p>
+<ul>
+<li>Asks for <code>--repo-id</code> if you haven't configured one yet (same prompt as
+  <code>donadataset publish huggingface wizard</code>, shares the same <code>settings.toml</code> value), and
+  offers to save it so you aren't asked again.</li>
+<li>Detects an existing linked Zenodo draft in <code>--output-dir</code> and asks whether to
+  synchronise it (<code>--sync-existing-draft</code>) instead of always creating a new one.</li>
+<li>Does step 3 (re-upload to HuggingFace Hub) for you automatically, instead of leaving it
+  as a manual step you have to remember.</li>
+<li>Warns you before touching <code>production</code> if <code>zenodo.environment</code> isn't <code>sandbox</code>.</li>
+<li>Asks for explicit confirmation before the final publish — the one step that's
+  irreversible.</li>
+<li>If any step fails (network hiccup, transient API error...), lets you retry it or abort
+  instead of just exiting.</li>
+</ul>
+<p>Not to be confused with <code>donadataset publish zenodo config wizard</code>, which only edits
+<code>settings.toml</code> fields and doesn't publish anything.</p>
+<p>There is no <code>--config</code> flag on any of these commands: they always render the single
+bundled Jinja2 template (<code>templates/Zenodo.yaml.j2</code>) using <code>--repo-id</code>/<code>--output-dir</code>
+(and <code>--hfh-output-dir</code> for <code>upload</code>), whose defaults come from <code>settings.toml</code> — set
+them once with <code>donadataset publish zenodo config set &lt;field&gt;=...</code> (or <code>config
+wizard</code>) and skip repeating <code>--environment</code>/etc. on every run. Every command accepts
+<code>--dry-run</code> (except <code>download</code>, which doesn't exist as a publishing step — see
+<code>donadataset publish zenodo download</code> for <em>retrieving</em> an already published record
+instead, and <code>pipeline</code>, which always runs for real). The token <em>environment variable
+name</em> is fixed to <code>ZENODO_TOKEN</code> in the template (not a setting or a flag) — but its
+<em>value</em> doesn't have to be exported every session: <code>export ZENODO_TOKEN=...</code> always
+wins if set, otherwise it falls back to <code>zenodo.token</code> in <code>settings.toml</code>, stored with
+<code>donadataset publish zenodo config set token</code> (hidden input, never echoed or shown by
+<code>config show</code>).</p>
+<blockquote>
+<p>⚠️ <strong><code>zenodo release</code> is the only step that actually publishes.</strong> Everything before
+it (<code>prepare</code>, <code>upload</code>, <code>check-readiness</code>) only creates/updates a <strong>draft</strong> — you can
+re-run them as many times as you need. Once <code>release</code> succeeds, the Zenodo record and
+its files can no longer be edited or removed.</p>
+</blockquote>
 
 
 
@@ -809,7 +1216,7 @@ co-funded by the European Commission.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../publishing-gbif/" class="md-footer__link md-footer__link--prev" aria-label="Previous: GBIF">
+          <a href="../publishing-huggingface/" class="md-footer__link md-footer__link--prev" aria-label="Previous: HuggingFace Hub">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -819,11 +1226,27 @@ co-funded by the European Commission.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                GBIF
+                HuggingFace Hub
               </div>
             </div>
           </a>
         
+        
+          
+          <a href="../publishing-b2share/" class="md-footer__link md-footer__link--next" aria-label="Next: B2SHARE">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                B2SHARE
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
         
       </nav>
     

@@ -10,17 +10,19 @@
       
       
       
-        <link rel="canonical" href="https://wildintelproject.github.io/donadataset/dev/about/">
+        <link rel="canonical" href="https://wildintelproject.github.io/donadataset/dev/publishing-gbif/">
       
       
-        <link rel="prev" href="../publishing-gbif/">
+        <link rel="prev" href="../publishing-b2share/">
       
+      
+        <link rel="next" href="../about/">
       
       
         
           <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../es/about/" hreflang="es">
+          <link rel="alternate" href="../es/publishing-gbif/" hreflang="es">
         
       
       
@@ -29,7 +31,7 @@
     
     
       
-        <title>About - DonaDataset</title>
+        <title>GBIF - DonaDataset</title>
       
     
     
@@ -82,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#about" class="md-skip">
+        <a href="#publishing-to-gbif" class="md-skip">
           Skip to content
         </a>
       
@@ -121,7 +123,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              About
+              GBIF
             
           </span>
         </div>
@@ -174,7 +176,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../es/about/" hreflang="es" class="md-select__link">
+            <a href="../es/publishing-gbif/" hreflang="es" class="md-select__link">
               Español
             </a>
           </li>
@@ -370,18 +372,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -402,7 +406,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -529,10 +533,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../publishing-gbif/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GBIF
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -548,6 +579,205 @@
   
 
       </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-is-gbif" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What is GBIF
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-format-we-publish-in" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What format we publish in
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-what-gbif-prepare-invents-and-why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. What gbif prepare invents, and why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-how-we-generate-it-every-file-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. How we generate it — every file, explained
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. How we generate it — every file, explained">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deploymentscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deployments.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mediacsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        media.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observationscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        observations.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datapackagejson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        datapackage.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dataset-slug-camtrap-dpzip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        &lt;dataset-slug&gt;-camtrap-dp.zip
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-publishing-two-ways-to-get-the-package-into-gbif" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Publishing — two ways to get the package into GBIF
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Publishing — two ways to get the package into GBIF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-time-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-time setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5a-through-an-ipt-manual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5a. Through an IPT (manual)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5b-through-the-registry-api-scripted-no-ipt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5b. Through the Registry API (scripted, no IPT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-on-every-new-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. On every new version
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -591,37 +821,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    About
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
         
   
   
@@ -637,50 +840,6 @@
   
 
       </a>
-      
-        
-
-  
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#donadataset-wildintel" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DonaDataset &amp; WildINTEL
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#funding" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Funding
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -714,10 +873,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#donadataset-wildintel" class="md-nav__link">
+  <a href="#1-what-is-gbif" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DonaDataset &amp; WildINTEL
+        1. What is GBIF
       
     </span>
   </a>
@@ -725,10 +884,165 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#funding" class="md-nav__link">
+  <a href="#2-what-format-we-publish-in" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Funding
+        2. What format we publish in
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-what-gbif-prepare-invents-and-why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. What gbif prepare invents, and why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-how-we-generate-it-every-file-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. How we generate it — every file, explained
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. How we generate it — every file, explained">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deploymentscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        deployments.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mediacsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        media.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observationscsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        observations.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#datapackagejson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        datapackage.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dataset-slug-camtrap-dpzip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        &lt;dataset-slug&gt;-camtrap-dp.zip
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-publishing-two-ways-to-get-the-package-into-gbif" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Publishing — two ways to get the package into GBIF
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Publishing — two ways to get the package into GBIF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-time-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-time setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5a-through-an-ipt-manual" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5a. Through an IPT (manual)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5b-through-the-registry-api-scripted-no-ipt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5b. Through the Registry API (scripted, no IPT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-on-every-new-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. On every new version
       
     </span>
   </a>
@@ -755,25 +1069,176 @@
   
 
 
-<h1 id="about">About</h1>
-<h2 id="donadataset-wildintel">DonaDataset &amp; WildINTEL</h2>
-<p><strong>DonaDataset</strong> is the training dataset behind
-<a href="https://github.com/wildintelproject/donanet">DonaNet</a>, a
-<a href="https://docs.ultralytics.com/">YOLO</a>-based neural network developed as part of the
-<a href="https://wildintel.eu/">WildINTEL project</a>, an initiative dedicated to the automated monitoring
-of wildlife through artificial intelligence and camera-trap imagery.</p>
-<p>The dataset focuses on the mammal species that inhabit
-<a href="https://www.miteco.gob.es/es/red-parques-nacionales/nuestros-parques/donana/">Doñana National Park</a>
-(Spain), one of the most important wetland ecosystems in Europe.</p>
+<h1 id="publishing-to-gbif">Publishing to GBIF</h1>
+<p>This guide explains how DonaDataset is converted for publication to <strong>GBIF</strong> using the
+<code>donadataset</code> CLI. It is aimed at the <strong>dataset maintainer</strong>.</p>
 <hr />
-<h2 id="funding">Funding</h2>
-<p>This work is part of the <a href="https://wildintel.eu/">WildINTEL project</a>, funded by the
-<a href="https://www.biodiversa.eu/">Biodiversa+</a> Joint Research Call 2022–2023 <em>"Improved transnational
-monitoring of biodiversity and ecosystem change for science and society (BiodivMon)"</em>.</p>
-<p>Biodiversa+ is the European co-funded biodiversity partnership supporting excellent research on
-biodiversity with an impact for policy and society. Biodiversa+ is part of the European Biodiversity
-Strategy for 2030 that aims to put Europe's biodiversity on a path to recovery by 2030 and is
-co-funded by the European Commission.</p>
+<h2 id="1-what-is-gbif">1. What is GBIF</h2>
+<p><a href="https://www.gbif.org">GBIF</a> (Global Biodiversity Information Facility) is the world's
+largest open-access aggregator of biodiversity data. It indexes hundreds of millions of
+species occurrence records from research institutions, natural history museums, and
+citizen science projects, and assigns a permanent <strong>DOI</strong> to every published dataset.
+GBIF is the reference platform for ecologists, conservation biologists, and
+environmental policy makers.</p>
+<h2 id="2-what-format-we-publish-in">2. What format we publish in</h2>
+<p>DonaDataset publishes to GBIF as <strong><a href="https://camtrap-dp.tdwg.org/">Camtrap DP</a></strong> — the
+TDWG/GBIF standard for camera-trap data, natively supported by IPT v3+. It's a
+Frictionless Data Package: a <code>datapackage.json</code> descriptor plus three CSV tables —
+<code>deployments.csv</code> (camera placements), <code>media.csv</code> (one row per photo), and
+<code>observations.csv</code> (one row per detection). GBIF ingests it by converting it internally
+to Darwin Core Occurrence records.</p>
+<p>GBIF doesn't store the images themselves — those live on
+<a href="../publishing-huggingface/">HuggingFace Hub</a>. By default <code>media.filePath</code> is a relative
+path (<code>images/&lt;split&gt;/&lt;filename&gt;</code>, matching the HuggingFace export layout), not a working
+URL. Pass <code>--link-media-to-huggingface</code> to make it a real, persistent URL instead — see
+section 4's <code>media.csv</code> entry for exactly what that URL points at (it's not one URL per
+photo).</p>
+<h2 id="3-what-gbif-prepare-invents-and-why">3. What <code>gbif prepare</code> invents, and why</h2>
+<p>This pipeline tracks no per-camera GPS coordinates or deployment dates anywhere (not in
+filenames, not in a manifest) — the only per-image date info it might have is EXIF. So
+<code>prepare</code> doesn't ask you to fill anything in by hand; it makes reasonable assumptions
+instead, all clearly flagged in the output:</p>
+<ul>
+<li><strong>One deployment per split</strong> (<code>train</code>, <code>val</code>, <code>test</code>) — treating an entire split as a
+  single "camera placement" is obviously not literally true, but it's the only grouping
+  this pipeline has. Each gets a distinct illustrative point inside Doñana National Park
+  (see <code>SPLIT_DEPLOYMENT_COORDINATES</code> in <code>donadataset/services/gbif.py</code>) — <strong>not</strong> real
+  camera GPS.</li>
+<li><strong><code>media.timestamp</code></strong> is read from each image's EXIF <code>DateTimeOriginal</code>/<code>DateTime</code> tag
+  when present. Images without a readable EXIF date (the bundled example dataset has
+  none) get a timestamp interpolated within that same deployment's real EXIF range, or —
+  if <em>no</em> image in the split has EXIF at all — spread across a fixed placeholder year
+  (2023). Every estimated row is flagged in <code>media.mediaComments</code>
+  (<code>"timestamp estimated: no EXIF datetime found in the source image"</code>); real EXIF rows
+  leave that column blank.</li>
+<li><strong><code>deploymentStart</code>/<code>deploymentEnd</code></strong> are the min/max of that split's <em>resolved</em>
+  timestamps (real EXIF if any exists, otherwise the placeholder year) —
+  <code>deployments.deploymentComments</code> notes when a deployment's range includes an estimate.</li>
+</ul>
+<p>Everything else is either derived straight from the dataset (species from the YOLO
+class names, per-image/per-species counts from the label boxes,
+<code>classificationMethod=machine</code> because detections come from a YOLO model, not a human
+reviewer) or comes from settings you already control (license, contact, institution —
+section 6).</p>
+<h2 id="4-how-we-generate-it-every-file-explained">4. How we generate it — every file, explained</h2>
+<p>Everything below is written into <code>--output-dir</code> (default:
+<code>&lt;Documents&gt;/donadataset/GBIF</code>).</p>
+<h3 id="deploymentscsv"><code>deployments.csv</code></h3>
+<p>One row per split present in the data: <code>deploymentID</code>/<code>locationID</code> (the split name),
+<code>locationName</code>, <code>latitude</code>/<code>longitude</code>, <code>deploymentStart</code>/<code>deploymentEnd</code>,
+<code>deploymentComments</code>.</p>
+<h3 id="mediacsv"><code>media.csv</code></h3>
+<p>One row per image: <code>mediaID</code> (the image id), <code>deploymentID</code>, <code>captureMethod</code>
+(<code>activityDetection</code>), <code>timestamp</code>, <code>filePath</code>/<code>fileName</code>, <code>fileMediatype</code> (from the file
+extension), <code>mediaComments</code>.</p>
+<p>By default <code>filePath</code> is a relative path within the source dataset layout — not a
+resolvable URL, since GBIF has no notion of "download this one from HuggingFace." Pass
+<code>--link-media-to-huggingface --hf-repo-id &lt;repo&gt;</code> to point it at the actual <strong><code>.tar</code>
+shard</strong> (<code>huggingface prepare</code>'s output, <code>data/&lt;split&gt;/&lt;split&gt;-NNNNN.tar</code>) that image was
+packed into — <code>donadataset</code> fetches just <code>manifest.csv</code> from the published repo (a small
+file, not the shards themselves) to build the <code>image_id → shard</code> mapping. This is <strong>not</strong>
+a URL per photo: every image inside the same shard shares the same <code>filePath</code> (train
+images point at the train shard, val at the val shard, and so on — a shard can also be
+split across several <code>.tar</code> files if the split is large, in which case images in that
+split point at whichever shard they actually ended up in). <code>mediaComments</code> always spells
+this out (<code>"filePath points to the .tar shard containing &lt;file&gt;.jpg on HuggingFace Hub,
+not an individually downloadable file"</code>) so nobody mistakes it for a direct image link.
+This requires <code>huggingface prepare</code>/<code>upload</code> to have already published <code>manifest.csv</code> for
+the <strong>same</strong> source dataset — a mismatch (an image <code>prepare</code> sees locally but that isn't
+in the published manifest) fails loudly rather than silently guessing.</p>
+<h3 id="observationscsv"><code>observations.csv</code></h3>
+<p>One row per image + species with at least one box (<code>count</code> = number of boxes of that
+species in that image — a photo with 3 boxes of the same species is <strong>one</strong> row with
+<code>count=3</code>, not three near-duplicates). Images whose only label is the source dataset's
+<code>Empty</code> class (or that have no boxes at all) get a single <code>observationType=blank</code> row
+instead of being silently dropped. Fixed columns: <code>observationID</code>, <code>deploymentID</code>,
+<code>mediaID</code>, <code>eventID</code> (= <code>mediaID</code>, one photo is one event), <code>eventStart</code>/<code>eventEnd</code>,
+<code>observationLevel</code> (<code>media</code>), <code>observationType</code> (<code>animal</code>/<code>blank</code>), <code>scientificName</code>,
+<code>count</code>, <code>classificationMethod</code> (<code>machine</code>), <code>classifiedBy</code>.</p>
+<h3 id="datapackagejson"><code>datapackage.json</code></h3>
+<p>The Frictionless descriptor: title/description/license/contributors (from <code>gbif</code>
+settings), <code>project</code> (sampling design, capture method), <code>spatial</code>/<code>temporal</code> coverage
+derived from the deployments, <code>taxonomic</code> (every distinct species observed), and a
+<code>resources</code> array describing the three CSVs (a minimal inline schema — field names only,
+not the full constrained official Camtrap DP table schema).</p>
+<h3 id="dataset-slug-camtrap-dpzip"><code>&lt;dataset-slug&gt;-camtrap-dp.zip</code></h3>
+<p>The four files above, zipped together — this is the single file you upload to an IPT or
+host yourself for <code>gbif register</code>. Pass <code>--upload-to-huggingface</code> (and <code>--hf-repo-id</code>,
+default <code>huggingface.repo_id</code>) to have <code>prepare</code> push it as one extra file to the
+already-published HuggingFace Hub dataset repo right after building it, so you get a
+persistent URL (<code>https://huggingface.co/datasets/&lt;repo_id&gt;/resolve/main/&lt;slug&gt;-camtrap-dp.zip</code>)
+without hosting it anywhere else — see section 5b. This needs <code>HF_TOKEN</code> with write
+access and the repo to already exist (<code>huggingface prepare</code> + <code>upload</code> already run); it
+only adds this one file, it doesn't touch anything else in the repo.</p>
+<h2 id="5-publishing-two-ways-to-get-the-package-into-gbif">5. Publishing — two ways to get the package into GBIF</h2>
+<h3 id="first-time-setup">First-time setup</h3>
+<ol>
+<li>Create an account at <a href="https://www.gbif.org">gbif.org</a> and request an
+   <strong>organisation</strong> account for WildINTEL (or use the University of Huelva's existing
+   GBIF node).</li>
+<li>Either install the <a href="https://www.gbif.org/ipt">GBIF IPT</a> v3+ (or use a hosted
+   instance) if publishing manually (5a below), or register an <strong>installation</strong> (any
+   type — doesn't have to be an IPT) if publishing via <code>gbif register</code>'s Registry API
+   path (5b below).</li>
+</ol>
+<h3 id="5a-through-an-ipt-manual">5a. Through an IPT (manual)</h3>
+<ol>
+<li>Run <code>donadataset publish gbif prepare</code>.</li>
+<li>Open your <strong>IPT v3+</strong> (earlier versions don't support Camtrap DP), create/update a
+   resource, and upload <code>&lt;dataset-slug&gt;-camtrap-dp.zip</code> as its source.</li>
+<li>Publish the resource from the IPT UI. GBIF indexes it within 24–48 hours and assigns
+   a DOI.</li>
+</ol>
+<h3 id="5b-through-the-registry-api-scripted-no-ipt">5b. Through the Registry API (scripted, no IPT)</h3>
+<p>The IPT itself has no upload API (a
+<a href="https://github.com/gbif/ipt/issues/1249">community request for one</a> was closed
+<code>Won't-fix</code>), but GBIF's separate Registry API lets you register a dataset and point it
+at an archive you host yourself. The easiest host is the HuggingFace Hub repo you've
+already published to:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">HF_TOKEN</span><span class="o">=</span>your-hf-write-token
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>gbif<span class="w"> </span>prepare<span class="w"> </span>--upload-to-huggingface<span class="w"> </span>--link-media-to-huggingface
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># ↑ prints the persistent URL: https://huggingface.co/datasets/&lt;repo_id&gt;/resolve/main/donadataset-camtrap-dp.zip</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GBIF_USERNAME</span><span class="o">=</span>your-gbif-org-username
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GBIF_PASSWORD</span><span class="o">=</span>your-gbif-org-password
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>gbif<span class="w"> </span>register<span class="w"> </span>--archive-url<span class="w"> </span>https://huggingface.co/datasets/&lt;repo_id&gt;/resolve/main/donadataset-camtrap-dp.zip
+</code></pre></div>
+<p><code>--link-media-to-huggingface</code> (independent of <code>--upload-to-huggingface</code> — you can use
+either on its own) makes <code>media.filePath</code> inside the package point at the actual <code>.tar</code>
+shards already on HuggingFace Hub instead of a local relative path; see section 4.</p>
+<p>(Or host <code>&lt;dataset-slug&gt;-camtrap-dp.zip</code> anywhere else you like and skip
+<code>--upload-to-huggingface</code> — <code>register</code> only cares that <code>--archive-url</code> is a public,
+GBIF-reachable URL.)</p>
+<p>The first run creates the dataset and adds a <code>CAMTRAP_DP</code> endpoint pointing at
+<code>--archive-url</code>; it records the returned dataset UUID in
+<code>gbif_linked_dataset_record.json</code> inside <code>--output-dir</code>, and every later run reads that
+file, updates the dataset's metadata, and replaces the endpoint. Use
+<code>--environment sandbox</code> (default) to test before <code>--environment production</code>, and
+<code>--dry-run</code> to preview without calling the API.</p>
+<p><strong>One-time prerequisites for 5b:</strong> a GBIF.org account (<code>GBIF_USERNAME</code>/<code>GBIF_PASSWORD</code> —
+Basic Auth, not a token), and an <strong>organisation</strong> + <strong>installation</strong> already registered
+in the GBIF Registry (the installation doesn't have to be an IPT). Set their UUIDs once
+with <code>gbif config set publishing_organization_key=...</code> / <code>installation_key=...</code>. The
+credentials themselves don't have to be exported every session either — <code>GBIF_USERNAME</code>/
+<code>GBIF_PASSWORD</code> always win if set, but otherwise fall back to <code>gbif.username</code>/
+<code>gbif.password</code> in <code>settings.toml</code>, stored with <code>gbif config set username</code> / <code>config set
+password</code> (hidden input, never echoed back or shown by <code>config show</code>).</p>
+<h2 id="6-configuration">6. Configuration</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>gbif<span class="w"> </span>config<span class="w"> </span>show
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>gbif<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="nv">contact_email</span><span class="o">=</span>you@example.org
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>gbif<span class="w"> </span>config<span class="w"> </span>wizard
+</code></pre></div>
+<p><code>rights_holder</code>, <code>institution_code</code>, <code>contact_name</code>, <code>contact_email</code> (unset by default),
+and <code>classified_by</code> feed <code>datapackage.json</code>'s contributors/observations; the license
+fields feed its <code>licenses</code> array. <code>environment</code>, <code>publishing_organization_key</code>,
+<code>installation_key</code>, and <code>registry_language</code> are only used by <code>register</code> (section 5b) —
+<code>prepare</code> ignores them.</p>
+<h2 id="7-on-every-new-version">7. On every new version</h2>
+<p>Re-run <code>prepare</code> — it always regenerates the whole package from the current dataset, so
+there's nothing to keep in sync by hand. Then either re-upload the new <code>.zip</code> to the same
+IPT resource and trigger a re-crawl (5a), or re-run <code>register</code> with the same
+(re-uploaded) <code>--archive-url</code> (5b) — GBIF re-crawls a changed endpoint automatically
+within a few hours.</p>
 
 
 
@@ -809,7 +1274,7 @@ co-funded by the European Commission.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../publishing-gbif/" class="md-footer__link md-footer__link--prev" aria-label="Previous: GBIF">
+          <a href="../publishing-b2share/" class="md-footer__link md-footer__link--prev" aria-label="Previous: B2SHARE">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -819,11 +1284,27 @@ co-funded by the European Commission.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                GBIF
+                B2SHARE
               </div>
             </div>
           </a>
         
+        
+          
+          <a href="../about/" class="md-footer__link md-footer__link--next" aria-label="Next: About">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                About
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
         
       </nav>
     

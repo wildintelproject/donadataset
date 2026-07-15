@@ -10,19 +10,19 @@
       
       
       
-        <link rel="canonical" href="https://wildintelproject.github.io/donadataset/dev/publishing-guide/">
+        <link rel="canonical" href="https://wildintelproject.github.io/donadataset/dev/publishing-huggingface/">
       
       
-        <link rel="prev" href="../user-guide/">
+        <link rel="prev" href="../publishing-guide/">
       
       
-        <link rel="next" href="../publishing-huggingface/">
+        <link rel="next" href="../publishing-zenodo/">
       
       
         
           <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../es/publishing-guide/" hreflang="es">
+          <link rel="alternate" href="../es/publishing-huggingface/" hreflang="es">
         
       
       
@@ -31,7 +31,7 @@
     
     
       
-        <title>Overview (all repositories) - DonaDataset</title>
+        <title>HuggingFace Hub - DonaDataset</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#publishing-guide" class="md-skip">
+        <a href="#publishing-to-huggingface-hub" class="md-skip">
           Skip to content
         </a>
       
@@ -123,7 +123,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview (all repositories)
+              HuggingFace Hub
             
           </span>
         </div>
@@ -176,7 +176,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../es/publishing-guide/" hreflang="es" class="md-select__link">
+            <a href="../es/publishing-huggingface/" hreflang="es" class="md-select__link">
               Español
             </a>
           </li>
@@ -421,6 +421,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../publishing-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview (all repositories)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -440,7 +468,7 @@
   <span class="md-ellipsis">
     
   
-    Overview (all repositories)
+    HuggingFace Hub
   
 
     
@@ -458,7 +486,7 @@
   <span class="md-ellipsis">
     
   
-    Overview (all repositories)
+    HuggingFace Hub
   
 
     
@@ -486,10 +514,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#1-what-is-huggingface-hub" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        1. What is HuggingFace Hub
       
     </span>
   </a>
@@ -497,10 +525,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-is-stored-where" class="md-nav__link">
+  <a href="#2-what-huggingface-hub-allows-uploading" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What is stored where
+        2. What HuggingFace Hub allows uploading
       
     </span>
   </a>
@@ -508,22 +536,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#generating-the-dataset" class="md-nav__link">
+  <a href="#3-what-we-upload" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generating the dataset
+        3. What we upload
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Generating the dataset">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-how-we-upload-it-every-file-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. How we upload it — every file, explained
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. How we upload it — every file, explained">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#what-it-expects-as-input" class="md-nav__link">
+  <a href="#the-data-shards" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What it expects as input
+        The data shards
       
     </span>
   </a>
@@ -531,10 +570,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#what-it-does" class="md-nav__link">
+  <a href="#donanayaml" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What it does
+        donana.yaml
       
     </span>
   </a>
@@ -542,10 +581,120 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#what-it-generates-as-output" class="md-nav__link">
+  <a href="#dataset_infojson" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What it generates as output
+        dataset_info.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manifestcsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        manifest.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manifest-files-sha256csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        manifest-files-sha256.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadatacsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        metadata.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checksums-sha256txt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        checksums-sha256.txt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation_reportjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validation_report.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification_report_localjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verification_report_local.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readmemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        README.md
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LICENSE
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#citationcff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CITATION.cff
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#huggingfacehubyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HuggingFaceHub.yaml
       
     </span>
   </a>
@@ -558,55 +707,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#publishing-map" class="md-nav__link">
+  <a href="#5-commands-to-publish" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Publishing map
+        5. Commands to publish
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#checklist-for-a-new-dataset-release" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Checklist for a new dataset release
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#publication-workflow-diagram" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Publication workflow diagram
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#automating-the-publication-of-new-versions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Automating the publication of new versions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Automating the publication of new versions">
+    <nav class="md-nav" aria-label="5. Commands to publish">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#first-time-setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prerequisites
+        First-time setup
       
     </span>
   </a>
@@ -614,10 +730,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-a-locally-with-donadataset-publish-all" class="md-nav__link">
+  <a href="#the-full-sequence-visually" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option A: Locally, with donadataset publish all
+        The full sequence, visually
       
     </span>
   </a>
@@ -625,22 +741,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-b-via-github-actions" class="md-nav__link">
+  <a href="#the-easy-way-wizard" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option B: Via GitHub Actions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Option B: Via GitHub Actions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#step-1-upload-images-to-huggingface-hub-local-prerequisite" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 1 — Upload images to HuggingFace Hub (local, prerequisite)
+        The easy way: wizard
       
     </span>
   </a>
@@ -648,40 +752,13 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-create-a-github-release-triggers-automation" class="md-nav__link">
+  <a href="#the-manual-way-step-by-step" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2 — Create a GitHub release (triggers automation)
+        The manual way: step by step
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#step-3-github-actions-distributes-to-remaining-mirrors" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3 — GitHub Actions distributes to remaining mirrors
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#step-4-configure-github-secrets-one-time-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 4 — Configure GitHub Secrets (one-time setup)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -694,34 +771,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../publishing-huggingface/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    HuggingFace Hub
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -901,10 +950,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#1-what-is-huggingface-hub" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        1. What is HuggingFace Hub
       
     </span>
   </a>
@@ -912,10 +961,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-is-stored-where" class="md-nav__link">
+  <a href="#2-what-huggingface-hub-allows-uploading" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What is stored where
+        2. What HuggingFace Hub allows uploading
       
     </span>
   </a>
@@ -923,22 +972,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#generating-the-dataset" class="md-nav__link">
+  <a href="#3-what-we-upload" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generating the dataset
+        3. What we upload
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Generating the dataset">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-how-we-upload-it-every-file-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. How we upload it — every file, explained
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. How we upload it — every file, explained">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#what-it-expects-as-input" class="md-nav__link">
+  <a href="#the-data-shards" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What it expects as input
+        The data shards
       
     </span>
   </a>
@@ -946,10 +1006,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#what-it-does" class="md-nav__link">
+  <a href="#donanayaml" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What it does
+        donana.yaml
       
     </span>
   </a>
@@ -957,10 +1017,120 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#what-it-generates-as-output" class="md-nav__link">
+  <a href="#dataset_infojson" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What it generates as output
+        dataset_info.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manifestcsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        manifest.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manifest-files-sha256csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        manifest-files-sha256.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadatacsv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        metadata.csv
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checksums-sha256txt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        checksums-sha256.txt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation_reportjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        validation_report.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification_report_localjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verification_report_local.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#readmemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        README.md
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LICENSE
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#citationcff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CITATION.cff
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#huggingfacehubyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HuggingFaceHub.yaml
       
     </span>
   </a>
@@ -973,55 +1143,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#publishing-map" class="md-nav__link">
+  <a href="#5-commands-to-publish" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Publishing map
+        5. Commands to publish
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#checklist-for-a-new-dataset-release" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Checklist for a new dataset release
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#publication-workflow-diagram" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Publication workflow diagram
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#automating-the-publication-of-new-versions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Automating the publication of new versions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Automating the publication of new versions">
+    <nav class="md-nav" aria-label="5. Commands to publish">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#first-time-setup" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Prerequisites
+        First-time setup
       
     </span>
   </a>
@@ -1029,10 +1166,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-a-locally-with-donadataset-publish-all" class="md-nav__link">
+  <a href="#the-full-sequence-visually" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option A: Locally, with donadataset publish all
+        The full sequence, visually
       
     </span>
   </a>
@@ -1040,22 +1177,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#option-b-via-github-actions" class="md-nav__link">
+  <a href="#the-easy-way-wizard" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Option B: Via GitHub Actions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Option B: Via GitHub Actions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#step-1-upload-images-to-huggingface-hub-local-prerequisite" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 1 — Upload images to HuggingFace Hub (local, prerequisite)
+        The easy way: wizard
       
     </span>
   </a>
@@ -1063,40 +1188,13 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#step-2-create-a-github-release-triggers-automation" class="md-nav__link">
+  <a href="#the-manual-way-step-by-step" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Step 2 — Create a GitHub release (triggers automation)
+        The manual way: step by step
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#step-3-github-actions-distributes-to-remaining-mirrors" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3 — GitHub Actions distributes to remaining mirrors
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#step-4-configure-github-secrets-one-time-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 4 — Configure GitHub Secrets (one-time setup)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -1125,460 +1223,260 @@
   
 
 
-<h1 id="publishing-guide">Publishing Guide</h1>
-<p>This document explains how to publish and keep DonaDataset synchronized across all external
-repositories. It is aimed at the <strong>dataset maintainer</strong>.</p>
+<h1 id="publishing-to-huggingface-hub">Publishing to HuggingFace Hub</h1>
+<p>This guide explains how DonaDataset is published to <strong>HuggingFace Hub</strong> using the
+<code>donadataset</code> CLI. It is aimed at the <strong>dataset maintainer</strong>.</p>
 <hr />
-<h2 id="overview">Overview</h2>
-<p>To maximise the visibility, accessibility, and long-term preservation of DonaDataset,
-the dataset is published across multiple internationally recognised repositories. Each
-platform serves a different community — from machine learning researchers to ecologists
-and data managers — ensuring that DonaDataset can be found and cited regardless of the
-field or tool a user works with.</p>
-<p>Everything starts on the maintainer's local machine and is uploaded to <strong>HuggingFace
-Hub</strong>, which acts as the single source of truth. From there, the dataset (or the parts
-of it relevant to each platform — see <a href="#what-is-stored-where">What is stored where</a>) is
-published out to the other repositories:</p>
-<pre class="mermaid"><code>flowchart LR
-    Local["💻 Local machine&lt;br/&gt;(images, labels, docs, scripts)"] --&gt;|upload everything| HF["🤗 HuggingFace Hub&lt;br/&gt;(source of truth)"]
-
-    HF --&gt; ZN[Zenodo]
-    HF --&gt; GB[GBIF]
-    HF --&gt; B2["B2SHARE 🇪🇺"]</code></pre>
-<p>Although there are many repositories available worldwide, the following have been selected
-based on their relevance to the dataset's scope (biodiversity, computer vision, open
-science), their alignment with the EU funding context of the WildINTEL project, and
-their adoption by the international research community:</p>
-<table>
-<thead>
-<tr><th>Repository</th><th>Type</th><th>DOI</th><th>Audience</th><th>Implementation status</th></tr>
-</thead>
-<tbody>
-<tr><td><a href="../publishing-huggingface/">HuggingFace Hub</a></td><td>Specialised (ML)</td><td>Yes</td><td>AI / ML community</td><td>Testing</td></tr>
-<tr><td><a href="../publishing-zenodo/">Zenodo</a></td><td>Open science archive</td><td>Yes</td><td>Scientific community</td><td>Testing</td></tr>
-<tr><td><a href="../publishing-gbif/">GBIF</a></td><td>Biodiversity data</td><td>Yes</td><td>Ecology / biology community</td><td>Testing</td></tr>
-<tr><td><a href="../publishing-b2share/">B2SHARE (EUDAT)</a></td><td>European research data</td><td>Yes</td><td>EU scientific community</td><td>Testing</td></tr>
-<tr class="status-planned"><td>Dataverse</td><td>Research data repository</td><td>Yes</td><td>Scientific community</td><td>Under consideration</td></tr>
-<tr class="status-planned"><td>Arias Montano (UHU)</td><td>Institutional repository</td><td>Yes</td><td>University of Huelva</td><td>Under consideration</td></tr>
-<tr class="status-planned"><td>Roboflow Universe</td><td>Specialised (CV / YOLO)</td><td>No</td><td>Computer vision community</td><td>Under consideration</td></tr>
-<tr class="status-planned"><td>Kaggle Datasets</td><td>Generalised (ML)</td><td>Yes</td><td>ML community</td><td>Under consideration</td></tr>
-</tbody>
-</table>
-
-<hr />
-<h2 id="what-is-stored-where">What is stored where</h2>
-<p>DonaDataset is made up of the following types of content:</p>
+<h2 id="1-what-is-huggingface-hub">1. What is HuggingFace Hub</h2>
+<p><a href="https://huggingface.co">HuggingFace Hub</a> is the leading platform for sharing machine
+learning models and datasets. It provides:</p>
 <ul>
-<li>
-<p><strong>Images + Labels</strong> — the raw camera-trap photographs captured in Doñana National
-  Park (large binary files that form the bulk of the dataset), together with one YOLO
-  annotation file per image (species class identifier, bounding box coordinates,
-  confidence score) that turns those raw photographs into a supervised training
-  dataset. Some repositories host these files directly (✅); others deliberately don't
-  and instead link back to where they actually live on HuggingFace Hub (🔗) — e.g.
-  Zenodo's <code>related_identifiers</code>, B2SHARE's <code>alternate_identifier</code>, or GBIF's
-  <code>media.filePath</code> when built with <code>--link-media-to-huggingface</code>.</p>
-</li>
-<li>
-<p><strong>Species catalogue</strong> — the file <code>metadata/classes.yaml</code>, which maps each numeric
-  class identifier to the common and scientific name of the corresponding mammal species.
-  It is the key that makes labels human-readable and scientifically meaningful.</p>
-</li>
-<li>
-<p><strong>Scripts</strong> — Python utilities included in this repository: <code>download.py</code> to fetch
-  the dataset, <code>upload.py</code> to publish new images to HuggingFace Hub, and <code>validate.py</code>
-  to check dataset integrity.</p>
-</li>
-<li>
-<p><strong>Documentation</strong> — the MkDocs site (this guide and related pages) and the
-  <code>README.md</code>, which describe the dataset, its structure, and how to use it.</p>
-</li>
-<li>
-<p><strong>Camtrap DP package</strong> — a representation of the dataset in
-  <a href="https://camtrap-dp.tdwg.org/">Camtrap DP</a> format for GBIF. Each detected animal
-  becomes an observation with species name, date, and deployment location, making the
-  data discoverable by ecologists and conservation researchers worldwide.</p>
-</li>
+<li>Git-based versioning for every repository (datasets included).</li>
+<li>A built-in dataset viewer, so anyone can browse images/labels without downloading anything.</li>
+<li>A Python library (<code>huggingface_hub</code>) for programmatic upload/download, used directly by
+  this project's CLI.</li>
+<li>Public or private visibility per repository, switchable at any time.</li>
 </ul>
-<p>Due to the nature of the different repositories — some specialised in large file storage,
-others in citable scientific records or biodiversity standards — it is not always possible
-to store images and metadata together in the same place. The table below shows what is
-stored in each repository:</p>
-<table>
-<thead>
-<tr>
-<th>Repository</th>
-<th style="text-align: center;">Images + Labels</th>
-<th style="text-align: center;">Species catalogue</th>
-<th style="text-align: center;">Scripts</th>
-<th style="text-align: center;">Documentation</th>
-<th style="text-align: center;">Camtrap DP package</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>GitHub repository</td>
-<td style="text-align: center;">🔗</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: center;"></td>
-</tr>
-<tr>
-<td>HuggingFace Hub</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-</tr>
-<tr>
-<td>Zenodo</td>
-<td style="text-align: center;">🔗</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-</tr>
-<tr>
-<td>GBIF</td>
-<td style="text-align: center;">🔗</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;">✅</td>
-</tr>
-<tr>
-<td>B2SHARE (EUDAT) 🇪🇺</td>
-<td style="text-align: center;">🔗</td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
-</tr>
-</tbody>
-</table>
-<blockquote>
-<p>ℹ️ On <strong>HuggingFace Hub</strong>, images and labels aren't uploaded as loose files — they're
-packaged together inside <code>.tar</code> shards (<code>data/&lt;split&gt;/*.tar</code>), each one bundling
-matching <code>images/&lt;split&gt;/...</code> and <code>labels/&lt;split&gt;/...</code> files for a batch of the
-dataset. See
-<a href="../publishing-huggingface/#4-how-we-upload-it-every-file-explained">publishing-huggingface.md</a>
-for the full breakdown of what's inside a shard.</p>
-</blockquote>
-<hr />
-<h2 id="generating-the-dataset">Generating the dataset</h2>
-<p>Before anything can be published anywhere, the raw annotated source has to be turned
-into the clean, split YOLO dataset that every publishing path reads from:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>donadataset<span class="w"> </span>generate<span class="w"> </span>real
+<p>In the DonaDataset publishing pipeline, HuggingFace Hub is the <strong>primary source of truth</strong>
+for the actual data — it is the only platform that stores the images and YOLO labels
+themselves.</p>
+<h2 id="2-what-huggingface-hub-allows-uploading">2. What HuggingFace Hub allows uploading</h2>
+<p>Unlike Zenodo (metadata-only in our workflow — see the
+<a href="../publishing-zenodo/">Zenodo guide</a>), a HuggingFace <strong>dataset repository</strong> can hold
+<strong>any file, of any size</strong>: the heavy binary data (images, packaged shards) together with
+small metadata/documentation files, all in the same repository, all versioned by git.
+There is no split between "data" and "metadata" platforms here — everything lives in one
+place.</p>
+<h2 id="3-what-we-upload">3. What we upload</h2>
+<p><code>donadataset publish huggingface prepare</code> builds a self-contained <strong>export folder</strong>
+locally, and <code>donadataset publish huggingface upload</code> pushes the <em>entire</em> folder to the
+HuggingFace repository — nothing is uploaded from outside this folder, and nothing inside
+it is skipped (other than editor/OS junk files like <code>*.tmp</code>, <code>*.bak</code>, <code>__pycache__/</code>).</p>
+<p>That folder contains two kinds of content:</p>
+<ul>
+<li><strong>The data itself</strong> — every image and its YOLO label, packaged into <code>.tar</code> shards, one
+  set of shards per split (<code>train</code>/<code>val</code>/<code>test</code>).</li>
+<li><strong>Metadata and documentation</strong> — small files describing the dataset, its integrity
+  (checksums), its license, and how to cite it.</li>
+</ul>
+<h2 id="4-how-we-upload-it-every-file-explained">4. How we upload it — every file, explained</h2>
+<h3 id="the-data-shards">The data shards</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>data/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── train/
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   └── donadataset-train-00000.tar
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── val/
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   └── donadataset-val-00000.tar
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── test/
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    └── donadataset-test-00000.tar
 </code></pre></div>
-<h3 id="what-it-expects-as-input">What it expects as input</h3>
-<ul>
-<li><code>--source</code> (default <code>GENERATE.source</code>, <code>&lt;Documents&gt;/donadataset/source</code>) — the raw
-  camera-trap dataset, <strong>already split</strong> into <code>images/&lt;train,val,test&gt;/</code> and
-  <code>labels/&lt;train,val,test&gt;/</code>. <code>generate real</code> does not split anything itself; the
-  splits have to already exist in the source.</li>
-<li><code>--classes-map</code> (default <code>metadata/source_classes.yaml</code>) — a flat <code>id: name</code> YAML
-  mapping of the <strong>source</strong> dataset's own original class scheme (18 classes, ids 0–17
-  today). This is the upstream annotation scheme, not the project's own public
-  <code>metadata/classes.yaml</code>.</li>
-<li>One YOLO <code>.txt</code> label per image, at the same relative path under <code>labels/&lt;split&gt;/</code> —
-  images without a matching label are dropped and counted separately in the summary.</li>
-</ul>
-<blockquote>
-<p>💡 <a href="https://github.com/wildintelproject/donadataset/tree/main/examples/source_dataset"><code>examples/source_dataset</code></a>
-in this repository is a small mock dataset laid out exactly like this, deliberately
-covering every branch of the pipeline below (a dropped class, a missing label, a
-duplicate image under two extensions, a mixed kept/removed label, and plain
-pass-through images) — see its own <code>README.md</code> for the full breakdown of what each
-file exercises, and a ready-to-run command to try it.</p>
-</blockquote>
-<h3 id="what-it-does">What it does</h3>
-<ul>
-<li>Drops every image whose label contains any of <code>--remove-class-id</code> (default <code>10, 17</code>
-  — Homo sapiens and Vehicle in the source scheme) entirely.</li>
-<li>Remaps the remaining old class ids to new, consecutive ids (closing the gaps left by
-  the removed classes) and rewrites every kept label file with the new ids.</li>
-<li>Detects and drops duplicate images within each split, per <code>--duplicate-key-mode</code>:
-  <code>stem</code> (default — same filename, regardless of subdirectory) or <code>relative_stem</code>
-  (same relative path only). When duplicates are found, one copy is kept, preferring
-  whichever candidate has a label file.</li>
-<li>Prints a per-split summary (<code>total_images</code>, <code>duplicate_groups</code>,
-  <code>duplicated_images_removed</code>, <code>kept_images</code>, <code>removed_images</code>, <code>missing_labels</code>,
-  <code>removed_missing_labels</code>, plus a <code>total_control</code> consistency check) and the full
-  old → new class id mapping — nothing is written to a report file, only printed to
-  the console.</li>
-</ul>
-<h3 id="what-it-generates-as-output">What it generates as output</h3>
-<p>Writes to <code>--output</code> (default <code>GENERATE.output</code>, <code>&lt;Documents&gt;/donadataset/output</code> —
-<strong>emptied completely</strong> before generating):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>output/
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>├── images/&lt;split&gt;/...     ← kept images, same relative paths as the source
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>├── labels/&lt;split&gt;/...     ← remapped YOLO labels
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>└── donana_filtered.yaml   ← nc, names, and absolute image paths per split
+<p>Each <code>.tar</code> shard bundles a batch of images and their matching labels for one split
+(new shards are started automatically once <code>sharding.max_shard_size_gb</code> — 2 GB by
+default — is reached). Inside a shard, paths are kept YOLO-compatible:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>images/train/example.jpg
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>labels/train/example.txt
 </code></pre></div>
-<p>This is exactly the <code>images/&lt;split&gt;/</code> + <code>labels/&lt;split&gt;/</code> layout that <code>donadataset
-publish huggingface prepare</code>/<code>pipeline</code> (and, through it, <code>publish all</code>) expect at
-<code>--source-dataset-dir</code> — see <a href="#publishing-map">Publishing map</a> below.</p>
-<blockquote>
-<p>ℹ️ <code>donadataset generate toy</code> is a related but separate command: it doesn't touch the
-raw source at all, it <em>subsamples</em> an already-generated <code>generate real</code> output
-(capped per class, with a random seed) — useful for a fast local test run, not part
-of the publishing path.</p>
-</blockquote>
-<hr />
-<h2 id="publishing-map">Publishing map</h2>
-<p><strong><a href="../publishing-huggingface/">HuggingFace Hub</a></strong></p>
-<p>The primary source of truth — the only platform storing the actual images and YOLO
-labels. Covers first-time account/token setup, every exported file explained, and the
-full <code>prepare</code> → <code>upload</code> → <code>release</code> → DOI sync sequence (manual, non-interactive
-<code>pipeline</code>, or interactive <code>wizard</code>).</p>
-<p><strong><a href="../publishing-zenodo/">Zenodo</a></strong></p>
-<p>A linked dataset record that provides a citable, permanent DOI — metadata and evidence
-only, the images and labels themselves stay on HuggingFace Hub. Covers first-time
-account/token setup, every uploaded file explained, and the full sequence up to the
-final, irreversible publish.</p>
-<p><strong><a href="../publishing-gbif/">GBIF</a></strong></p>
-<p>Converts the dataset into a Camtrap DP package for the biodiversity/ecology community,
-published either through a manual IPT upload or the scripted Registry API. Covers
-first-time account setup, exactly what <code>gbif prepare</code> derives from the data vs. invents
-as a placeholder, and both publishing paths.</p>
-<p><strong><a href="../publishing-b2share/">B2SHARE (EUDAT)</a></strong> 🇪🇺</p>
-<p>The European copy of the dataset's metadata and evidence, hosted entirely on EU
-servers — the same linked-record pattern as Zenodo. Covers first-time
-account/community/token setup, every uploaded file explained, and the full publishing
-sequence.</p>
-<hr />
-<h2 id="checklist-for-a-new-dataset-release">Checklist for a new dataset release</h2>
-<p><strong>Images + labels</strong>
-- [ ] Upload new images and labels to <strong>HuggingFace Hub</strong>.</p>
-<p><strong>Code + metadata (archive)</strong>
-- [ ] Update <code>metadata/classes.yaml</code> and <code>metadata/dataset.yaml</code> if needed.
-- [ ] Create a <strong>GitHub release</strong> (triggers Zenodo automatically).
-- [ ] Review and publish the <strong>Zenodo</strong> deposit; update the DOI badge in <code>README.md</code>.</p>
-<p><strong>European copy — images + code (B2SHARE)</strong>
-- [ ] Upload updated zip archives + release archive to <strong>B2SHARE</strong> and publish the new version.</p>
-<p><strong>Biodiversity records</strong>
-- [ ] Generate an updated Camtrap DP package (<code>gbif prepare</code>) and re-publish on <strong>GBIF</strong>.</p>
-<p><strong>References</strong>
-- [ ] Update DOI badges and record URLs in <code>README.md</code>.
-- [ ] Update the version number in <code>README.md</code> and <code>docs/dataset-description.md</code>.</p>
-<hr />
-<h2 id="publication-workflow-diagram">Publication workflow diagram</h2>
-<p>The following diagram shows the full sequence of steps to publish a new version of DonaDataset.</p>
+<p>so that extracting all shards into one directory reconstructs a normal YOLO dataset —
+no renaming or restructuring needed after download.</p>
+<h3 id="donanayaml"><code>donana.yaml</code></h3>
+<p>The Ultralytics/YOLO dataset configuration file: relative paths to <code>images/train</code>,
+<code>images/val</code>, <code>images/test</code>, plus <code>nc</code> (number of classes) and <code>names</code> (class id → species
+name). This is the file you point a YOLO training run at.</p>
+<h3 id="dataset_infojson"><code>dataset_info.json</code></h3>
+<p>A machine-readable summary of the whole export: dataset name/slug/version, task type,
+annotation format, total image/label counts, the class map, and — per split — image
+count, label count, shard count, and the list of shard filenames. Useful for scripts
+that need dataset statistics without parsing every manifest.</p>
+<h3 id="manifestcsv"><code>manifest.csv</code></h3>
+<p>One row per image, with everything needed to trace it back to its original file and shard:
+<code>image_id</code>, <code>split</code>, <code>image_path</code>, <code>label_path</code>, <code>shard</code>, byte sizes, SHA-256 hashes of the
+image and label, object count, and the class ids/names present in that image.</p>
+<h3 id="manifest-files-sha256csv"><code>manifest-files-sha256.csv</code></h3>
+<p>The same information as <code>manifest.csv</code>, but flattened to one row <strong>per file</strong> (image and
+label as separate rows) with <code>file_type</code>, <code>relative_path</code>, <code>sha256</code>, <code>size_bytes</code>, and
+<code>shard</code> — the format most convenient for scripting a checksum comparison file by file.</p>
+<h3 id="metadatacsv"><code>metadata.csv</code></h3>
+<p>A lighter version of <code>manifest.csv</code> without file sizes or hashes — just
+<code>image_id</code>/<code>split</code>/<code>image_path</code>/<code>label_path</code>/<code>shard</code>/<code>num_objects</code>/classes present. Meant
+for quick dataset exploration (e.g. loading into pandas) without the extra columns.</p>
+<h3 id="checksums-sha256txt"><code>checksums-sha256.txt</code></h3>
+<p>A flat <code>sha256  relative/path</code> list (same format as <code>sha256sum</code>) covering the shards
+themselves and the metadata/documentation files listed here. This is what
+<code>huggingface download</code> recomputes and compares after downloading, to prove the round
+trip through HuggingFace Hub didn't corrupt or truncate anything.</p>
+<h3 id="validation_reportjson"><code>validation_report.json</code></h3>
+<p>The result of validating the <strong>source</strong> YOLO dataset before packaging it (class ids in
+range, normalized coordinates, no orphan labels, etc.) — issues found here would have
+already stopped <code>prepare</code> before any shard was written, so in a successful export this
+file records "no errors."</p>
+<h3 id="verification_report_localjson"><code>verification_report_local.json</code></h3>
+<p>The result of <code>prepare</code> verifying its <strong>own output</strong> right after writing it: global
+checksums recomputed and compared, and every file inside every <code>.tar</code> shard hashed and
+compared against <code>manifest-files-sha256.csv</code>. <code>status: "passed"</code> here is what proves the
+export itself is internally consistent, before anything is uploaded anywhere.</p>
+<h3 id="readmemd"><code>README.md</code></h3>
+<p>The <strong>dataset card</strong> — the page HuggingFace Hub renders at
+<code>https://huggingface.co/datasets/&lt;repo_id&gt;</code>. It starts with a YAML frontmatter block
+(<code>license</code>, <code>task_categories</code>, <code>pretty_name</code>) that HuggingFace parses to populate the
+sidebar info card, followed by a human-readable description: dataset format, splits,
+class list, how to extract the shards, a training example, the license, and a citation
+pointer — plus, matching this project's own GitHub README, WildINTEL/license badges, a
+<strong>Contributing</strong> section, and a <strong>Funding</strong> section (WildINTEL / Biodiversa+). Generated
+from the Jinja2 template <code>templates/hfh/README.md.j2</code> — edit that file directly to
+change any wording, no Python involved.</p>
+<h3 id="license"><code>LICENSE</code></h3>
+<p>The plain-text license (name, identifier, and URL — CC BY 4.0 by default). Generated
+from <code>templates/hfh/LICENSE.j2</code>, same as <code>README.md</code>.</p>
+<h3 id="citationcff"><code>CITATION.cff</code></h3>
+<p>A <a href="https://citation-cff.org/">Citation File Format</a> file, so tools like GitHub and
+HuggingFace can offer a ready-made citation. Includes title, version, release date,
+license, the repository-artifact URL (this HuggingFace repo), and the author(s)
+(<code>given-names</code>/<code>family-names</code>/<code>affiliation</code>). Generated from <code>templates/hfh/CITATION.cff.j2</code>,
+same as <code>README.md</code>/<code>LICENSE</code> — <code>repository-code</code>/<code>repository-artifact</code>/<code>doi</code> are
+omitted entirely from the file when empty, rather than written as blank fields.</p>
+<h3 id="huggingfacehubyaml"><code>HuggingFaceHub.yaml</code></h3>
+<p>A frozen snapshot of the configuration <code>prepare</code> used to build this export (the bundled
+Jinja2 template, rendered with your flags/<code>settings.toml</code> values at that moment).
+Downstream commands (<code>upload</code>, <code>download</code>, <code>release</code>, <code>sync-doi</code>) read this file by its
+constant name — none of them take a <code>--config</code> flag, they all locate it automatically
+from <code>--output-dir</code>. Zenodo and B2SHARE also fetch it fresh from the published repo, as
+one of the evidence files bundled into their own deposits (see the
+<a href="../publishing-zenodo/#4-how-we-upload-it-every-file-explained">Zenodo guide</a>) — this
+file itself contains nothing Zenodo/B2SHARE-specific, it's just useful evidence of what
+built the export they're citing.</p>
+<h2 id="5-commands-to-publish">5. Commands to publish</h2>
+<h3 id="first-time-setup">First-time setup</h3>
+<ol>
+<li>Create an account at <a href="https://huggingface.co">huggingface.co</a> and join the
+   <strong>wildintelproject</strong> organisation.</li>
+<li>Set up the project's own environment (not the raw <code>huggingface-cli</code>):
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./setup.sh
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+</code></pre></div></li>
+<li>Get an access token with write permission at
+   <a href="https://huggingface.co/settings/tokens">huggingface.co/settings/tokens</a>, and set it
+   as <code>HF_TOKEN</code>, or store it once via <code>donadataset publish huggingface config set
+   token</code>.</li>
+<li>Set <code>repo_id</code> (e.g. <code>wildintelproject/donadataset</code>) via <code>donadataset publish
+   huggingface config set repo_id=wildintelproject/donadataset</code> — the repository is
+   created automatically on first upload if it doesn't exist yet.</li>
+</ol>
+<h3 id="the-full-sequence-visually">The full sequence, visually</h3>
 <pre class="mermaid"><code>sequenceDiagram
     actor M as Maintainer
+    participant CLI as donadataset CLI
     participant HF as HuggingFace Hub
-    participant GH as GitHub
-    box GitHub Actions (automated)
-        participant GA as publish.yml
-    end
-    participant B2 as B2SHARE 🇪🇺
-    participant ZN as Zenodo
-    participant GB as GBIF
 
-    note over M,GB: ── 1. Before the release (manual) ───────────────────────
+    note over M,HF: ── 1. prepare — local only, no network call ──────────────
+    M-&gt;&gt;CLI: publish huggingface prepare
+    CLI-&gt;&gt;CLI: Scan YOLO dataset, build .tar shards + manifests + checksums
+    CLI-&gt;&gt;CLI: Render README.md / LICENSE / CITATION.cff
+    CLI--&gt;&gt;M: ✓ Local export ready (--output-dir)
 
-    M-&gt;&gt;HF: Upload images + labels (source of truth)
-    HF--&gt;&gt;M: ✓ Dataset updated
+    note over M,HF: ── 2. upload ─────────────────────────────────────────────
+    M-&gt;&gt;CLI: publish huggingface upload
+    CLI-&gt;&gt;HF: Create repo if missing, push export (private by default)
+    HF--&gt;&gt;CLI: ✓ Upload confirmed
+    CLI--&gt;&gt;M: ✓ Dataset live on HuggingFace Hub (private)
 
-    note over M,GB: ── 2. Create GitHub release (triggers automation) ────────
+    note over M,HF: ── 3. release — make it public ──────────────────────────
+    M-&gt;&gt;CLI: publish huggingface release
+    CLI-&gt;&gt;HF: Change repo visibility to public
+    CLI-&gt;&gt;HF: Check public URLs are reachable without a token
+    HF--&gt;&gt;CLI: ✓ Public and reachable
+    CLI--&gt;&gt;M: ✓ Dataset public
 
-    M-&gt;&gt;GH: Create release (tag vX.Y.Z)
-    GH--&gt;&gt;ZN: Webhook → deposit created automatically
-    GH-&gt;&gt;GA: Trigger publish.yml
+    note over M,HF: ── 4. Generate the DOI — the one unavoidable manual step ─
+    M-&gt;&gt;HF: Repo Settings → "Generate DOI" (web UI only, no API for this)
+    HF--&gt;&gt;M: ✓ DOI assigned
 
-    note over M,GB: ── 3. GitHub Actions distributes to remaining mirrors ────
+    note over M,HF: ── 5. sync-doi — reflect it locally, then re-upload ──────
+    M-&gt;&gt;CLI: publish huggingface sync-doi
+    CLI-&gt;&gt;HF: Read the DOI tag from the repo's public info
+    CLI-&gt;&gt;CLI: Write DOI into CITATION.cff, recompute checksums
+    CLI--&gt;&gt;M: ✓ CITATION.cff updated locally
 
-    GA-&gt;&gt;HF: Download images + labels
-    HF--&gt;&gt;GA: ✓ Data received
-    GA-&gt;&gt;GA: Package splits into zip archives
-    GA-&gt;&gt;GH: Download release archive (code + docs)
-    GA-&gt;&gt;B2: Upload zips + release archive (European copy)
-    B2--&gt;&gt;GA: ✓ DOI assigned
-
-    note over M,GB: ── 4. Manual steps after the release ────────────────────
-
-    ZN--&gt;&gt;M: Notify: deposit ready for review
-    M-&gt;&gt;ZN: Review metadata and publish
-    ZN--&gt;&gt;M: ✓ DOI confirmed
-
-    M-&gt;&gt;M: Generate Camtrap DP package from annotations (gbif prepare)
-    M-&gt;&gt;GB: Upload Camtrap DP package to IPT (or gbif register)
-    GB--&gt;&gt;M: ✓ Dataset indexed · DOI assigned
-
-    M-&gt;&gt;GH: Update README.md with all DOI badges and record URLs</code></pre>
-<hr />
-<h2 id="automating-the-publication-of-new-versions">Automating the publication of new versions</h2>
-<p>Almost the entire publication process can be automated, in one of two independent
-ways — they are not steps of the same pipeline, pick one:</p>
+    M-&gt;&gt;CLI: publish huggingface upload
+    CLI-&gt;&gt;HF: Push the updated CITATION.cff + checksums
+    HF--&gt;&gt;CLI: ✓ Upload confirmed
+    CLI--&gt;&gt;M: ✓ DOI now reflected in the public repo</code></pre>
+<p><code>wizard</code> (below) walks through exactly this sequence interactively, one phase at a time,
+and closes step 5's loop automatically (the final re-upload). <code>pipeline</code> runs the same
+five phases non-interactively, pausing only at step 4 since there's no API for it.</p>
+<h3 id="the-easy-way-wizard">The easy way: <code>wizard</code></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>wizard
+</code></pre></div>
+<p>Guides you through the whole process interactively, one phase at a time: prepare, upload,
+make public, generate the DOI, reflect it locally. Unlike <code>pipeline</code> (below), it:</p>
 <ul>
-<li><strong>Locally, with the <code>donadataset publish all</code> CLI</strong> — needs the dataset and every
-  integration's credentials ready beforehand (see <a href="#prerequisites">Prerequisites</a>
-  below); the command uploads to HuggingFace Hub itself as its first step, then
-  continues to Zenodo, B2SHARE, and GBIF. Nothing needs to already be published
-  anywhere before you run it.</li>
-<li><strong>Via GitHub Actions</strong> — the opposite precondition on the data side: this workflow
-  only <em>distributes</em> what's already on HuggingFace Hub, it never uploads to it. The
-  dataset has to be pushed there manually first (Step 1 below); only then does creating
-  a GitHub release trigger the rest.</li>
+<li>Asks for <code>--repo-id</code> if you haven't configured one yet, and offers to save it so you
+  aren't asked again.</li>
+<li>Detects an existing export in <code>--output-dir</code> and asks whether to reuse it or regenerate
+  from scratch, instead of always starting over.</li>
+<li>Asks for explicit confirmation before making the dataset <strong>public</strong> — the one step
+  that's hard to fully undo.</li>
+<li>Checks whether a DOI was already generated in a previous run before showing the manual
+  "go generate it on the web" instructions, so you're not asked to repeat a step you
+  already did.</li>
+<li>If any step fails (network hiccup, transient API error...), lets you retry it, skip it,
+  or abort — instead of just exiting.</li>
+<li>Re-uploads automatically after <code>sync-doi</code>, so the DOI-updated <code>CITATION.cff</code> actually
+  reaches the public repo (the manual command sequence below leaves that as a separate
+  step you have to remember).</li>
 </ul>
-<p>Either way, the steps that still require manual intervention are the same: reviewing
-the Zenodo deposit before it publishes, and publishing on GBIF.</p>
-<h3 id="prerequisites">Prerequisites</h3>
-<p>Both options below need two things ready first:</p>
-<ol>
-<li><strong>The dataset generated</strong> — see <a href="#generating-the-dataset">Generating the dataset</a>
-   above for what <code>donadataset generate real</code> expects as input and produces as output.</li>
-<li><strong>Credentials for every integration you're publishing to</strong> — an access token
-   (HuggingFace Hub, Zenodo, B2SHARE) or username/password (GBIF), each stored once via
-   <code>donadataset publish &lt;repo&gt; config set token</code> (or the matching environment
-   variable) — see the "First-time setup" section of the
-   <a href="../publishing-huggingface/#first-time-setup">HuggingFace Hub</a>,
-   <a href="../publishing-zenodo/#first-time-setup">Zenodo</a>,
-   <a href="../publishing-b2share/#first-time-setup">B2SHARE</a>, and
-   <a href="../publishing-gbif/#first-time-setup">GBIF</a> guides. <code>publish all</code>/<code>pipeline</code> fail
-   with a clear error naming whichever token is still missing, rather than getting
-   partway through and stalling silently. GitHub Actions doesn't read any of this —
-   it uses its own repository Secrets instead (Step 4 below).</li>
-<li><strong>A git tag for this version.</strong> <code>huggingface pipeline</code> (and <code>publish all</code> through
-   it) auto-detects the version from git: if <code>HEAD</code> is exactly on a tag like <code>v1.1.0</code>
-   when you run it, that tag (minus the <code>v</code>) becomes the published version in
-   <code>dataset_info.json</code>/<code>CITATION.cff</code>; otherwise it's left as the placeholder
-   <code>REPLACE_WITH_VERSION</code>, since neither <code>publish all</code> nor this call to <code>pipeline</code>
-   passes an explicit <code>--version</code>. Tag it first: <code>git tag v1.1.0 &amp;&amp; git push origin
-   v1.1.0</code>. Option B needs the exact same tag too — Step 2 below creates the GitHub
-   release based on it, rather than creating a new one inline.</li>
-</ol>
-<h3 id="option-a-locally-with-donadataset-publish-all">Option A: Locally, with <code>donadataset publish all</code></h3>
-<p>The <code>donadataset</code> CLI can drive <strong>HuggingFace Hub, Zenodo, B2SHARE, and GBIF</strong> end to
-end in one command, starting from the dataset generated above:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>all
+<p>Dataset identity (name, license, author...) isn't asked here — it comes from
+<code>donadataset publish huggingface config set &lt;field&gt;=...</code> (see below), same as every
+other command.</p>
+<h3 id="the-manual-way-step-by-step">The manual way: step by step</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 1. Generate the clean YOLO dataset from the raw source data</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>donadataset<span class="w"> </span>generate<span class="w"> </span>real<span class="w"> </span>--source<span class="w"> </span>&lt;raw-dataset-dir&gt;<span class="w"> </span>--output<span class="w"> </span>&lt;clean-dataset-dir&gt;
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># 2. Build the export folder described above (shards + metadata)</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>prepare<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span>--source-dataset-dir<span class="w"> </span>&lt;clean-dataset-dir&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span>--output-dir<span class="w"> </span>&lt;export-dir&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># 3. Push the export folder to HuggingFace Hub (repo starts as private)</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="nb">export</span><span class="w"> </span><span class="nv">HF_TOKEN</span><span class="o">=</span><span class="s1">&#39;hf_xxxxxxxxxxxxxxxxxxxxxxxxx&#39;</span><span class="w">   </span><span class="c1"># needs write access</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>upload
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="c1"># 4. Download it back and verify the round trip (checksums, tar internals)</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>download
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="c1"># 5. Make the repository public, and verify it&#39;s reachable without a token</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>release
 </code></pre></div>
-<p><code>publish all</code> itself takes no <code>--source-dataset-dir</code> flag — it delegates straight to
-<code>huggingface pipeline</code>, which defaults to <code>GENERATE.output</code> (see above). If you
-generated the dataset somewhere else, reconfigure that setting first rather than
-trying to pass a path on the <code>publish all</code> command line.</p>
-<p>It runs each integration's <code>pipeline</code> in the order they depend on each other
-(HuggingFace Hub → Zenodo → B2SHARE → GBIF), reusing whatever you've already saved with
-<code>donadataset publish &lt;repo&gt; config set ...</code> — no flags needed if every integration is
-already configured. Zenodo's own <code>pipeline</code> normally pauses to ask you to manually
-re-run <code>huggingface upload</code> after it reserves a DOI (so the public HF repo reflects it);
-<code>publish all</code> closes that gap itself, automatically, with no prompt. The <strong>one</strong> manual
-step left is unavoidable: HuggingFace Hub has no API to generate its own DOI, so its
-pipeline still pauses once for you to click "Generate DOI" on the web UI and press Enter.</p>
-<p>Use <code>--include</code>/<code>--exclude</code> (comma-separated: <code>huggingface</code>, <code>zenodo</code>, <code>b2share</code>, <code>gbif</code>)
-to skip repositories — <code>--exclude</code> removes them, <code>--include</code> always wins if a repository
-ends up in both. <code>--dry-run</code> prints the exact commands it would run, in order, without
-running any of them.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>all<span class="w"> </span>--exclude<span class="w"> </span>b2share<span class="w">      </span><span class="c1"># skip B2SHARE this time</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>all<span class="w"> </span>--dry-run<span class="w">              </span><span class="c1"># preview the full plan first</span>
+<p>After step 5, you can optionally generate a DOI for the dataset repo itself — click
+<strong>"Generate DOI"</strong> in the repo's Settings page on huggingface.co (HuggingFace Hub doesn't
+allow triggering this via API, only through the web UI). Once generated:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 6. Detect the DOI HuggingFace assigned and write it into CITATION.cff locally</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>sync-doi
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># 7. Re-upload so the updated CITATION.cff is published</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>upload
 </code></pre></div>
-<h3 id="option-b-via-github-actions">Option B: Via GitHub Actions</h3>
-<table>
-<thead>
-<tr>
-<th>Step</th>
-<th>How</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>HuggingFace Hub</td>
-<td>❌ Manual — must already be uploaded before creating the release (Step 1 below)</td>
-</tr>
-<tr>
-<td>Zenodo</td>
-<td>✅ Automatic webhook triggered by the GitHub release</td>
-</tr>
-<tr>
-<td>B2SHARE 🇪🇺</td>
-<td>✅ GitHub Actions (<code>publish.yml</code>)</td>
-</tr>
-<tr>
-<td>GBIF</td>
-<td>⚠️ Partial — <code>gbif prepare</code> is scriptable, but uploading/publishing still needs either the IPT UI or <code>gbif register</code> run by hand</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h4 id="step-1-upload-images-to-huggingface-hub-local-prerequisite">Step 1 — Upload images to HuggingFace Hub (local, prerequisite)</h4>
-<p>Before creating the release, the maintainer must upload the new or updated images and
-labels from their local machine, and make the repository public — the workflow below
-only distributes from HuggingFace Hub, it does not populate it or publish it. Use the
-same CLI wizard described in the <a href="../publishing-huggingface/">HuggingFace Hub guide</a>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>wizard
-</code></pre></div>
-<p>Walks through prepare → upload → make public → generate the DOI (manual, on the web) →
-reflect it locally, asking for confirmation before the irreversible "make public" step.
-See <a href="../publishing-huggingface/#5-commands-to-publish">publishing-huggingface.md</a> for
-the full walkthrough, including the non-interactive <code>pipeline</code> alternative and the
-manual step-by-step commands.</p>
-<hr />
-<h4 id="step-2-create-a-github-release-triggers-automation">Step 2 — Create a GitHub release (triggers automation)</h4>
-<p>Once the images are on HuggingFace Hub, tag the version and create the release <strong>based
-on that tag</strong> in this GitHub repository:</p>
-<ol>
-<li>Tag the commit and push the tag, following <a href="https://semver.org/">semantic versioning</a>:
-   <code>git tag vX.Y.Z &amp;&amp; git push origin vX.Y.Z</code>.</li>
-<li>Go to <strong>Releases → Draft a new release</strong>.</li>
-<li>Select the tag you just pushed (don't type a new one here — the release has to be
-   built on the tag from step 1, the same one HuggingFace Hub's version metadata is
-   based on).</li>
-<li>Write a release description summarising the changes.</li>
-<li>Click <strong>Publish release</strong>.</li>
-</ol>
-<p>This single action triggers two things simultaneously:
-- <strong>Zenodo</strong> automatically archives this repository and creates a new deposit.
-- <strong>GitHub Actions</strong> runs <code>.github/workflows/publish.yml</code>.</p>
-<hr />
-<h4 id="step-3-github-actions-distributes-to-remaining-mirrors">Step 3 — GitHub Actions distributes to remaining mirrors</h4>
-<p>The workflow <code>publish.yml</code> runs automatically on GitHub's servers. It:</p>
-<ol>
-<li>Frees up disk space on the runner (~30 GB recovered).</li>
-<li>Downloads the full dataset from <strong>HuggingFace Hub</strong> (this is why Step 1 has to have
-   happened already — there is nothing to download otherwise).</li>
-<li>Packages each split into a zip archive (<code>train.zip</code>, <code>val.zip</code>, <code>test.zip</code>).</li>
-<li>Uploads the archive to <strong>B2SHARE</strong>.</li>
-<li>Writes a summary in the GitHub release page listing completed and pending steps.</li>
-</ol>
-<p>If any individual mirror upload fails, the others continue — each step uses
-<code>continue-on-error: true</code>.</p>
-<blockquote>
-<p>⚠️ <strong>Disk space:</strong> the <code>ubuntu-latest</code> runner has ~14 GB free by default. The workflow
-recovers extra space at startup. If the dataset exceeds available disk, consider using
-a larger GitHub runner (paid, up to 64 GB) or uploading splits in separate jobs.</p>
-</blockquote>
-<hr />
-<h4 id="step-4-configure-github-secrets-one-time-setup">Step 4 — Configure GitHub Secrets (one-time setup)</h4>
-<p>Before using the workflow for the first time, add the following secrets in the repository:
-<strong>Settings → Secrets and variables → Actions → New repository secret</strong></p>
-<table>
-<thead>
-<tr>
-<th>Secret</th>
-<th>Platform</th>
-<th>How to obtain</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>HF_TOKEN</code></td>
-<td>HuggingFace Hub</td>
-<td>huggingface.co → Settings → Access Tokens</td>
-</tr>
-<tr>
-<td><code>B2SHARE_API_TOKEN</code></td>
-<td>B2SHARE</td>
-<td>b2share.eudat.eu → Account → Personal access tokens</td>
-</tr>
-<tr>
-<td><code>B2SHARE_BUCKET_ID</code></td>
-<td>B2SHARE</td>
-<td>File bucket ID from the record's JSON (<code>links.files</code>)</td>
-</tr>
-</tbody>
-</table>
+<p>If you're also citing a Zenodo-hosted metadata record (a different, complementary DOI —
+see the <a href="../publishing-zenodo/">Zenodo guide</a>), <code>sync-doi</code> won't overwrite it: the
+HuggingFace DOI is added to <code>CITATION.cff</code>'s <code>identifiers</code> list alongside it, instead of
+replacing the main <code>doi</code> field.</p>
+<p>There is no <code>--config</code> flag at all: <code>prepare</code> always renders the single bundled Jinja2
+template (<code>templates/hfh/HuggingFaceHub.yaml.j2</code>) using the flags shown above, whose
+defaults come from <code>settings.toml</code>'s <code>HUGGINGFACE</code> section — set them once with
+<code>donadataset publish huggingface config set &lt;field&gt;=...</code> (or <code>config wizard</code>) and skip
+repeating <code>--repo-id</code>/<code>--license-id</code>/etc. on every run. Steps 3–7 don't take a
+<code>--config</code> either — they derive it from <code>--output-dir</code> (the same directory <code>prepare</code>
+wrote to). The prose content of <code>README.md</code>, <code>LICENSE</code>, and <code>CITATION.cff</code> is itself
+generated from three more templates in that same folder (<code>templates/hfh/README.md.j2</code>,
+<code>templates/hfh/LICENSE.j2</code>, <code>templates/hfh/CITATION.cff.j2</code>) — edit them directly to
+change the wording without touching any Python code.</p>
+<p><code>HF_TOKEN</code> doesn't have to be exported every session either: it always wins if set, but
+if it isn't, <code>upload</code>/<code>download</code>/<code>release</code>/<code>sync-doi</code>/<code>wizard</code> fall back to
+<code>huggingface.token</code> in <code>settings.toml</code> — store it once with <code>donadataset publish
+huggingface config set token</code> (hidden input, never echoed back or shown by <code>config
+show</code>, which prints <code>••••••••</code> instead).</p>
+<p>If you're also publishing a linked record on Zenodo (recommended, for a permanent DOI),
+the full order — including where <code>zenodo prepare</code>/<code>upload</code>/<code>release</code> fit relative to
+these five steps — is in the <a href="../publishing-zenodo/#5-commands-to-publish">Zenodo guide</a>.</p>
 
 
 
@@ -1614,7 +1512,7 @@ a larger GitHub runner (paid, up to 64 GB) or uploading splits in separate jobs.
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../user-guide/" class="md-footer__link md-footer__link--prev" aria-label="Previous: User Guide">
+          <a href="../publishing-guide/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview (all repositories)">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1624,20 +1522,20 @@ a larger GitHub runner (paid, up to 64 GB) or uploading splits in separate jobs.
                 Previous
               </span>
               <div class="md-ellipsis">
-                User Guide
+                Overview (all repositories)
               </div>
             </div>
           </a>
         
         
           
-          <a href="../publishing-huggingface/" class="md-footer__link md-footer__link--next" aria-label="Next: HuggingFace Hub">
+          <a href="../publishing-zenodo/" class="md-footer__link md-footer__link--next" aria-label="Next: Zenodo">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                HuggingFace Hub
+                Zenodo
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -1,27 +1,129 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
-         <loc>https://wildintelproject.github.io/donadataset/dev/</loc>
-         <lastmod>2026-05-27</lastmod>
+        <loc>https://wildintelproject.github.io/donadataset/dev/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/dev/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/deves/"/>
     </url>
     <url>
-         <loc>https://wildintelproject.github.io/donadataset/dev/about/</loc>
-         <lastmod>2026-05-27</lastmod>
+        <loc>https://wildintelproject.github.io/donadataset/dev/about/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/dev/about/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/deves/about/"/>
     </url>
     <url>
-         <loc>https://wildintelproject.github.io/donadataset/dev/classes/</loc>
-         <lastmod>2026-05-27</lastmod>
+        <loc>https://wildintelproject.github.io/donadataset/dev/dataset-description/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/dev/dataset-description/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/deves/dataset-description/"/>
     </url>
     <url>
-         <loc>https://wildintelproject.github.io/donadataset/dev/collection-protocol/</loc>
-         <lastmod>2026-05-27</lastmod>
+        <loc>https://wildintelproject.github.io/donadataset/dev/publishing-b2share/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/dev/publishing-b2share/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/deves/publishing-b2share/"/>
     </url>
     <url>
-         <loc>https://wildintelproject.github.io/donadataset/dev/dataset-description/</loc>
-         <lastmod>2026-05-27</lastmod>
+        <loc>https://wildintelproject.github.io/donadataset/dev/publishing-gbif/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/dev/publishing-gbif/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/deves/publishing-gbif/"/>
     </url>
     <url>
-         <loc>https://wildintelproject.github.io/donadataset/dev/publishing-guide/</loc>
-         <lastmod>2026-05-27</lastmod>
+        <loc>https://wildintelproject.github.io/donadataset/dev/publishing-guide/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/dev/publishing-guide/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/deves/publishing-guide/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/publishing-huggingface/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/dev/publishing-huggingface/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/deves/publishing-huggingface/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/publishing-zenodo/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/dev/publishing-zenodo/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/deves/publishing-zenodo/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/user-guide/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/dev/user-guide/"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/deves/user-guide/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/es/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/dev/es/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/dev"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/es/about/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/dev/es/about/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/devabout/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/es/dataset-description/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/dev/es/dataset-description/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/devdataset-description/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/es/publishing-b2share/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/dev/es/publishing-b2share/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/devpublishing-b2share/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/es/publishing-gbif/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/dev/es/publishing-gbif/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/devpublishing-gbif/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/es/publishing-guide/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/dev/es/publishing-guide/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/devpublishing-guide/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/es/publishing-huggingface/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/dev/es/publishing-huggingface/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/devpublishing-huggingface/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/es/publishing-zenodo/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/dev/es/publishing-zenodo/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/devpublishing-zenodo/"/>
+    </url>
+    <url>
+        <loc>https://wildintelproject.github.io/donadataset/dev/es/user-guide/</loc>
+        <lastmod>2026-07-15</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://wildintelproject.github.io/donadataset/dev/es/user-guide/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://wildintelproject.github.io/donadataset/devuser-guide/"/>
     </url>
 </urlset>

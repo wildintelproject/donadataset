@@ -26,3 +26,71 @@ article img {
   --md-accent-fg-color:         #0060a0;  /* azul del "INTEL" */
   --md-accent-fg-color--dark:   #004880;
 }
+
+/* Filas de repositorios aun no implementados ("Under consideration"/"En estudio")
+   en la tabla de la Publishing Guide — fondo distinto para diferenciarlas a golpe
+   de vista de las que ya están en pruebas. */
+.md-typeset table tr.status-planned {
+  background-color: rgba(255, 171, 0, 0.12);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table tr.status-planned {
+  background-color: rgba(255, 171, 0, 0.08);
+}
+
+/* Click-to-zoom for Mermaid diagrams — see javascripts/mermaid-zoom.js. */
+.mermaid {
+  cursor: zoom-in;
+}
+
+.mermaid-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: auto;
+  padding: 4rem 2rem 2rem;
+  background: rgba(0, 0, 0, 0.85);
+  cursor: zoom-out;
+}
+
+/* The actual <svg> lives inside a CLOSED shadow root inside .mermaid (see
+   mermaid-zoom.js), unreachable from here — style the host div itself,
+   which is what gets moved into the overlay and scaled. */
+.mermaid-zoom-overlay .mermaid {
+  width: max-content;
+  max-width: none;
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  transition: transform 0.15s ease-out;
+}
+
+.mermaid-zoom-toolbar {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1001;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mermaid-zoom-toolbar button {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 4px;
+  background: #fff;
+  color: #111;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.mermaid-zoom-toolbar button:hover {
+  background: #eee;
+}

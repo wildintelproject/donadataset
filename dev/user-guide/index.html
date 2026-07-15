@@ -10,17 +10,19 @@
       
       
       
-        <link rel="canonical" href="https://wildintelproject.github.io/donadataset/dev/about/">
+        <link rel="canonical" href="https://wildintelproject.github.io/donadataset/dev/user-guide/">
       
       
-        <link rel="prev" href="../publishing-gbif/">
+        <link rel="prev" href="../dataset-description/">
       
+      
+        <link rel="next" href="../publishing-guide/">
       
       
         
           <link rel="alternate" href="./" hreflang="en">
         
-          <link rel="alternate" href="../es/about/" hreflang="es">
+          <link rel="alternate" href="../es/user-guide/" hreflang="es">
         
       
       
@@ -29,7 +31,7 @@
     
     
       
-        <title>About - DonaDataset</title>
+        <title>User Guide - DonaDataset</title>
       
     
     
@@ -82,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#about" class="md-skip">
+        <a href="#user-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -121,7 +123,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              About
+              User Guide
             
           </span>
         </div>
@@ -174,7 +176,7 @@
           </li>
         
           <li class="md-select__item">
-            <a href="../es/about/" hreflang="es" class="md-select__link">
+            <a href="../es/user-guide/" hreflang="es" class="md-select__link">
               Español
             </a>
           </li>
@@ -343,10 +345,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../user-guide/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -362,6 +391,139 @@
   
 
       </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-downloading-the-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Downloading the dataset
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Downloading the dataset">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-easy-way-scriptsdownloadpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The easy way: scripts/download.py
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-manual-way-huggingface-cli-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The manual way: HuggingFace CLI / Python
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-browser-way-no-install-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The browser way: no install at all
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-youll-find" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What you'll find
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. What you&#39;ll find">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#directory-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#annotation-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotation format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadata-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-on-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training on it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -591,37 +753,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    About
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
         
   
   
@@ -637,50 +772,6 @@
   
 
       </a>
-      
-        
-
-  
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#donadataset-wildintel" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DonaDataset &amp; WildINTEL
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#funding" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Funding
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -714,24 +805,113 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#donadataset-wildintel" class="md-nav__link">
+  <a href="#1-downloading-the-dataset" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DonaDataset &amp; WildINTEL
+        1. Downloading the dataset
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Downloading the dataset">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-easy-way-scriptsdownloadpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The easy way: scripts/download.py
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#funding" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#the-manual-way-huggingface-cli-python" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Funding
+        The manual way: HuggingFace CLI / Python
       
     </span>
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-browser-way-no-install-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The browser way: no install at all
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-youll-find" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What you'll find
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. What you&#39;ll find">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#directory-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Directory layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#annotation-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotation format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadata-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-on-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training on it
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -755,25 +935,135 @@
   
 
 
-<h1 id="about">About</h1>
-<h2 id="donadataset-wildintel">DonaDataset &amp; WildINTEL</h2>
-<p><strong>DonaDataset</strong> is the training dataset behind
-<a href="https://github.com/wildintelproject/donanet">DonaNet</a>, a
-<a href="https://docs.ultralytics.com/">YOLO</a>-based neural network developed as part of the
-<a href="https://wildintel.eu/">WildINTEL project</a>, an initiative dedicated to the automated monitoring
-of wildlife through artificial intelligence and camera-trap imagery.</p>
-<p>The dataset focuses on the mammal species that inhabit
-<a href="https://www.miteco.gob.es/es/red-parques-nacionales/nuestros-parques/donana/">Doñana National Park</a>
-(Spain), one of the most important wetland ecosystems in Europe.</p>
+<h1 id="user-guide">User Guide</h1>
+<p>This guide is for anyone who wants to <strong>use</strong> DonaDataset — download it and train a
+model with it. If you're looking to publish or update the dataset itself, see the
+<a href="../publishing-guide/">Publishing Guide</a> instead.</p>
 <hr />
-<h2 id="funding">Funding</h2>
-<p>This work is part of the <a href="https://wildintel.eu/">WildINTEL project</a>, funded by the
-<a href="https://www.biodiversa.eu/">Biodiversa+</a> Joint Research Call 2022–2023 <em>"Improved transnational
-monitoring of biodiversity and ecosystem change for science and society (BiodivMon)"</em>.</p>
-<p>Biodiversa+ is the European co-funded biodiversity partnership supporting excellent research on
-biodiversity with an impact for policy and society. Biodiversa+ is part of the European Biodiversity
-Strategy for 2030 that aims to put Europe's biodiversity on a path to recovery by 2030 and is
-co-funded by the European Commission.</p>
+<h2 id="1-downloading-the-dataset">1. Downloading the dataset</h2>
+<p>DonaDataset is published across several public repositories — see the
+<a href="../publishing-guide/">Publishing Guide</a> for the full list. This guide covers getting it
+from the <strong>main repository, HuggingFace Hub</strong>, where it's published as <code>.tar</code> shards
+(<code>data/&lt;split&gt;/*.tar</code>, one or more per split) rather than loose files, to keep the
+number of individual objects in the repository manageable. You don't need to deal with
+that directly — pick one of the methods below.</p>
+<h3 id="the-easy-way-scriptsdownloadpy">The easy way: <code>scripts/download.py</code></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Set up the environment once</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>./setup.sh
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Download everything into ./data/</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>python<span class="w"> </span>scripts/download.py
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Or just one split</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>python<span class="w"> </span>scripts/download.py<span class="w"> </span>--split<span class="w"> </span>train
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Or into a custom location</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>python<span class="w"> </span>scripts/download.py<span class="w"> </span>--output<span class="w"> </span>/path/to/data
+</code></pre></div>
+<p>This downloads the shards for the split(s) you asked for and extracts them for you,
+leaving a plain <code>images/&lt;split&gt;/</code> + <code>labels/&lt;split&gt;/</code> layout underneath <code>--output</code>
+(default <code>./data</code>) — see <a href="#2-what-youll-find">section 2</a> for exactly what that looks
+like. Nothing is left behind afterward except the extracted files; the downloaded
+<code>.tar</code> shards themselves are removed once extraction finishes.</p>
+<h3 id="the-manual-way-huggingface-cli-python">The manual way: HuggingFace CLI / Python</h3>
+<p>If you'd rather not use the script (e.g. you only want the raw archive, or you're
+downloading from a fork under a different <code>--repo-id</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>huggingface-hub
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>huggingface-cli<span class="w"> </span>download<span class="w"> </span>wildintelproject/donadataset<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>--repo-type<span class="w"> </span>dataset<span class="w"> </span>--local-dir<span class="w"> </span>./donadataset-raw
+</code></pre></div>
+<p>This gets you the whole repository as published — the <code>.tar</code> shards under <code>data/</code>,
+plus <code>README.md</code>, <code>LICENSE</code>, <code>CITATION.cff</code>, and the metadata/manifest files described
+in the <a href="../publishing-huggingface/#4-how-we-upload-it-every-file-explained">Publishing Guide</a>.
+Extract the shards for the split(s) you want yourself:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>data
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">for</span><span class="w"> </span>shard<span class="w"> </span><span class="k">in</span><span class="w"> </span>donadataset-raw/data/train/*.tar<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>tar<span class="w"> </span>-xf<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$shard</span><span class="s2">&quot;</span><span class="w"> </span>-C<span class="w"> </span>data
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">done</span>
+</code></pre></div>
+<p>Each shard's internal paths already start with <code>images/&lt;split&gt;/...</code> and
+<code>labels/&lt;split&gt;/...</code>, so extracting straight into <code>data/</code> reconstructs the same layout
+<code>scripts/download.py</code> produces automatically.</p>
+<h3 id="the-browser-way-no-install-at-all">The browser way: no install at all</h3>
+<p>You can also get the data straight from HuggingFace Hub without installing anything —
+browse to
+<a href="https://huggingface.co/datasets/wildintelproject/donadataset/tree/main">huggingface.co/datasets/wildintelproject/donadataset/tree/main</a>
+and either:</p>
+<ul>
+<li>Click into <code>data/&lt;split&gt;/</code> and download each <code>.tar</code> shard individually (there's no
+  single "download everything" button on the page, so this is only convenient for a
+  handful of shards), or</li>
+<li>Use the <strong>"Clone repository"</strong> button on the page (or
+  <code>git clone https://huggingface.co/datasets/wildintelproject/donadataset</code>, which needs
+  <a href="https://git-lfs.com/">git-lfs</a> installed) to get the whole repository, shards
+  included, in one go.</li>
+</ul>
+<p>Either way you end up with the same <code>.tar</code> shards as the other two methods — extract
+them yourself exactly as shown in
+<a href="#the-manual-way-huggingface-cli-python">"The manual way"</a> above.</p>
+<div class="admonition note">
+<p class="admonition-title">Not to be confused with <code>donadataset publish huggingface download</code></p>
+<p>That command belongs to the <a href="../publishing-huggingface/">Publishing Guide</a> — it's a
+maintainer tool that re-downloads the whole repo to verify checksums after an
+upload, requires an <code>HF_TOKEN</code>, and doesn't extract anything for training. If you
+just want the data, use one of the methods above instead.</p>
+</div>
+<h2 id="2-what-youll-find">2. What you'll find</h2>
+<h3 id="directory-layout">Directory layout</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>data/
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── train/
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>│   ├── images/   ← camera-trap images (.jpg)
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>│   └── labels/   ← YOLO annotations (.txt)
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├── val/
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│   ├── images/
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>│   └── labels/
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>└── test/
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    ├── images/
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    └── labels/
+</code></pre></div>
+<p>See <a href="../dataset-description/#dataset-splits">Dataset splits</a> for what each split is for
+and how they were built.</p>
+<h3 id="annotation-format">Annotation format</h3>
+<p>Each label file contains one row per detected animal:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>&lt;class_id&gt; &lt;x_center&gt; &lt;y_center&gt; &lt;width&gt; &lt;height&gt;
+</code></pre></div>
+<p>All coordinates are normalised to <code>[0, 1]</code> relative to the image dimensions. See
+<a href="../dataset-description/#classes">Classes</a> for what each <code>class_id</code> maps to.</p>
+<h3 id="metadata-files">Metadata files</h3>
+<p>Also included in this repository (not part of the downloaded <code>data/</code> — these live
+alongside it in the project checkout):</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metadata/classes.yaml</code></td>
+<td>Maps class ids to common and scientific species names</td>
+</tr>
+<tr>
+<td><code>metadata/dataset.yaml</code></td>
+<td>Ultralytics YOLO config — use directly with <code>donanet train</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="training-on-it">Training on it</h3>
+<p><code>metadata/dataset.yaml</code> is a ready-to-use
+<a href="https://docs.ultralytics.com/datasets/detect/">Ultralytics</a> YOLO dataset config, so any
+Ultralytics-compatible YOLO training setup can use it directly once you've downloaded
+the data into the <code>path</code> it expects (<code>./data</code> by default).</p>
+<p>With a generic Ultralytics YOLO install (<code>pip install ultralytics</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>yolo<span class="w"> </span>detect<span class="w"> </span>train<span class="w"> </span><span class="nv">data</span><span class="o">=</span>metadata/dataset.yaml<span class="w"> </span><span class="nv">model</span><span class="o">=</span>yolov8n.pt<span class="w"> </span><span class="nv">epochs</span><span class="o">=</span><span class="m">100</span>
+</code></pre></div>
+<p>Or with <a href="https://github.com/wildintelproject/donanet">DonaNet</a>, the model this dataset
+was purpose-built for:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>donanet<span class="w"> </span>train<span class="w"> </span>--data<span class="w"> </span>metadata/dataset.yaml
+</code></pre></div>
 
 
 
@@ -809,7 +1099,7 @@ co-funded by the European Commission.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../publishing-gbif/" class="md-footer__link md-footer__link--prev" aria-label="Previous: GBIF">
+          <a href="../dataset-description/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Dataset Description">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -819,11 +1109,27 @@ co-funded by the European Commission.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                GBIF
+                Dataset Description
               </div>
             </div>
           </a>
         
+        
+          
+          <a href="../publishing-guide/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview (all repositories)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Overview (all repositories)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
         
       </nav>
     
