@@ -34,7 +34,8 @@ place.
 `donadataset publish huggingface prepare` builds a self-contained **export folder**
 locally, and `donadataset publish huggingface upload` pushes the *entire* folder to the
 HuggingFace repository — nothing is uploaded from outside this folder, and nothing inside
-it is skipped (other than editor/OS junk files like `*.tmp`, `*.bak`, `__pycache__/`).
+it is skipped (other than editor/OS junk and local-only log files like `*.tmp`, `*.bak`,
+`*.log`, `__pycache__/`).
 
 That folder contains two kinds of content:
 

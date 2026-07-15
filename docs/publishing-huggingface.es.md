@@ -35,8 +35,8 @@ plataformas de "datos" y de "metadatos" — todo vive en un mismo sitio.
 `donadataset publish huggingface prepare` construye localmente una **carpeta de
 exportación** autocontenida, y `donadataset publish huggingface upload` sube *toda* la
 carpeta al repositorio de HuggingFace — no se sube nada de fuera de esa carpeta, y no
-se omite nada dentro de ella (salvo ficheros basura de editor/SO como `*.tmp`, `*.bak`,
-`__pycache__/`).
+se omite nada dentro de ella (salvo ficheros basura de editor/SO y logs solo-locales
+como `*.tmp`, `*.bak`, `*.log`, `__pycache__/`).
 
 Esa carpeta contiene dos tipos de contenido:
 
