@@ -64,7 +64,7 @@ DonaDataset se compone de los siguientes tipos de contenido:
   repositorios alojan estos ficheros directamente (✅); otros deliberadamente no lo
   hacen y en su lugar enlazan a dónde viven realmente en HuggingFace Hub (🔗) — p. ej.
   `related_identifiers` de Zenodo, `alternate_identifier` de B2SHARE, o `media.filePath`
-  de GBIF cuando se construye con `--link-media-to-huggingface`.
+  de GBIF, que siempre enlaza así.
 
 - **Catálogo de especies** — el fichero `metadata/classes.yaml`, que mapea cada
   identificador numérico de clase al nombre común y científico de la especie de mamífero
@@ -355,10 +355,11 @@ pasar una ruta en la línea de comandos de `publish all`.
 Ejecuta el `pipeline` de cada integración en el orden en que dependen unas de otras
 (HuggingFace Hub → Zenodo → B2SHARE → GBIF), reutilizando lo que ya hayas guardado con
 `donadataset publish <repo> config set ...` — no hacen falta flags si cada integración
-ya está configurada. El propio `pipeline` de Zenodo normalmente se pausa para pedirte
-que vuelvas a ejecutar `huggingface upload` a mano tras reservar un DOI (para que el
-repo público de HF lo refleje); `publish all` cierra ese hueco por sí solo,
-automáticamente, sin preguntar. El **único** paso manual que queda es inevitable:
+ya está configurada. El paso `sync-doi` de Zenodo vuelve a subir a HuggingFace Hub por
+sí solo justo después de reservar el DOI (solo `CITATION.cff`, `README.md` y el
+fichero de checksums — nunca la exportación completa), así que ahí no hace falta
+ningún paso manual; B2SHARE sí necesita una re-subida explícita aparte, porque su propio PID no se
+reserva hasta después de publicar. El **único** paso manual que queda es inevitable:
 HuggingFace Hub no tiene API para generar su propio DOI, así que su pipeline se sigue
 pausando una vez para que hagas clic en "Generate DOI" en la web y pulses Enter.
 

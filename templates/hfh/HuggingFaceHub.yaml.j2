@@ -163,7 +163,7 @@ huggingface:
   token_env_var: HF_TOKEN            # variable de entorno con tu token — nunca pongas el token aquí
   create_repo_if_missing: true
   commit_message: Upload dataset export   # valor estándar, no hace falta personalizarlo
-  upload_ignore_patterns: ['*.tmp', '*.bak', '__pycache__/', '.DS_Store']
+  upload_ignore_patterns: ['*.tmp', '*.bak', '*.log', '__pycache__/', '.DS_Store']
   upload_delete_patterns: ['*.bak']
   retry:
     enabled: true

@@ -109,15 +109,15 @@ def test_config_set_unknown_field_errors():
     assert "Parámetro desconocido" in result.output
 
 
-# GENERATE has 8 fields, GENERATE_TOY has 5, HUGGINGFACE has 13, ZENODO has 3,
-# B2SHARE has 4, GBIF has 16 -> 49 prompts in total, in model declaration order
+# GENERATE has 8 fields, GENERATE_TOY has 5, HUGGINGFACE has 13, ZENODO has 4,
+# B2SHARE has 4, GBIF has 8 -> 42 prompts in total, in model declaration order
 # (duplicate_key_mode is GENERATE's 5th field).
 GENERATE_FIELD_COUNT      = 8
 GENERATE_TOY_FIELD_COUNT  = 5
 HUGGINGFACE_FIELD_COUNT   = 13
-ZENODO_FIELD_COUNT        = 3
+ZENODO_FIELD_COUNT        = 4
 B2SHARE_FIELD_COUNT       = 4
-GBIF_FIELD_COUNT          = 16
+GBIF_FIELD_COUNT          = 8
 DUPLICATE_KEY_MODE_INDEX  = 4  # 0-based position of duplicate_key_mode within GENERATE
 
 

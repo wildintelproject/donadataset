@@ -61,7 +61,7 @@ DonaDataset is made up of the following types of content:
   dataset. Some repositories host these files directly (✅); others deliberately don't
   and instead link back to where they actually live on HuggingFace Hub (🔗) — e.g.
   Zenodo's `related_identifiers`, B2SHARE's `alternate_identifier`, or GBIF's
-  `media.filePath` when built with `--link-media-to-huggingface`.
+  `media.filePath`, which always links back this way.
 
 - **Species catalogue** — the file `metadata/classes.yaml`, which maps each numeric
   class identifier to the common and scientific name of the corresponding mammal species.
@@ -335,11 +335,13 @@ trying to pass a path on the `publish all` command line.
 It runs each integration's `pipeline` in the order they depend on each other
 (HuggingFace Hub → Zenodo → B2SHARE → GBIF), reusing whatever you've already saved with
 `donadataset publish <repo> config set ...` — no flags needed if every integration is
-already configured. Zenodo's own `pipeline` normally pauses to ask you to manually
-re-run `huggingface upload` after it reserves a DOI (so the public HF repo reflects it);
-`publish all` closes that gap itself, automatically, with no prompt. The **one** manual
-step left is unavoidable: HuggingFace Hub has no API to generate its own DOI, so its
-pipeline still pauses once for you to click "Generate DOI" on the web UI and press Enter.
+already configured. Zenodo's `sync-doi` step re-uploads to HuggingFace Hub by itself
+right after reserving the DOI (only `CITATION.cff`, `README.md`, and the checksums file
+— never the whole export), so no manual step is needed there; B2SHARE still needs one
+explicit re-upload after it, since B2SHARE's own PID isn't reserved until after
+publication. The **one** manual step left is unavoidable: HuggingFace Hub has no API to
+generate its own DOI, so its pipeline still pauses once for you to click "Generate DOI"
+on the web UI and press Enter.
 
 Use `--include`/`--exclude` (comma-separated: `huggingface`, `zenodo`, `b2share`, `gbif`)
 to skip repositories — `--exclude` removes them, `--include` always wins if a repository

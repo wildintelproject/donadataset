@@ -1,6 +1,6 @@
 # DonaDataset — configuración para publicar en Zenodo (registro enlazado a HuggingFace Hub).
 #
-# Usado por: donadataset publish zenodo prepare|upload|download|check-readiness|release
+# Usado por: donadataset publish zenodo prepare|upload|sync-doi|download|check-readiness|release
 #
 # Zenodo NO aloja las imágenes/labels — solo sube ficheros pequeños de
 # metadatos/evidencia (README, LICENSE, CITATION.cff, manifests, checksums,
@@ -32,14 +32,14 @@
 # de que lo publicado coincide con lo que sube a Zenodo. --dry-run se salta
 # la descarga por completo (no hace llamadas de red).
 #
-# paths.output_dir (abajo) NO hace falta para 'prepare'/'check-readiness'/
-# 'release' — solo lo usa 'zenodo upload' (--hfh-output-dir), que necesita
-# escribir el DOI en el export local de HuggingFace antes de volver a
-# subirlo con 'huggingface upload'.
+# paths.output_dir (abajo) NO hace falta para 'prepare'/'upload'/
+# 'check-readiness'/'release' — solo lo usa 'zenodo sync-doi'
+# (--hfh-output-dir), que necesita escribir el DOI en el export local de
+# HuggingFace antes de volver a subirlo (lo hace automáticamente).
 
-# ── Export local de HuggingFace (solo lo usa 'zenodo upload') ───────────────
+# ── Export local de HuggingFace (solo lo usa 'zenodo sync-doi') ─────────────
 paths:
-  output_dir: {{ (output_dir or 'REPLACE_WITH_HFH_OUTPUT_DIR') | tojson }}   # [flag: --hfh-output-dir, solo en 'upload']
+  output_dir: {{ (output_dir or 'REPLACE_WITH_HFH_OUTPUT_DIR') | tojson }}   # [flag: --hfh-output-dir, solo en 'sync-doi']
 
 huggingface:
   repo_id: {{ (repo_id or 'REPLACE_WITH_HF_USER/REPLACE_WITH_DATASET_SLUG') | tojson }}   # [flag: --repo-id]
@@ -96,6 +96,13 @@ zenodo:
   related_identifiers:
     huggingface_dataset_url: {{ huggingface_dataset_url | tojson }}
     huggingface_tree_url: {{ huggingface_tree_url | tojson }}
+
+  # Comunidades de Zenodo a las que se envía el depósito al crearlo — lista
+  # ya resuelta por 'zenodo prepare' a partir de settings.toml ZENODO.communities
+  # (separadas por comas ahí), opcionalmente filtrada por --communities.
+  # Enviar a una comunidad que no curas tú la deja pendiente de aprobación;
+  # publicar el depósito en sí no se ve afectado.
+  communities: {{ communities | tojson }}   # [flag: --communities, solo en 'prepare']
 
   # Comprobación de que las URLs de arriba responden de verdad (usado por
   # 'check-readiness' y 'release'):

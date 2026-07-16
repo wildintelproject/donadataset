@@ -7,14 +7,19 @@ Implementa un flujo de "registro Zenodo enlazado" (linked dataset record):
   enlaces (no es un archivo físico completo de todas las imágenes).
 - Zenodo asigna un DOI al registro enlazado y verificado.
 
-Tres operaciones:
+Cuatro operaciones:
 
-- `run_zenodo_linked_dataset_creation` / `run_zenodo_existing_draft_sync`:
-  crea (o sincroniza) el depósito Zenodo y sube los ficheros de evidencia
-  (manifests, checksums, reports...) — no los shards, que ya están en HFH.
-- `run_update_local_metadata_with_doi`: una vez asignado el DOI, lo inserta en
-  los metadatos locales (HuggingFaceHub.yaml, dataset_info.json, CITATION.cff,
-  README.md) y regenera checksums-sha256.txt.
+- `run_zenodo_prepare`: descarga HFH en tiempo real, crea (o relee, con
+  sync_existing_draft) el depósito Zenodo solo para reservar/leer el DOI, y
+  copia localmente los ficheros de evidencia (manifests, checksums,
+  reports...) con el DOI ya inyectado en las copias de CITATION.cff y
+  README.md. No sube nada a Zenodo.
+- `run_zenodo_upload`: sube a Zenodo exactamente lo que 'prepare' dejó en
+  local, y publica el depósito si zenodo.publish está activo.
+- `run_zenodo_sync_doi`: copia las copias locales (con DOI) de CITATION.cff
+  y README.md sobre el export de HuggingFace Hub y regenera su
+  checksums-sha256.txt — no sube nada a HuggingFace Hub (eso lo hace el
+  comando CLI 'sync-doi' después).
 - `run_download_and_deploy`: descarga un registro Zenodo (completo o
   enlazado a HuggingFace Hub) y despliega el dataset en formato YOLO.
 """
@@ -24,7 +29,6 @@ import logging
 import os
 import re
 import shutil
-import tarfile
 import tempfile
 import time
 from dataclasses import dataclass
@@ -40,12 +44,15 @@ from donadataset.services.common import (
     as_bool,
     ensure_dict,
     fail,
+    find_tar_files,
     format_size,
     get_nested,
+    is_safe_tar_member,
     load_yaml,
     md5_file,
     read_checksums,
     read_json,
+    safe_extract_tar,
     setup_logging,
     sha256_file,
     utc_now_iso,
@@ -96,6 +103,20 @@ DEFAULT_ZENODO_EVIDENCE_FILENAMES = [
     "validation_report.json",
     "verification_report_local.json",
 ]
+
+# GBIF publishing is optional and lives in its own steps ('gbif prepare' +
+# 'gbif upload') — unlike the filenames above, this is never required. It's
+# small, structured, non-binary metadata (no images), so it fits Zenodo's
+# own "evidence, not bulk content" rule the same way manifest.csv does;
+# picked up by filename pattern (not a fixed name) since it's named after
+# the dataset segment of GBIF's --hf-repo-id, not a name Zenodo controls.
+CAMTRAP_DP_GLOB_PATTERN = "*-camtrap-dp.zip"
+
+
+def find_optional_camtrap_dp_archive(directory: Path) -> List[Path]:
+    if not directory.is_dir():
+        return []
+    return sorted(directory.glob(CAMTRAP_DP_GLOB_PATTERN))
 
 # Historical naming this project no longer uses, kept only so an old external
 # YAML with stale zenodo.files_to_upload entries still resolves correctly.
@@ -186,6 +207,7 @@ def build_zenodo_template_context(
     author_family_names: Optional[str] = None,
     author_affiliation: Optional[str] = None,
     environment: Optional[str] = None,
+    communities: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Builds the Jinja context for templates/Zenodo.yaml.j2. All fallbacks
     are resolved here (never inside the template) because the template
@@ -218,6 +240,7 @@ def build_zenodo_template_context(
         "huggingface_dataset_url": huggingface_dataset_url,
         "huggingface_tree_url": huggingface_tree_url,
         "environment": environment or "sandbox",
+        "communities": communities or [],
     }
 
 
@@ -262,19 +285,31 @@ def get_zenodo_downloaded_report_path(config: Dict[str, Any]) -> Path:
     return get_zenodo_output_dir(config) / "verification_report_downloaded.json"
 
 
-def ensure_fresh_hfh_download_report(config: Dict[str, Any]) -> Dict[str, Any]:
+def ensure_fresh_hfh_download_report(config: Dict[str, Any], verify_data: bool = False) -> Dict[str, Any]:
     """Downloads the HuggingFace Hub repo right now and verifies it against
     the local manifest/checksums, so 'zenodo prepare' never has to trust a
     possibly-stale report from an earlier, separate 'huggingface download'
     run — what's staged in Zenodo's directory is guaranteed to match what's
-    live on HuggingFace Hub at the moment 'zenodo prepare' actually runs."""
+    live on HuggingFace Hub at the moment 'zenodo prepare' actually runs.
+
+    verify_data=False (the default) skips the heavy data/<split>/*.tar
+    shards entirely — Zenodo never uploads them anyway (see module
+    docstring), so by default this only downloads and verifies the small
+    evidence files. Pass verify_data=True for the older, slower behaviour:
+    download every shard too and re-hash its contents against
+    manifest-files-sha256.csv, for an extra guarantee that the published
+    images/labels themselves — not just the metadata describing them —
+    still match what 'prepare' originally wrote."""
     download_dir = get_zenodo_hfh_download_dir(config)
     report_path = get_zenodo_downloaded_report_path(config)
     token = get_token(config)
 
     logging.info("Downloading HuggingFace Hub repository to verify it matches the local export...")
     logging.info("Download directory: %s", download_dir)
-    return download_and_verify_hfh(config, token, download_dir, report_path, delete_after_success=False)
+    logging.info("Verifying data/ shards too: %s", verify_data)
+    return download_and_verify_hfh(
+        config, token, download_dir, report_path, delete_after_success=False, verify_data=verify_data,
+    )
 
 
 def get_default_files_to_upload(config: Dict[str, Any]) -> List[Path]:
@@ -381,6 +416,13 @@ def validate_files_to_upload(files: List[Path]) -> None:
 
 # ── Metadata Zenodo ───────────────────────────────────────────────────────────
 
+def get_zenodo_communities(config: Dict[str, Any]) -> List[str]:
+    communities = get_nested(config, ["zenodo", "communities"], [])
+    if not isinstance(communities, list):
+        return []
+    return [str(slug).strip() for slug in communities if str(slug).strip()]
+
+
 def build_zenodo_metadata(config: Dict[str, Any]) -> Dict[str, Any]:
     creators_raw = get_nested(config, ["zenodo", "creators"], [])
     if not isinstance(creators_raw, list) or not creators_raw:
@@ -414,7 +456,7 @@ def build_zenodo_metadata(config: Dict[str, Any]) -> Dict[str, Any]:
         for url in get_related_links(config).values()
     ]
 
-    return {
+    metadata: Dict[str, Any] = {
         "title": str(get_nested(config, ["zenodo", "title"], "Linked dataset record")),
         "upload_type": str(get_nested(config, ["zenodo", "upload_type"], "dataset")),
         "description": str(get_nested(config, ["zenodo", "description"], "")),
@@ -426,6 +468,15 @@ def build_zenodo_metadata(config: Dict[str, Any]) -> Dict[str, Any]:
         "related_identifiers": related_identifiers,
         "prereserve_doi": True,
     }
+
+    communities = get_zenodo_communities(config)
+    if communities:
+        # Submitting to a community you don't curate leaves the record
+        # pending approval from that community's curator — publishing the
+        # deposition itself is unaffected either way.
+        metadata["communities"] = [{"identifier": slug} for slug in communities]
+
+    return metadata
 
 
 # ── API de Zenodo ─────────────────────────────────────────────────────────────
@@ -715,7 +766,14 @@ def verify_links(config: Dict[str, Any], linked_record: Dict[str, Any]) -> Dict[
     }
 
 
-# ── Sincronización de un draft existente ─────────────────────────────────────
+# ── Preparación local (descarga HFH, reserva DOI, prepara ficheros) ──────────
+#
+# 'zenodo prepare' NUNCA sube nada a Zenodo. Descarga el repo de HuggingFace
+# Hub en tiempo real, crea (o relee, con --sync-existing-draft) el depósito
+# de Zenodo solo para reservar/leer el DOI, copia los ficheros de evidencia a
+# su propio directorio de salida con ese DOI ya inyectado en la copia de
+# CITATION.cff, y regenera los checksums de ese directorio. La subida real a
+# Zenodo es 'zenodo upload'.
 
 def get_linked_record_path(config: Dict[str, Any]) -> Path:
     return get_output_filename(config, "linked_record_filename", "zenodo_linked_dataset_record.json")
@@ -735,10 +793,195 @@ def get_existing_deposition_id_from_linked_record(config: Dict[str, Any]) -> int
     return int(deposition_id)
 
 
-def upload_evidence_files_to_deposition(
-    config: Dict[str, Any], token: str, deposition: Dict[str, Any],
+def build_zenodo_info_from_deposition(config: Dict[str, Any], deposition: Dict[str, Any]) -> Dict[str, Any]:
+    """Same shape as validate_and_extract_zenodo_info's output, built
+    directly from a live deposition response instead of a written
+    zenodo_linked_dataset_record.json — lets 'prepare' inject the DOI into
+    the staged CITATION.cff copy before anything is written to disk."""
+    base_url = get_zenodo_base_url(config)
+    doi = extract_reserved_doi(deposition)
+    return {
+        "environment": get_zenodo_environment(config),
+        "deposition_id": deposition.get("id"),
+        "record_id": deposition.get("record_id"),
+        "doi": doi,
+        "doi_url": build_doi_url(doi),
+        "record_url": build_record_url(base_url, deposition),
+        "record_type": "zenodo_linked_dataset_record",
+    }
+
+
+def write_zenodo_staged_checksums(zenodo_output_dir: Path, staged_files: List[Path], config: Dict[str, Any]) -> Path:
+    """Regenerates checksums-sha256.txt for just the flat evidence files
+    staged in Zenodo's own output dir — not a full rglob of output_dir,
+    which would also walk the nested hfh_download/ cache subdirectory.
+    Needed because patching the DOI into the staged CITATION.cff changes its
+    hash, which would otherwise leave the checksums file (itself one of the
+    copied evidence files) describing stale content."""
+    checksum_filename = get_checksums_filename(config)
+    checksum_path = zenodo_output_dir / checksum_filename
+    chunk_size_bytes = get_chunk_size_bytes(config)
+    files = sorted((p for p in staged_files if p.name != checksum_filename), key=lambda p: p.name)
+
+    with checksum_path.open("w", encoding="utf-8") as f:
+        for file_path in files:
+            f.write(f"{sha256_file(file_path, chunk_size_bytes)}  {file_path.name}\n")
+
+    return checksum_path
+
+
+def stage_and_patch_files_for_zenodo(
+    config: Dict[str, Any], deposition: Dict[str, Any],
     files_to_upload: List[Path], downloaded_report: Dict[str, Any],
-) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+) -> Dict[str, Any]:
+    """Copies files_to_upload into Zenodo's own output dir, patches the DOI
+    Zenodo just reserved into the staged CITATION.cff and README.md copies
+    (so Zenodo's own hosted copies describe themselves, not just
+    HuggingFace's), regenerates that directory's checksums-sha256.txt, and
+    writes zenodo_linked_dataset_record.json. Nothing is uploaded to Zenodo
+    here — that's 'zenodo upload'."""
+    zenodo_output_dir = get_zenodo_output_dir(config)
+    logging.info("Staging evidence files in: %s", zenodo_output_dir)
+    staged_files = stage_files_for_zenodo(files_to_upload, zenodo_output_dir)
+
+    zenodo_info = build_zenodo_info_from_deposition(config, deposition)
+    staged_citation = zenodo_output_dir / "CITATION.cff"
+    staged_readme = zenodo_output_dir / "README.md"
+    if zenodo_info["doi"]:
+        if staged_citation.is_file():
+            logging.info("Injecting reserved DOI into staged %s...", staged_citation)
+            update_citation_cff(staged_citation, zenodo_info)
+        if staged_readme.is_file():
+            logging.info("Injecting reserved DOI into staged %s...", staged_readme)
+            update_readme(staged_readme, zenodo_info)
+        logging.info("Regenerating checksums for staged Zenodo files...")
+        write_zenodo_staged_checksums(zenodo_output_dir, staged_files, config)
+    else:
+        logging.warning(
+            "Zenodo did not return a reserved DOI yet — staged CITATION.cff/README.md were not patched."
+        )
+
+    linked_record_path = get_linked_record_path(config)
+    linked_record = create_linked_dataset_record(config, deposition, staged_files, downloaded_report)
+    write_json(linked_record_path, linked_record)
+    logging.info("Linked dataset record written: %s", linked_record_path)
+
+    return linked_record
+
+
+def run_zenodo_prepare(
+    config_path: Path, dry_run: bool = False, template_context: Optional[Dict[str, Any]] = None,
+    verify_data: bool = False, sync_existing_draft: bool = False,
+) -> None:
+    if not config_path.exists():
+        fail(f"Configuration file not found: {config_path}")
+
+    logging.info("Reading configuration: %s", config_path)
+    config = load_config_source(config_path, **(template_context or {}))
+
+    if not as_bool(get_nested(config, ["zenodo", "enabled"], False), False):
+        fail("zenodo.enabled is false. Set zenodo.enabled: true to use this command.")
+
+    environment = get_zenodo_environment(config)
+    api_base_url = get_zenodo_api_base_url(config)
+    base_url = get_zenodo_base_url(config)
+    token_env_var = get_zenodo_token_env_var(config)
+    # All evidence files (and the download-verification report itself) live
+    # inside the live HuggingFace Hub download below — nothing to validate
+    # locally before that happens.
+    files_to_upload = get_files_to_upload(config)
+
+    # Checked even in --dry-run: it's a config-level precondition (no
+    # existing draft to sync), not a network call, so it should fail fast
+    # the same way with or without --dry-run.
+    if sync_existing_draft:
+        get_existing_deposition_id_from_linked_record(config)
+
+    logging.info("Zenodo environment: %s", environment)
+    logging.info("Zenodo base URL: %s", base_url)
+    logging.info("Zenodo API base URL: %s", api_base_url)
+    logging.info("Zenodo token environment variable: %s", token_env_var)
+    logging.info("Syncing existing draft: %s", sync_existing_draft)
+    logging.info("Files that will be staged locally (fetched from a live HuggingFace Hub download): %d", len(files_to_upload))
+
+    if dry_run:
+        logging.info("Dry run enabled. HuggingFace Hub will not be downloaded; Zenodo will not be contacted.")
+        return
+
+    downloaded_report = ensure_fresh_hfh_download_report(config, verify_data=verify_data)
+
+    optional_camtrap_dp_files = find_optional_camtrap_dp_archive(get_zenodo_hfh_download_dir(config))
+    if optional_camtrap_dp_files:
+        logging.info(
+            "Found Camtrap DP archive(s) from GBIF publishing — including as evidence: %s",
+            [path.name for path in optional_camtrap_dp_files],
+        )
+        files_to_upload = unique_paths(files_to_upload + optional_camtrap_dp_files)
+
+    logging.info("Validating downloaded files configured for Zenodo staging...")
+    validate_files_to_upload(files_to_upload)
+
+    total_size = sum(path.stat().st_size for path in files_to_upload)
+    logging.info("Total Zenodo evidence size: %s", format_size(total_size))
+
+    token = get_zenodo_token(config)
+
+    if sync_existing_draft:
+        deposition_id = get_existing_deposition_id_from_linked_record(config)
+        logging.info("Reading existing Zenodo draft deposition: %s", deposition_id)
+        deposition = get_deposition(api_base_url, token, deposition_id)
+        deposition_state = str(deposition.get("state", "")).lower()
+        if deposition_state and deposition_state not in {"unsubmitted", "inprogress", "draft"}:
+            logging.warning(
+                "Zenodo deposition state is %r. Staging is expected to work only for editable drafts.",
+                deposition_state,
+            )
+    else:
+        logging.info("Creating Zenodo deposition...")
+        deposition = create_deposition(api_base_url, token)
+        deposition_id = deposition.get("id")
+        if deposition_id is None:
+            fail("Zenodo deposition response does not contain an id.")
+        logging.info("Created deposition id: %s", deposition_id)
+
+        metadata = build_zenodo_metadata(config)
+        logging.info("Updating deposition metadata and reserving DOI...")
+        deposition = update_deposition_metadata(api_base_url, token, int(deposition_id), metadata)
+
+    doi = extract_reserved_doi(deposition)
+    logging.info("Reserved DOI: %s", doi or "not returned yet")
+
+    linked_record = stage_and_patch_files_for_zenodo(config, deposition, files_to_upload, downloaded_report)
+
+    logging.info("Zenodo prepare completed successfully. Nothing has been uploaded to Zenodo yet.")
+    logging.info("Deposition id: %s", deposition.get("id"))
+    logging.info("Reserved DOI: %s", linked_record.get("reserved_doi"))
+    logging.info("DOI URL: %s", linked_record.get("doi_url"))
+    logging.info("Record URL: %s", linked_record.get("record_url"))
+    logging.info("Next step: donadataset publish zenodo upload")
+
+
+# ── Subida a Zenodo de lo ya preparado en local ("zenodo upload") ────────────
+#
+# Lee exclusivamente lo que 'zenodo prepare' ya dejó en su propio directorio
+# de salida (DOI ya inyectado en CITATION.cff) y lo sube al bucket del
+# depósito. No descarga ni modifica nada de HuggingFace Hub. Publica al final
+# si zenodo.publish está activo (igual que hacía antes 'prepare').
+
+def get_zenodo_staged_files_to_upload(config: Dict[str, Any]) -> List[Path]:
+    """Same evidence filenames 'prepare' downloads, resolved against
+    Zenodo's own already-staged output dir instead of a fresh HuggingFace
+    Hub download — 'upload' pushes exactly what's on disk here, unmodified."""
+    zenodo_output_dir = get_zenodo_output_dir(config)
+    files = [zenodo_output_dir / filename for filename in DEFAULT_ZENODO_EVIDENCE_FILENAMES]
+    files.append(zenodo_output_dir / "verification_report_downloaded.json")
+    files.extend(find_optional_camtrap_dp_archive(zenodo_output_dir))
+    return unique_paths(files)
+
+
+def upload_staged_files_to_bucket(
+    config: Dict[str, Any], token: str, deposition: Dict[str, Any], staged_files: List[Path],
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     api_base_url = get_zenodo_api_base_url(config)
     bucket_url = get_nested(deposition, ["links", "bucket"], None)
     if not bucket_url:
@@ -748,30 +991,21 @@ def upload_evidence_files_to_deposition(
     if deposition_id is None:
         fail("Zenodo deposition response does not contain id.")
 
-    zenodo_output_dir = get_zenodo_output_dir(config)
-    logging.info("Staging evidence files in: %s", zenodo_output_dir)
-    files_to_upload = stage_files_for_zenodo(files_to_upload, zenodo_output_dir)
-
     linked_record_path = get_linked_record_path(config)
-    linked_record = create_linked_dataset_record(config, deposition, files_to_upload, downloaded_report)
-    write_json(linked_record_path, linked_record)
-    logging.info("Linked dataset record written: %s", linked_record_path)
 
-    logging.info("Uploading configured evidence files to Zenodo...")
-    for file_path in files_to_upload:
+    logging.info("Uploading staged evidence files to Zenodo...")
+    for file_path in staged_files:
         logging.info("Uploading: %s", file_path)
         upload_file_to_bucket(str(bucket_url), token, file_path, file_path.name)
 
     logging.info("Uploading linked dataset record JSON to Zenodo...")
     upload_file_to_bucket(str(bucket_url), token, linked_record_path, linked_record_path.name)
 
-    all_uploaded_local_files = unique_paths(files_to_upload + [linked_record_path])
+    all_uploaded_local_files = unique_paths(staged_files + [linked_record_path])
 
     logging.info("Refreshing deposition information after upload...")
     deposition = get_deposition(api_base_url, token, int(deposition_id))
-
-    deposition_response_path = get_output_filename(config, "deposition_response_filename", "zenodo_deposition_response.json")
-    write_json(deposition_response_path, deposition)
+    write_json(get_deposition_response_path(config), deposition)
 
     logging.info("Verifying uploaded Zenodo files...")
     file_verification = verify_uploaded_files(all_uploaded_local_files, deposition)
@@ -786,10 +1020,10 @@ def upload_evidence_files_to_deposition(
             logging.error(error)
         fail("Zenodo file verification failed.")
 
-    return deposition, linked_record, file_verification
+    return deposition, file_verification
 
 
-def run_zenodo_existing_draft_sync(
+def run_zenodo_upload(
     config_path: Path, dry_run: bool = False, template_context: Optional[Dict[str, Any]] = None,
 ) -> None:
     if not config_path.exists():
@@ -801,42 +1035,38 @@ def run_zenodo_existing_draft_sync(
     if not as_bool(get_nested(config, ["zenodo", "enabled"], False), False):
         fail("zenodo.enabled is false. Set zenodo.enabled: true to use this command.")
 
-    environment = get_zenodo_environment(config)
-    api_base_url = get_zenodo_api_base_url(config)
-    base_url = get_zenodo_base_url(config)
-    token_env_var = get_zenodo_token_env_var(config)
-    # All evidence files (and the download-verification report itself) live
-    # inside the live HuggingFace Hub download below — nothing to validate
-    # locally before that happens.
-    files_to_upload = get_files_to_upload(config)
-    deposition_id = get_existing_deposition_id_from_linked_record(config)
+    publish = get_publish_flag(config)
+    linked_record_path = get_linked_record_path(config)
+    if not linked_record_path.is_file():
+        fail(f"Zenodo linked dataset record not found: {linked_record_path}. Run 'zenodo prepare' first.")
+    linked_record = read_json(linked_record_path)
+    deposition_id = linked_record.get("deposition_id")
+    if deposition_id is None:
+        fail(f"{linked_record_path} does not contain deposition_id.")
 
-    logging.info("Zenodo environment: %s", environment)
-    logging.info("Zenodo base URL: %s", base_url)
-    logging.info("Zenodo API base URL: %s", api_base_url)
-    logging.info("Zenodo token environment variable: %s", token_env_var)
-    logging.info("Existing deposition id: %s", deposition_id)
-    logging.info("Evidence files that will be synced (fetched from a live HuggingFace Hub download): %d", len(files_to_upload))
+    staged_files = get_zenodo_staged_files_to_upload(config)
+
+    logging.info("Deposition id: %s", deposition_id)
+    logging.info("Publish after upload: %s", publish)
+    logging.info("Files staged locally by 'zenodo prepare': %d", len(staged_files))
 
     if dry_run:
-        logging.info("Dry run enabled. HuggingFace Hub will not be downloaded; existing Zenodo draft will not be modified.")
-        for path in files_to_upload:
+        logging.info("Dry run enabled. Zenodo will not be contacted. Files that would be uploaded:")
+        for path in staged_files:
             logging.info("  - %s", path)
         return
 
-    downloaded_report = ensure_fresh_hfh_download_report(config)
+    logging.info("Validating staged files before upload...")
+    validate_files_to_upload(staged_files)
 
-    logging.info("Validating downloaded evidence files...")
-    validate_files_to_upload(files_to_upload)
-
-    total_upload_size = sum(path.stat().st_size for path in files_to_upload)
+    total_upload_size = sum(path.stat().st_size for path in staged_files)
     logging.info("Total Zenodo evidence upload size: %s", format_size(total_upload_size))
 
     token = get_zenodo_token(config)
+    api_base_url = get_zenodo_api_base_url(config)
 
-    logging.info("Reading existing Zenodo draft deposition...")
-    deposition = get_deposition(api_base_url, token, deposition_id)
-
+    logging.info("Reading Zenodo draft deposition...")
+    deposition = get_deposition(api_base_url, token, int(deposition_id))
     deposition_state = str(deposition.get("state", "")).lower()
     if deposition_state and deposition_state not in {"unsubmitted", "inprogress", "draft"}:
         logging.warning(
@@ -844,105 +1074,13 @@ def run_zenodo_existing_draft_sync(
             deposition_state,
         )
 
-    deposition, linked_record, file_verification = upload_evidence_files_to_deposition(
-        config, token, deposition, files_to_upload, downloaded_report,
-    )
+    downloaded_report_path = get_zenodo_downloaded_report_path(config)
+    downloaded_report = read_json(downloaded_report_path) if downloaded_report_path.is_file() else {}
 
-    logging.info("Verifying configured external links before publication...")
-    prepublish_link_verification = verify_links(config, {"doi_url": None, "record_url": None})
+    deposition, file_verification = upload_staged_files_to_bucket(config, token, deposition, staged_files)
 
-    link_verification_report_path = get_output_filename(
-        config, "link_verification_report_filename", "zenodo_link_verification_report.json",
-    )
-    write_json(link_verification_report_path, prepublish_link_verification)
-
-    if prepublish_link_verification["status"] != "passed":
-        for error in prepublish_link_verification["errors"]:
-            logging.error(error)
-        fail("Zenodo external link verification failed.")
-
-    logging.info("Existing Zenodo draft synchronization completed successfully.")
-    logging.info("Deposition id: %s", deposition.get("id"))
-    logging.info("Reserved DOI: %s", linked_record.get("reserved_doi"))
-    logging.info("DOI URL: %s", linked_record.get("doi_url"))
-    logging.info("Record URL: %s", linked_record.get("record_url"))
-    logging.info("Files verified in Zenodo: %s", file_verification.get("num_local_files"))
-    logging.info("Link verification report: %s", link_verification_report_path)
-
-
-# ── Creación del registro enlazado (flujo principal) ─────────────────────────
-
-def run_zenodo_linked_dataset_creation(
-    config_path: Path, dry_run: bool = False, template_context: Optional[Dict[str, Any]] = None,
-) -> None:
-    if not config_path.exists():
-        fail(f"Configuration file not found: {config_path}")
-
-    logging.info("Reading configuration: %s", config_path)
-    config = load_config_source(config_path, **(template_context or {}))
-
-    if not as_bool(get_nested(config, ["zenodo", "enabled"], False), False):
-        fail("zenodo.enabled is false. Set zenodo.enabled: true to use this command.")
-
-    environment = get_zenodo_environment(config)
-    api_base_url = get_zenodo_api_base_url(config)
-    base_url = get_zenodo_base_url(config)
-    token_env_var = get_zenodo_token_env_var(config)
-    publish = get_publish_flag(config)
-    # All evidence files (and the download-verification report itself) live
-    # inside the live HuggingFace Hub download below — nothing to validate
-    # locally before that happens.
-    files_to_upload = get_files_to_upload(config)
-
-    logging.info("Zenodo environment: %s", environment)
-    logging.info("Zenodo base URL: %s", base_url)
-    logging.info("Zenodo API base URL: %s", api_base_url)
-    logging.info("Zenodo token environment variable: %s", token_env_var)
-    logging.info("Publish after upload: %s", publish)
-    logging.info("Files that will be uploaded (fetched from a live HuggingFace Hub download): %d", len(files_to_upload))
-
-    if dry_run:
-        logging.info("Dry run enabled. HuggingFace Hub will not be downloaded; no Zenodo deposition will be created.")
-        return
-
-    downloaded_report = ensure_fresh_hfh_download_report(config)
-
-    logging.info("Validating downloaded files configured for Zenodo upload...")
-    validate_files_to_upload(files_to_upload)
-
-    total_upload_size = sum(path.stat().st_size for path in files_to_upload)
-    logging.info("Total Zenodo evidence upload size: %s", format_size(total_upload_size))
-
-    token = get_zenodo_token(config)
-
-    logging.info("Creating Zenodo deposition...")
-    deposition = create_deposition(api_base_url, token)
-    deposition_id = deposition.get("id")
-    if deposition_id is None:
-        fail("Zenodo deposition response does not contain an id.")
-    logging.info("Created deposition id: %s", deposition_id)
-
-    metadata = build_zenodo_metadata(config)
-
-    logging.info("Updating deposition metadata and reserving DOI...")
-    deposition = update_deposition_metadata(api_base_url, token, int(deposition_id), metadata)
-
-    doi = extract_reserved_doi(deposition)
-    logging.info("Reserved DOI: %s", doi or "not returned yet")
-
-    deposition, linked_record, file_verification = upload_evidence_files_to_deposition(
-        config, token, deposition, files_to_upload, downloaded_report,
-    )
-    deposition_response_path = get_deposition_response_path(config)
-    linked_record_path = get_linked_record_path(config)
-    file_verification_report_path = get_output_filename(
-        config, "file_verification_report_filename", "zenodo_file_verification_report.json",
-    )
-
-    if file_verification["status"] != "passed":
-        for error in file_verification["errors"]:
-            logging.error(error)
-        fail("Zenodo file verification failed.")
+    linked_record = create_linked_dataset_record(config, deposition, staged_files, downloaded_report)
+    write_json(linked_record_path, linked_record)
 
     # Only the links configured in the YAML are checked before publication —
     # the DOI/public record URL may legitimately still 404 while it's a draft.
@@ -963,16 +1101,16 @@ def run_zenodo_linked_dataset_creation(
         logging.info("Publishing Zenodo deposition...")
         publish_response = publish_deposition(api_base_url, token, int(deposition_id))
 
-        publish_response_path = get_output_filename(config, "publish_response_filename", "zenodo_publish_response.json")
+        publish_response_path = get_publish_response_path(config)
         write_json(publish_response_path, publish_response)
         logging.info("Published Zenodo record.")
         logging.info("Publish response written: %s", publish_response_path)
 
         logging.info("Refreshing deposition information after publication...")
         deposition = get_deposition(api_base_url, token, int(deposition_id))
-        write_json(deposition_response_path, deposition)
+        write_json(get_deposition_response_path(config), deposition)
 
-        linked_record = create_linked_dataset_record(config, deposition, files_to_upload, downloaded_report)
+        linked_record = create_linked_dataset_record(config, deposition, staged_files, downloaded_report)
         write_json(linked_record_path, linked_record)
 
         logging.info("Verifying DOI URL and public Zenodo record URL after publication...")
@@ -985,42 +1123,27 @@ def run_zenodo_linked_dataset_creation(
             fail("Zenodo post-publication link verification failed.")
     else:
         logging.info("zenodo.publish is false. Deposition remains as draft.")
-        linked_record = create_linked_dataset_record(config, deposition, files_to_upload, downloaded_report)
-        write_json(linked_record_path, linked_record)
 
-    logging.info("Zenodo linked dataset workflow completed successfully.")
+    logging.info("Zenodo upload completed successfully.")
     logging.info("Deposition id: %s", deposition_id)
     logging.info("Reserved DOI: %s", linked_record.get("reserved_doi"))
     logging.info("DOI URL: %s", linked_record.get("doi_url"))
     logging.info("Record URL: %s", linked_record.get("record_url"))
-    logging.info("File verification report: %s", file_verification_report_path)
+    logging.info("File verification status: %s", file_verification.get("status"))
     logging.info("Link verification report: %s", link_verification_report_path)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# Actualizar la metadata local con el DOI de Zenodo ("zenodo upload")
+# Reflejar el DOI de Zenodo en HuggingFace Hub ("zenodo sync-doi")
 # ═══════════════════════════════════════════════════════════════════════════
 #
-# No sube nada a Zenodo — inserta el DOI ya reservado por 'zenodo prepare' en
-# los ficheros locales (HuggingFaceHub.yaml, dataset_info.json, CITATION.cff,
-# README.md) y regenera checksums-sha256.txt, ya que esos ficheros cambiaron.
-# El siguiente paso recomendado es volver a subir con 'huggingface upload'.
-
-def backup_file(path: Path) -> Optional[Path]:
-    if not path.exists():
-        return None
-    backup_path = path.with_suffix(path.suffix + ".bak")
-    shutil.copy2(path, backup_path)
-    return backup_path
-
-
-def path_as_posix(path: Path) -> str:
-    return path.as_posix()
-
-
-def get_metadata_update_report_path(config: Dict[str, Any]) -> Path:
-    return get_output_filename(config, "metadata_update_report_filename", "metadata_update_report.json")
-
+# No sube nada a Zenodo ni la descarga — copia la copia de CITATION.cff que
+# 'zenodo prepare' ya dejó localmente (con el DOI inyectado) sobre el export
+# local de HuggingFace Hub, actualiza la sección "## Zenodo DOI" de su
+# README.md (leyendo el DOI de zenodo_linked_dataset_record.json), y
+# regenera su checksums-sha256.txt porque esos ficheros cambiaron. Subir
+# esos ficheros de vuelta a HuggingFace Hub es un paso aparte (el comando
+# CLI 'sync-doi' lo hace automáticamente justo después, limitado a ellos).
 
 def get_checksums_filename(config: Dict[str, Any]) -> str:
     return str(get_nested(config, ["checksums", "checksum_filename"], "checksums-sha256.txt"))
@@ -1062,75 +1185,6 @@ def is_sandbox_zenodo(zenodo_info: Dict[str, Any]) -> bool:
     return zenodo_info["environment"] == "sandbox"
 
 
-def update_huggingfacehub_yaml(config_path: Path, config: Dict[str, Any], zenodo_info: Dict[str, Any]) -> None:
-    zenodo = ensure_dict(config, "zenodo")
-    zenodo["last_metadata_update_utc"] = utc_now_iso()
-    zenodo["last_linked_record_type"] = zenodo_info["record_type"]
-    zenodo["last_deposition_id"] = zenodo_info["deposition_id"]
-    zenodo["last_record_id"] = zenodo_info["record_id"]
-
-    if is_sandbox_zenodo(zenodo_info):
-        zenodo["sandbox_doi"] = zenodo_info["doi"]
-        zenodo["sandbox_doi_url"] = zenodo_info["doi_url"]
-        zenodo["sandbox_record_url"] = zenodo_info["record_url"]
-        zenodo["sandbox_note"] = "Sandbox DOI for workflow testing only. Not intended for formal citation."
-    else:
-        zenodo["doi"] = zenodo_info["doi"]
-        zenodo["doi_url"] = zenodo_info["doi_url"]
-        zenodo["record_url"] = zenodo_info["record_url"]
-        zenodo["doi_note"] = "Production Zenodo DOI for this linked dataset record."
-
-    write_yaml(config_path, config)
-
-
-def update_internal_config_yaml(internal_config_path: Path, config: Dict[str, Any]) -> None:
-    write_yaml(internal_config_path, config)
-
-
-def update_downloaded_verification_report(report_path: Path, zenodo_info: Dict[str, Any]) -> None:
-    report = read_json(report_path)
-    report["zenodo"] = {
-        "environment": zenodo_info["environment"],
-        "deposition_id": zenodo_info["deposition_id"],
-        "record_id": zenodo_info["record_id"],
-        "doi": zenodo_info["doi"],
-        "doi_url": zenodo_info["doi_url"],
-        "record_url": zenodo_info["record_url"],
-        "record_type": zenodo_info["record_type"],
-        "record_scope": zenodo_info["record_scope"],
-        "is_sandbox": is_sandbox_zenodo(zenodo_info),
-        "note": (
-            "Sandbox DOI for workflow testing only. Not intended for formal citation."
-            if is_sandbox_zenodo(zenodo_info)
-            else "Production DOI for formal citation of this linked dataset record."
-        ),
-        "updated_at_utc": utc_now_iso(),
-    }
-    write_json(report_path, report)
-
-
-def update_dataset_info_json(dataset_info_path: Path, zenodo_info: Dict[str, Any]) -> None:
-    data = read_json(dataset_info_path)
-    data["zenodo"] = {
-        "environment": zenodo_info["environment"],
-        "deposition_id": zenodo_info["deposition_id"],
-        "record_id": zenodo_info["record_id"],
-        "doi": zenodo_info["doi"],
-        "doi_url": zenodo_info["doi_url"],
-        "record_url": zenodo_info["record_url"],
-        "record_type": zenodo_info["record_type"],
-        "record_scope": zenodo_info["record_scope"],
-        "is_sandbox": is_sandbox_zenodo(zenodo_info),
-        "note": (
-            "Sandbox DOI for workflow testing only. Not intended for formal citation."
-            if is_sandbox_zenodo(zenodo_info)
-            else "Production DOI for formal citation of this linked dataset record."
-        ),
-        "updated_at_utc": utc_now_iso(),
-    }
-    write_json(dataset_info_path, data)
-
-
 def update_citation_cff(citation_path: Path, zenodo_info: Dict[str, Any]) -> None:
     citation = load_yaml(citation_path)
 
@@ -1157,6 +1211,36 @@ def update_citation_cff(citation_path: Path, zenodo_info: Dict[str, Any]) -> Non
         citation["url"] = zenodo_info["record_url"]
 
     write_yaml(citation_path, citation)
+
+
+def collect_files_for_global_checksums(output_dir: Path, checksum_filename: str) -> List[Path]:
+    files: List[Path] = []
+    for path in sorted(output_dir.rglob("*")):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(output_dir).as_posix()
+        if rel == checksum_filename or rel.endswith(".bak"):
+            continue
+        files.append(path)
+    return files
+
+
+def write_global_checksums(output_dir: Path, config: Dict[str, Any]) -> Path:
+    checksum_filename = get_checksums_filename(config)
+    checksum_path = output_dir / checksum_filename
+    chunk_size_bytes = get_chunk_size_bytes(config)
+    files = collect_files_for_global_checksums(output_dir, checksum_filename)
+
+    with checksum_path.open("w", encoding="utf-8") as f:
+        for file_path in files:
+            rel = file_path.relative_to(output_dir).as_posix()
+            f.write(f"{sha256_file(file_path, chunk_size_bytes)}  {rel}\n")
+
+    return checksum_path
+
+
+def get_zenodo_staged_citation_path(config: Dict[str, Any]) -> Path:
+    return get_zenodo_output_dir(config) / "CITATION.cff"
 
 
 def build_zenodo_readme_section(zenodo_info: Dict[str, Any]) -> str:
@@ -1212,205 +1296,73 @@ def update_readme(readme_path: Path, zenodo_info: Dict[str, Any]) -> None:
     readme_path.write_text(updated, encoding="utf-8")
 
 
-def collect_files_for_global_checksums(output_dir: Path, checksum_filename: str) -> List[Path]:
-    files: List[Path] = []
-    for path in sorted(output_dir.rglob("*")):
-        if not path.is_file():
-            continue
-        rel = path.relative_to(output_dir).as_posix()
-        if rel == checksum_filename or rel.endswith(".bak"):
-            continue
-        files.append(path)
-    return files
-
-
-def write_global_checksums(output_dir: Path, config: Dict[str, Any]) -> Path:
-    checksum_filename = get_checksums_filename(config)
-    checksum_path = output_dir / checksum_filename
-    chunk_size_bytes = get_chunk_size_bytes(config)
-    files = collect_files_for_global_checksums(output_dir, checksum_filename)
-
-    with checksum_path.open("w", encoding="utf-8") as f:
-        for file_path in files:
-            rel = file_path.relative_to(output_dir).as_posix()
-            f.write(f"{sha256_file(file_path, chunk_size_bytes)}  {rel}\n")
-
-    return checksum_path
-
-
-def validate_required_metadata_files(
-    config_path: Path, config: Dict[str, Any], zenodo_record_path: Path, output_dir: Path, downloaded_report_path: Path,
-) -> Dict[str, Path]:
-    if not config_path.is_file():
-        fail(f"Configuration file not found: {config_path}")
-    if not zenodo_record_path.is_file():
-        fail(f"Zenodo linked dataset record not found: {zenodo_record_path}. Run 'zenodo prepare' first.")
-    if not downloaded_report_path.is_file():
-        fail(f"Downloaded verification report not found: {downloaded_report_path}. Run 'zenodo prepare' first.")
-    if not output_dir.is_dir():
-        fail(f"HFH output directory not found: {output_dir}")
-
-    required = {
-        "readme": output_dir / "README.md",
-        "citation": output_dir / "CITATION.cff",
-        "internal_config": output_dir / get_internal_config_filename(config),
-        "dataset_info": output_dir / "dataset_info.json",
-        "checksums": output_dir / get_checksums_filename(config),
-    }
-
-    missing = [str(path) for path in required.values() if not path.is_file()]
-    if missing:
-        fail("Missing required HFH metadata files:\n" + "\n".join(f"  - {path}" for path in missing))
-
-    return required
-
-
-def create_metadata_update_report(
-    report_path: Path, config_path: Path, zenodo_info: Dict[str, Any],
-    updated_files: List[Path], backup_files: List[Path],
-    checksum_verified_count: int, checksum_errors: List[str],
-) -> Dict[str, Any]:
-    report = {
-        "generated_at_utc": utc_now_iso(),
-        "status": "passed" if not checksum_errors else "failed",
-        "zenodo": {
-            "environment": zenodo_info["environment"],
-            "deposition_id": zenodo_info["deposition_id"],
-            "record_id": zenodo_info["record_id"],
-            "doi": zenodo_info["doi"],
-            "doi_url": zenodo_info["doi_url"],
-            "record_url": zenodo_info["record_url"],
-            "record_type": zenodo_info["record_type"],
-            "is_sandbox": is_sandbox_zenodo(zenodo_info),
-            "note": (
-                "Sandbox DOI for workflow testing only. Not intended for formal citation."
-                if is_sandbox_zenodo(zenodo_info)
-                else "Production DOI for formal citation of this linked dataset record."
-            ),
-        },
-        "updated_files": [path_as_posix(path) for path in updated_files],
-        "backup_files": [path_as_posix(path) for path in backup_files],
-        "checksum_files_verified": checksum_verified_count,
-        "checksum_errors": checksum_errors,
-        "next_recommended_steps": [
-            "donadataset publish huggingface upload",
-            "donadataset publish huggingface download",
-        ],
-    }
-    write_json(report_path, report)
-    return report
-
-
-def run_update_local_metadata_with_doi(
-    config_path: Path, dry_run: bool = False, no_backup: bool = False,
-    template_context: Optional[Dict[str, Any]] = None,
+def run_zenodo_sync_doi(
+    config_path: Path, dry_run: bool = False, template_context: Optional[Dict[str, Any]] = None,
 ) -> None:
+    if not config_path.exists():
+        fail(f"Configuration file not found: {config_path}")
+
     logging.info("Reading configuration: %s", config_path)
     config = load_config_source(config_path, **(template_context or {}))
 
-    output_dir = get_output_dir(config)
-    zenodo_record_path = get_linked_record_path(config)
-    downloaded_report_path = get_zenodo_downloaded_report_path(config)
-    report_path = get_metadata_update_report_path(config)
+    if not as_bool(get_nested(config, ["zenodo", "enabled"], False), False):
+        fail("zenodo.enabled is false. Set zenodo.enabled: true to use this command.")
 
-    required_paths = validate_required_metadata_files(
-        config_path, config, zenodo_record_path, output_dir, downloaded_report_path,
-    )
+    staged_citation_path = get_zenodo_staged_citation_path(config)
+    if not staged_citation_path.is_file():
+        fail(f"Staged CITATION.cff not found: {staged_citation_path}. Run 'zenodo prepare' first.")
 
-    logging.info("Reading Zenodo linked dataset record: %s", zenodo_record_path)
-    zenodo_record = read_json(zenodo_record_path)
-    zenodo_info = validate_and_extract_zenodo_info(zenodo_record)
+    linked_record_path = get_linked_record_path(config)
+    if not linked_record_path.is_file():
+        fail(f"Zenodo linked dataset record not found: {linked_record_path}. Run 'zenodo prepare' first.")
+    zenodo_info = validate_and_extract_zenodo_info(read_json(linked_record_path))
 
-    logging.info("Zenodo environment: %s", zenodo_info["environment"])
-    logging.info("Zenodo DOI: %s", zenodo_info["doi"])
-    logging.info("Zenodo DOI URL: %s", zenodo_info["doi_url"])
-    logging.info("Zenodo record URL: %s", zenodo_info["record_url"])
+    hfh_output_dir = get_output_dir(config)
+    if not hfh_output_dir.is_dir():
+        fail(f"HuggingFace Hub export folder not found: {hfh_output_dir}")
 
-    if is_sandbox_zenodo(zenodo_info):
-        logging.warning("This is a Sandbox DOI. It will be marked as testing-only.")
+    hfh_citation_path = hfh_output_dir / "CITATION.cff"
+    if not hfh_citation_path.is_file():
+        fail(f"HuggingFace Hub CITATION.cff not found: {hfh_citation_path}")
 
-    files_to_update = [
-        config_path, downloaded_report_path, required_paths["internal_config"],
-        required_paths["dataset_info"], required_paths["citation"], required_paths["readme"],
-        required_paths["checksums"],
-    ]
+    hfh_readme_path = hfh_output_dir / "README.md"
+    if not hfh_readme_path.is_file():
+        fail(f"HuggingFace Hub README.md not found: {hfh_readme_path}")
+
+    checksums_filename = get_checksums_filename(config)
+    logging.info("Staged (DOI-patched) CITATION.cff: %s", staged_citation_path)
+    logging.info("HuggingFace Hub CITATION.cff to overwrite: %s", hfh_citation_path)
+    logging.info("HuggingFace Hub README.md to update: %s", hfh_readme_path)
 
     if dry_run:
-        logging.info("Dry run enabled. No files will be modified.")
-        logging.info("Files that would be updated:")
-        for path in files_to_update:
-            logging.info("  - %s", path)
+        logging.info(
+            "Dry run enabled. Would copy the staged CITATION.cff over HuggingFace Hub's copy, "
+            "update the Zenodo DOI section in README.md, and regenerate %s.",
+            hfh_output_dir / checksums_filename,
+        )
         return
 
-    backup_files: List[Path] = []
-    if not no_backup:
-        logging.info("Creating backups...")
-        for path in files_to_update:
-            backup = backup_file(path)
-            if backup is not None:
-                backup_files.append(backup)
+    logging.info("Copying DOI-patched CITATION.cff into the HuggingFace Hub export...")
+    shutil.copy2(staged_citation_path, hfh_citation_path)
 
-    updated_files: List[Path] = []
+    logging.info("Updating the Zenodo DOI section in README.md...")
+    update_readme(hfh_readme_path, zenodo_info)
 
-    if config_path.suffix.lower() == ".j2":
-        # Never overwrite a Jinja template with resolved YAML — write the
-        # DOI-updated config to a plain sibling copy instead.
-        external_config_path = get_zenodo_output_dir(config) / "Zenodo_resolved.yaml"
-        ensure_dir(external_config_path.parent)
-        logging.info(
-            "Config is a Jinja template (%s); writing updated metadata to %s instead.",
-            config_path, external_config_path,
-        )
-    else:
-        external_config_path = config_path
-
-    logging.info("Updating external configuration file: %s", external_config_path)
-    update_huggingfacehub_yaml(external_config_path, config, zenodo_info)
-    updated_files.append(external_config_path)
-
-    logging.info("Updating internal HFH configuration file: %s", required_paths["internal_config"])
-    update_internal_config_yaml(required_paths["internal_config"], config)
-    updated_files.append(required_paths["internal_config"])
-
-    logging.info("Updating verification_report_downloaded.json...")
-    update_downloaded_verification_report(downloaded_report_path, zenodo_info)
-    updated_files.append(downloaded_report_path)
-
-    logging.info("Updating %s...", required_paths["dataset_info"])
-    update_dataset_info_json(required_paths["dataset_info"], zenodo_info)
-    updated_files.append(required_paths["dataset_info"])
-
-    logging.info("Updating %s...", required_paths["citation"])
-    update_citation_cff(required_paths["citation"], zenodo_info)
-    updated_files.append(required_paths["citation"])
-
-    logging.info("Updating %s...", required_paths["readme"])
-    update_readme(required_paths["readme"], zenodo_info)
-    updated_files.append(required_paths["readme"])
-
-    logging.info("Regenerating %s...", output_dir / get_checksums_filename(config))
-    checksum_path = write_global_checksums(output_dir, config)
-    updated_files.append(checksum_path)
+    logging.info("Regenerating HuggingFace Hub %s...", checksums_filename)
+    checksum_path = write_global_checksums(hfh_output_dir, config)
 
     logging.info("Verifying regenerated checksums...")
-    checksum_verified_count, checksum_errors = verify_global_checksums(output_dir, config)
-
-    logging.info("Writing metadata update report...")
-    report = create_metadata_update_report(
-        report_path, config_path, zenodo_info, updated_files, backup_files,
-        checksum_verified_count, checksum_errors,
-    )
-
-    if report["status"] != "passed":
+    checksum_verified_count, checksum_errors = verify_global_checksums(hfh_output_dir, config)
+    if checksum_errors:
         for error in checksum_errors:
             logging.error(error)
-        fail("Metadata update completed, but checksum verification failed.")
+        fail("CITATION.cff and README.md were updated, but checksum verification failed.")
 
-    logging.info("Metadata update completed successfully.")
-    logging.info("Report: %s", report_path)
-    logging.info("Next recommended steps:")
-    logging.info("  donadataset publish huggingface upload")
-    logging.info("  donadataset publish huggingface download")
+    logging.info("DOI sync to the HuggingFace Hub export completed successfully.")
+    logging.info("Updated: %s", hfh_citation_path)
+    logging.info("Updated: %s", hfh_readme_path)
+    logging.info("Updated: %s", checksum_path)
+    logging.info("Checksums verified: %d", checksum_verified_count)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1743,40 +1695,6 @@ def verify_sha256_checksums(download_dir: Path) -> None:
         fail(f"SHA256 verification failed:\n{message}")
 
     logging.info("SHA256 verification passed for %d files.", len(expected))
-
-
-def find_tar_files(download_dir: Path) -> List[Path]:
-    tar_files = sorted(p for p in download_dir.rglob("*.tar") if ".git" not in p.parts)
-    if not tar_files:
-        fail(f"No .tar files were found in: {download_dir}")
-
-    logging.info("Found %d .tar files.", len(tar_files))
-    for tar_path in tar_files:
-        logging.info("  - %s", tar_path.relative_to(download_dir))
-
-    return tar_files
-
-
-def is_safe_tar_member(destination: Path, member_name: str) -> bool:
-    """Prevent path traversal attacks when extracting tar files."""
-    destination = destination.resolve()
-    target = (destination / member_name).resolve()
-    try:
-        target.relative_to(destination)
-        return True
-    except ValueError:
-        return False
-
-
-def safe_extract_tar(tar_path: Path, destination: Path) -> int:
-    logging.info("Extracting: %s", tar_path.name)
-    with tarfile.open(tar_path, "r") as tar:
-        members = tar.getmembers()
-        for member in members:
-            if not is_safe_tar_member(destination, member.name):
-                fail(f"Unsafe path inside {tar_path.name}: {member.name}")
-        tar.extractall(destination)
-    return len(members)
 
 
 def prepare_deploy_dir(config: "DeployConfig") -> None:
@@ -2210,10 +2128,15 @@ def check_local_json_status(path: Path) -> Dict[str, Any]:
 
 
 def verify_local_reports(config: Dict[str, Any]) -> Dict[str, Any]:
+    # hfh_publication_report.json is written by 'huggingface release' inside
+    # the HFH export dir, not Zenodo's own output dir — get_hfh_export_dir()
+    # only resolves correctly if --hfh-output-dir was actually passed in
+    # (check-readiness/pipeline/wizard all do; a bare REPLACE_WITH_... here
+    # means the caller never configured --hfh-output-dir at all).
     reports = [
         get_zenodo_downloaded_report_path(config),
         get_output_filename(config, "file_verification_report_filename", "zenodo_file_verification_report.json"),
-        get_public_visibility_report_path(config),
+        get_hfh_export_dir(config) / get_public_visibility_report_path(config),
     ]
     checked = [check_local_json_status(path) for path in reports]
 

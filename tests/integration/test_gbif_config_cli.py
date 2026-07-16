@@ -26,13 +26,13 @@ def test_show_prints_gbif_section():
     result = runner.invoke(app, ["publish", "gbif", "config", "show"])
     assert result.exit_code == 0
     assert "GBIF" in result.output
-    assert "rights_holder" in result.output
+    assert "institution_code" in result.output
 
 
 def test_get_returns_scalar_value():
-    result = runner.invoke(app, ["publish", "gbif", "config", "get", "license_id"])
+    result = runner.invoke(app, ["publish", "gbif", "config", "get", "institution_code"])
     assert result.exit_code == 0
-    assert result.output.strip() == "CC-BY-4.0"
+    assert result.output.strip() == "UHU"
 
 
 def test_get_unknown_field_errors():
@@ -49,8 +49,8 @@ def test_set_scalar_value_persists():
     assert get_result.output.strip() == "you@example.org"
 
     # unrelated existing fields are untouched
-    still_there = runner.invoke(app, ["publish", "gbif", "config", "get", "license_id"])
-    assert still_there.output.strip() == "CC-BY-4.0"
+    still_there = runner.invoke(app, ["publish", "gbif", "config", "get", "institution_code"])
+    assert still_there.output.strip() == "UHU"
 
 
 def test_set_missing_equals_sign_errors():
@@ -65,8 +65,8 @@ def test_set_unknown_field_errors():
     assert "Parámetro desconocido" in result.output
 
 
-# GBIFSettings has 16 fields, in model declaration order.
-FIELD_COUNT = 16
+# GBIFSettings has 8 fields, in model declaration order.
+FIELD_COUNT = 8
 
 
 def test_wizard_keeps_defaults_when_all_answers_blank():
@@ -76,7 +76,7 @@ def test_wizard_keeps_defaults_when_all_answers_blank():
     assert "No se ha cambiado ningún valor" in result.output
 
 
-CONTACT_EMAIL_INDEX = 12  # 0-based position of contact_email within GBIFSettings (13th field)
+CONTACT_EMAIL_INDEX = 5  # 0-based position of contact_email within GBIFSettings (6th field)
 
 
 def test_wizard_saves_a_changed_value():

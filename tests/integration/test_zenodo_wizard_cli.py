@@ -1,15 +1,15 @@
 """Integration tests for 'publish zenodo wizard'.
 
-Every network-touching service call (run_zenodo_linked_dataset_creation,
-run_zenodo_existing_draft_sync, run_update_local_metadata_with_doi,
-run_check_release_readiness, run_release, and the HuggingFace re-upload) is
-monkeypatched, so nothing here reaches the real Zenodo or HuggingFace Hub
-APIs. These tests cover the wizard's own orchestration logic: the
-ZENODO_TOKEN precondition, prompting for and persisting a missing repo_id,
-detecting/offering to sync an existing linked draft, the "publish now?"
-confirmation gate before the irreversible release step, and re-using
-donadataset.commands.huggingface._run_wizard_step's retry/skip/abort loop
-(already covered in isolation by test_huggingface_wizard_cli.py).
+Every network-touching service call (run_zenodo_prepare, run_zenodo_upload,
+run_zenodo_sync_doi, run_check_release_readiness, run_release, and the
+HuggingFace re-upload) is monkeypatched, so nothing here reaches the real
+Zenodo or HuggingFace Hub APIs. These tests cover the wizard's own
+orchestration logic: the ZENODO_TOKEN precondition, prompting for and
+persisting a missing repo_id, detecting/offering to sync an existing linked
+draft, the "publish now?" confirmation gate before the irreversible release
+step, and re-using donadataset.commands.huggingface._run_wizard_step's
+retry/skip/abort loop (already covered in isolation by
+test_huggingface_wizard_cli.py).
 """
 import json
 from pathlib import Path
@@ -47,11 +47,18 @@ def _restore_config_file():
 
 def _patch_happy_path(monkeypatch):
     """Stubs every service call the wizard's phases 1-4 make, all succeeding
-    trivially. Each stub also writes/updates the linked-record JSON the
-    wizard re-reads after phase 1, mirroring what the real 'prepare' does."""
-    calls = {"prepare_new": 0, "prepare_sync": 0, "upload": 0, "hf_upload": 0, "readiness": 0, "release": 0}
+    trivially. The 'prepare' stub also writes/updates the linked-record JSON
+    the wizard re-reads after phase 1, mirroring what the real 'prepare'
+    does."""
+    calls = {
+        "prepare_new": 0, "prepare_sync": 0, "upload": 0, "sync_doi": 0,
+        "hf_upload": 0, "readiness": 0, "release": 0,
+    }
 
-    def _fake_create(config_path, dry_run=False, template_context=None):
+    def _fake_prepare(config_path, dry_run=False, template_context=None, verify_data=False, sync_existing_draft=False):
+        if sync_existing_draft:
+            calls["prepare_sync"] += 1
+            return
         calls["prepare_new"] += 1
         config = zenodo_service.load_config_source(config_path, **(template_context or {}))
         record_path = zenodo_service.get_linked_record_path(config)
@@ -60,13 +67,13 @@ def _patch_happy_path(monkeypatch):
             json.dumps({"deposition_id": 42, "reserved_doi": "10.5281/zenodo.42"}), encoding="utf-8",
         )
 
-    def _fake_sync(config_path, dry_run=False, template_context=None):
-        calls["prepare_sync"] += 1
-
-    def _fake_upload(config_path, dry_run=False, no_backup=False, template_context=None):
+    def _fake_upload(config_path, dry_run=False, template_context=None):
         calls["upload"] += 1
 
-    def _fake_hf_upload(config_path, dry_run=False):
+    def _fake_sync_doi(config_path, dry_run=False, template_context=None):
+        calls["sync_doi"] += 1
+
+    def _fake_hf_upload(config_path, dry_run=False, allow_patterns=None):
         calls["hf_upload"] += 1
 
     def _fake_readiness(config_path, template_context=None):
@@ -81,9 +88,9 @@ def _patch_happy_path(monkeypatch):
             json.dumps({"status": "passed", "record_url": "https://zenodo.org/records/42"}), encoding="utf-8",
         )
 
-    monkeypatch.setattr(zenodo_service, "run_zenodo_linked_dataset_creation", _fake_create)
-    monkeypatch.setattr(zenodo_service, "run_zenodo_existing_draft_sync", _fake_sync)
-    monkeypatch.setattr(zenodo_service, "run_update_local_metadata_with_doi", _fake_upload)
+    monkeypatch.setattr(zenodo_service, "run_zenodo_prepare", _fake_prepare)
+    monkeypatch.setattr(zenodo_service, "run_zenodo_upload", _fake_upload)
+    monkeypatch.setattr(zenodo_service, "run_zenodo_sync_doi", _fake_sync_doi)
     monkeypatch.setattr(zenodo_service, "run_check_release_readiness", _fake_readiness)
     monkeypatch.setattr(zenodo_service, "run_release", _fake_release)
     monkeypatch.setattr(hf_service, "run_upload", _fake_hf_upload)
@@ -134,6 +141,7 @@ def test_wizard_declining_to_publish_stops_before_release(tmp_path: Path, monkey
     assert result.exit_code == 0, result.output
     assert calls["prepare_new"] == 1
     assert calls["upload"] == 1
+    assert calls["sync_doi"] == 1
     assert calls["hf_upload"] == 1
     assert calls["readiness"] == 1
     assert calls["release"] == 0
@@ -152,6 +160,7 @@ def test_wizard_full_happy_path(tmp_path: Path, monkeypatch):
     assert result.exit_code == 0, result.output
     assert calls["prepare_new"] == 1
     assert calls["upload"] == 1
+    assert calls["sync_doi"] == 1
     assert calls["hf_upload"] == 1
     assert calls["readiness"] == 1
     assert calls["release"] == 1

@@ -12,7 +12,7 @@ import typer
 from rich.console import Console
 
 from donadataset.commands import b2share_config_commands
-from donadataset.config import REPO_ROOT, B2ShareSettings, get_app_documents_dir, settings
+from donadataset.config import REPO_ROOT, B2ShareSettings, get_b2share_output_dir, get_hfh_output_dir, settings
 from donadataset.services import b2share as b2share_service
 
 console = Console()
@@ -33,11 +33,11 @@ DEFAULT_TEMPLATE_FILE = REPO_ROOT / "templates" / "B2SHARE.yaml.j2"
 
 HF_DEFAULTS = settings.HUGGINGFACE
 B2SHARE_DEFAULTS = settings.B2SHARE
-DEFAULT_HFH_OUTPUT_DIR = get_app_documents_dir() / "HFH"
+DEFAULT_HFH_OUTPUT_DIR = get_hfh_output_dir(HF_DEFAULTS.repo_id)
 
-# Directorio PROPIO de B2SHARE (SALIDA): mismo patrón que Zenodo — hermano
-# del de HuggingFace, con nombre propio.
-DEFAULT_B2SHARE_OUTPUT_DIR = get_app_documents_dir() / f"B2SHARE_{HF_DEFAULTS.dataset_slug}"
+# Directorio PROPIO de B2SHARE (SALIDA): misma estructura que el de
+# HuggingFace/Zenodo arriba: <Documents>/donadataset/B2SHARE/<repo_id>.
+DEFAULT_B2SHARE_OUTPUT_DIR = get_b2share_output_dir(HF_DEFAULTS.repo_id)
 
 
 def _b2share_help(field: str) -> str:

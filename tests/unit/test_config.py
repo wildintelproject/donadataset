@@ -8,6 +8,11 @@ from donadataset.config import (
     GenerateSettings,
     GenerateToySettings,
     Settings,
+    get_app_documents_dir,
+    get_b2share_output_dir,
+    get_gbif_output_dir,
+    get_hfh_output_dir,
+    get_zenodo_output_dir,
     load_settings,
 )
 
@@ -75,3 +80,51 @@ def test_load_settings_rejects_invalid_toml_value(tmp_path: Path):
 
     with pytest.raises(ValidationError):
         load_settings(config_file)
+
+
+# ── get_hfh_output_dir ───────────────────────────────────────────────────────
+
+def test_get_hfh_output_dir_nests_under_repo_id_when_configured():
+    result = get_hfh_output_dir("wildintelproject/donadataset")
+    assert result == get_app_documents_dir() / "HFH" / "wildintelproject/donadataset"
+
+
+def test_get_hfh_output_dir_falls_back_to_flat_hfh_when_repo_id_unset():
+    assert get_hfh_output_dir(None) == get_app_documents_dir() / "HFH"
+    assert get_hfh_output_dir("") == get_app_documents_dir() / "HFH"
+
+
+# ── get_zenodo_output_dir ────────────────────────────────────────────────────
+
+def test_get_zenodo_output_dir_nests_under_repo_id_when_configured():
+    result = get_zenodo_output_dir("wildintelproject/donadataset")
+    assert result == get_app_documents_dir() / "Zenodo" / "wildintelproject/donadataset"
+
+
+def test_get_zenodo_output_dir_falls_back_to_flat_zenodo_when_repo_id_unset():
+    assert get_zenodo_output_dir(None) == get_app_documents_dir() / "Zenodo"
+    assert get_zenodo_output_dir("") == get_app_documents_dir() / "Zenodo"
+
+
+# ── get_b2share_output_dir ───────────────────────────────────────────────────
+
+def test_get_b2share_output_dir_nests_under_repo_id_when_configured():
+    result = get_b2share_output_dir("wildintelproject/donadataset")
+    assert result == get_app_documents_dir() / "B2SHARE" / "wildintelproject/donadataset"
+
+
+def test_get_b2share_output_dir_falls_back_to_flat_b2share_when_repo_id_unset():
+    assert get_b2share_output_dir(None) == get_app_documents_dir() / "B2SHARE"
+    assert get_b2share_output_dir("") == get_app_documents_dir() / "B2SHARE"
+
+
+# ── get_gbif_output_dir ──────────────────────────────────────────────────────
+
+def test_get_gbif_output_dir_nests_under_repo_id_when_configured():
+    result = get_gbif_output_dir("wildintelproject/donadataset")
+    assert result == get_app_documents_dir() / "GBIF" / "wildintelproject/donadataset"
+
+
+def test_get_gbif_output_dir_falls_back_to_flat_gbif_when_repo_id_unset():
+    assert get_gbif_output_dir(None) == get_app_documents_dir() / "GBIF"
+    assert get_gbif_output_dir("") == get_app_documents_dir() / "GBIF"

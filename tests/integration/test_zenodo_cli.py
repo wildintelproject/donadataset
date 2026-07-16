@@ -22,6 +22,7 @@ import pytest
 import yaml
 from typer.testing import CliRunner
 
+from donadataset.commands import zenodo as zenodo_cmd
 from donadataset.main import app
 from donadataset.services import zenodo as zenodo_service
 
@@ -74,7 +75,7 @@ def test_prepare_requires_zenodo_enabled(tmp_path: Path):
     config_path.write_text(yaml.safe_dump({"zenodo": {"enabled": False}}))
 
     with pytest.raises(RuntimeError, match="zenodo.enabled"):
-        zenodo_service.run_zenodo_linked_dataset_creation(config_path, dry_run=True)
+        zenodo_service.run_zenodo_prepare(config_path, dry_run=True)
 
 
 def test_prepare_dry_run_succeeds_with_valid_evidence(tmp_path: Path, example_source_dataset: Path):
@@ -118,6 +119,39 @@ def test_prepare_dry_run_does_not_require_a_pre_existing_downloaded_report(
 
     assert result.exit_code == 0, result.output
     assert "will not be downloaded" in result.output.lower()
+
+
+def test_prepare_defaults_to_not_verifying_data_shards(tmp_path: Path, monkeypatch):
+    """'zenodo prepare' never uploads the data/<split>/*.tar shards to
+    Zenodo — only the small evidence files — so by default it shouldn't
+    even download/verify them either (see verify_data on
+    ensure_fresh_hfh_download_report). --verify-data opts back into the
+    old, slower full download+verify behaviour."""
+    captured = {}
+
+    def _fake_ensure_fresh_hfh_download_report(config, verify_data=False):
+        captured["verify_data"] = verify_data
+        raise RuntimeError("stop before any real network call")
+
+    monkeypatch.setattr(
+        zenodo_service, "ensure_fresh_hfh_download_report", _fake_ensure_fresh_hfh_download_report,
+    )
+    monkeypatch.setenv("ZENODO_TOKEN", "zenodo_dummy")
+
+    result = runner.invoke(app, [
+        "publish", "zenodo", "prepare",
+        "--repo-id", "myuser/donadataset-test", "--output-dir", str(tmp_path / "Zenodo"),
+    ])
+    assert result.exit_code == 1
+    assert captured["verify_data"] is False
+
+    result = runner.invoke(app, [
+        "publish", "zenodo", "prepare",
+        "--repo-id", "myuser/donadataset-test", "--output-dir", str(tmp_path / "Zenodo"),
+        "--verify-data",
+    ])
+    assert result.exit_code == 1
+    assert captured["verify_data"] is True
 
 
 # ── templates/Zenodo.yaml.j2 (Jinja2 template rendered by 'zenodo prepare') ──
@@ -167,10 +201,67 @@ def test_prepare_sync_existing_draft_requires_linked_record(tmp_path: Path, exam
     assert "linked dataset record not found" in result.output.lower()
 
 
-# ── upload (metadata update) ──────────────────────────────────────────────────
+# ── prepare --communities ────────────────────────────────────────────────────
+
+def test_prepare_communities_defaults_to_all_configured(monkeypatch, tmp_path: Path):
+    monkeypatch.setattr(zenodo_cmd.ZENODO_DEFAULTS, "communities", "camera-traps,biodiversity")
+    monkeypatch.setenv("ZENODO_TOKEN", "zenodo_dummy")
+    captured = {}
+
+    def _fake_ensure_fresh_hfh_download_report(config, verify_data=False):
+        captured["config"] = config
+        raise RuntimeError("stop before any real network call")
+
+    monkeypatch.setattr(zenodo_service, "ensure_fresh_hfh_download_report", _fake_ensure_fresh_hfh_download_report)
+
+    result = runner.invoke(app, [
+        "publish", "zenodo", "prepare",
+        "--repo-id", "myuser/donadataset-test", "--output-dir", str(tmp_path / "Zenodo"),
+    ])
+
+    assert result.exit_code == 1
+    assert captured["config"]["zenodo"]["communities"] == ["camera-traps", "biodiversity"]
+
+
+def test_prepare_communities_flag_narrows_to_subset(monkeypatch, tmp_path: Path):
+    monkeypatch.setattr(zenodo_cmd.ZENODO_DEFAULTS, "communities", "camera-traps,biodiversity")
+    monkeypatch.setenv("ZENODO_TOKEN", "zenodo_dummy")
+    captured = {}
+
+    def _fake_ensure_fresh_hfh_download_report(config, verify_data=False):
+        captured["config"] = config
+        raise RuntimeError("stop before any real network call")
+
+    monkeypatch.setattr(zenodo_service, "ensure_fresh_hfh_download_report", _fake_ensure_fresh_hfh_download_report)
+
+    result = runner.invoke(app, [
+        "publish", "zenodo", "prepare",
+        "--repo-id", "myuser/donadataset-test", "--output-dir", str(tmp_path / "Zenodo"),
+        "--communities", "camera-traps",
+    ])
+
+    assert result.exit_code == 1
+    assert captured["config"]["zenodo"]["communities"] == ["camera-traps"]
+
+
+def test_prepare_communities_flag_rejects_unconfigured_community(monkeypatch, tmp_path: Path):
+    monkeypatch.setattr(zenodo_cmd.ZENODO_DEFAULTS, "communities", "camera-traps")
+    monkeypatch.setenv("ZENODO_TOKEN", "zenodo_dummy")
+
+    result = runner.invoke(app, [
+        "publish", "zenodo", "prepare",
+        "--repo-id", "myuser/donadataset-test", "--output-dir", str(tmp_path / "Zenodo"),
+        "--communities", "not-configured",
+    ])
+
+    assert result.exit_code != 0
+    assert "no configurada" in result.output.lower()
+
+
+# ── upload (push staged files to Zenodo) ───────────────────────────────────────
 
 def test_upload_dry_run_succeeds_with_valid_linked_record(tmp_path: Path, example_source_dataset: Path):
-    hf_output_dir, zenodo_output_dir = _generate_prepare_and_fake_download(tmp_path, example_source_dataset)
+    _, zenodo_output_dir = _generate_prepare_and_fake_download(tmp_path, example_source_dataset)
 
     linked_record_path = zenodo_output_dir / "zenodo_linked_dataset_record.json"
     linked_record_path.write_text(json.dumps({
@@ -185,22 +276,46 @@ def test_upload_dry_run_succeeds_with_valid_linked_record(tmp_path: Path, exampl
     result = runner.invoke(app, [
         "publish", "zenodo", "upload",
         "--repo-id", "myuser/donadataset-test",
-        "--hfh-output-dir", str(hf_output_dir),
         "--output-dir", str(zenodo_output_dir),
         "--dry-run",
     ])
 
     assert result.exit_code == 0, result.output
     assert "Dry run enabled" in result.output
-    # dry-run must not touch any file
-    assert not (hf_output_dir / "README.md.bak").exists()
 
 
 def test_upload_fails_when_linked_record_missing(tmp_path: Path, example_source_dataset: Path):
-    hf_output_dir, zenodo_output_dir = _generate_prepare_and_fake_download(tmp_path, example_source_dataset)
+    _, zenodo_output_dir = _generate_prepare_and_fake_download(tmp_path, example_source_dataset)
 
     result = runner.invoke(app, [
         "publish", "zenodo", "upload",
+        "--repo-id", "myuser/donadataset-test",
+        "--output-dir", str(zenodo_output_dir),
+        "--dry-run",
+    ])
+
+    assert result.exit_code == 1
+    assert "not found" in result.output.lower()
+
+
+# ── sync-doi ─────────────────────────────────────────────────────────────────
+
+def _write_fake_linked_record(zenodo_output_dir: Path, doi: str = "10.5072/zenodo.99999") -> None:
+    (zenodo_output_dir / "zenodo_linked_dataset_record.json").write_text(json.dumps({
+        "zenodo_environment": "sandbox",
+        "deposition_id": 99999,
+        "record_id": 99999,
+        "reserved_doi": doi,
+        "doi_url": f"https://doi.org/{doi}",
+        "record_url": "https://sandbox.zenodo.org/records/99999",
+    }))
+
+
+def test_sync_doi_fails_when_staged_citation_missing(tmp_path: Path, example_source_dataset: Path):
+    hf_output_dir, zenodo_output_dir = _generate_prepare_and_fake_download(tmp_path, example_source_dataset)
+
+    result = runner.invoke(app, [
+        "publish", "zenodo", "sync-doi",
         "--repo-id", "myuser/donadataset-test",
         "--hfh-output-dir", str(hf_output_dir),
         "--output-dir", str(zenodo_output_dir),
@@ -209,6 +324,61 @@ def test_upload_fails_when_linked_record_missing(tmp_path: Path, example_source_
 
     assert result.exit_code == 1
     assert "not found" in result.output.lower()
+    assert "zenodo prepare" in result.output.lower()
+
+
+def test_sync_doi_dry_run_does_not_modify_hfh_citation(tmp_path: Path, example_source_dataset: Path):
+    hf_output_dir, zenodo_output_dir = _generate_prepare_and_fake_download(tmp_path, example_source_dataset)
+
+    staged_citation = zenodo_output_dir / "CITATION.cff"
+    staged_citation.write_text("cff-version: 1.2.0\ndoi: 10.5072/zenodo.99999\n")
+    _write_fake_linked_record(zenodo_output_dir)
+    hfh_citation_before = (hf_output_dir / "CITATION.cff").read_text()
+    hfh_readme_before = (hf_output_dir / "README.md").read_text()
+
+    result = runner.invoke(app, [
+        "publish", "zenodo", "sync-doi",
+        "--repo-id", "myuser/donadataset-test",
+        "--hfh-output-dir", str(hf_output_dir),
+        "--output-dir", str(zenodo_output_dir),
+        "--dry-run",
+    ])
+
+    assert result.exit_code == 0, result.output
+    assert "Dry run enabled" in result.output
+    assert (hf_output_dir / "CITATION.cff").read_text() == hfh_citation_before
+    assert (hf_output_dir / "README.md").read_text() == hfh_readme_before
+
+
+def test_sync_doi_no_upload_copies_citation_and_regenerates_checksums(tmp_path: Path, example_source_dataset: Path):
+    hf_output_dir, zenodo_output_dir = _generate_prepare_and_fake_download(tmp_path, example_source_dataset)
+
+    staged_citation = zenodo_output_dir / "CITATION.cff"
+    staged_citation.write_text("cff-version: 1.2.0\ndoi: 10.5072/zenodo.99999\nmessage: Cite this dataset\n")
+    _write_fake_linked_record(zenodo_output_dir)
+
+    result = runner.invoke(app, [
+        "publish", "zenodo", "sync-doi",
+        "--repo-id", "myuser/donadataset-test",
+        "--hfh-output-dir", str(hf_output_dir),
+        "--output-dir", str(zenodo_output_dir),
+        "--no-upload",
+    ])
+
+    assert result.exit_code == 0, result.output
+    hfh_citation_text = (hf_output_dir / "CITATION.cff").read_text()
+    assert "10.5072/zenodo.99999" in hfh_citation_text
+
+    hfh_readme_text = (hf_output_dir / "README.md").read_text()
+    assert "## Zenodo Sandbox DOI" in hfh_readme_text
+    assert "10.5072/zenodo.99999" in hfh_readme_text
+
+    checksums_text = (hf_output_dir / "checksums-sha256.txt").read_text()
+    import hashlib
+    expected_citation_hash = hashlib.sha256((hf_output_dir / "CITATION.cff").read_bytes()).hexdigest()
+    expected_readme_hash = hashlib.sha256((hf_output_dir / "README.md").read_bytes()).hexdigest()
+    assert expected_citation_hash in checksums_text
+    assert expected_readme_hash in checksums_text
 
 
 # ── download ──────────────────────────────────────────────────────────────────

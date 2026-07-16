@@ -19,6 +19,7 @@ repository-code: {{ repository_code | tojson }}
 {% endif %}
 {% if repository_artifact %}
 repository-artifact: {{ repository_artifact | tojson }}
+url: {{ repository_artifact | tojson }}
 {% endif %}
 {% if doi %}
 doi: {{ doi | tojson }}
