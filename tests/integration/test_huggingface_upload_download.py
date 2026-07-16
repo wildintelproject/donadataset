@@ -60,6 +60,32 @@ def test_upload_dry_run_succeeds_after_prepare(tmp_path, example_source_dataset,
     assert "Dry run enabled" in result.output
 
 
+def test_upload_threads_allow_patterns_through_to_upload_folder(tmp_path, example_source_dataset, monkeypatch):
+    """'zenodo sync-doi' re-uploads only CITATION.cff + the checksums file to
+    HuggingFace Hub via run_upload(..., allow_patterns=[...]), instead of
+    re-pushing the whole export (shards included) — verify that kwarg
+    actually reaches huggingface_hub.upload_folder()."""
+    monkeypatch.setenv("HF_TOKEN", "hf_fake_token_for_tests")
+    hf_output_dir = _generate_and_prepare(tmp_path, example_source_dataset)
+    config_path = hf_output_dir / hf_service.INTERNAL_CONFIG_FILENAME
+
+    monkeypatch.setattr(hf_service, "authenticate", lambda token: {"name": "tester"})
+    monkeypatch.setattr(hf_service, "HfApi", lambda *a, **k: object())
+    monkeypatch.setattr(hf_service, "create_dataset_repo_if_needed", lambda **kwargs: None)
+
+    captured = {}
+
+    def _fake_upload_folder(**kwargs):
+        captured.update(kwargs)
+        return "https://huggingface.co/datasets/fake/commit/abc123"
+
+    monkeypatch.setattr(hf_service, "upload_folder", _fake_upload_folder)
+
+    hf_service.run_upload(config_path, dry_run=False, allow_patterns=["CITATION.cff", "checksums-sha256.txt"])
+
+    assert captured["allow_patterns"] == ["CITATION.cff", "checksums-sha256.txt"]
+
+
 def test_upload_missing_token_env_var_fails(tmp_path, example_source_dataset, monkeypatch):
     monkeypatch.delenv("HF_TOKEN", raising=False)
     hf_output_dir = _generate_and_prepare(tmp_path, example_source_dataset)

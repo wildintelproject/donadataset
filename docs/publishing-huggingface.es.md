@@ -139,9 +139,14 @@ tarjeta de información lateral, seguido de una descripción legible: formato de
 dataset, particiones, lista de clases, cómo extraer los shards, un ejemplo de
 entrenamiento, la licencia, y un puntero de cita — más, a juego con el propio README de
 GitHub de este proyecto, badges de WildINTEL/licencia, una sección de
-**Contribución**, y una sección de **Financiación** (WildINTEL / Biodiversa+). Generado
-a partir de la plantilla Jinja2 `templates/hfh/README.md.j2` — edita ese fichero
-directamente para cambiar cualquier texto, sin necesidad de tocar Python.
+**Contribución**, y una sección de **Financiación** (WildINTEL / Biodiversa+). También
+documenta el resto de ficheros del export — una sección de **Integrity verification**
+explica `checksums-sha256.txt`/`manifest.csv`/`manifest-files-sha256.csv`/
+`validation_report.json`/`verification_report_local.json`, y una sección de
+**Metadata files** explica `dataset_info.json`/`metadata.csv`/`HuggingFaceHub.yaml` —
+así que nada del repositorio queda sin explicar. Generado a partir de la plantilla
+Jinja2 `templates/hfh/README.md.j2` — edita ese fichero directamente para cambiar
+cualquier texto, sin necesidad de tocar Python.
 
 ### `LICENSE`
 

@@ -130,9 +130,14 @@ The **dataset card** — the page HuggingFace Hub renders at
 sidebar info card, followed by a human-readable description: dataset format, splits,
 class list, how to extract the shards, a training example, the license, and a citation
 pointer — plus, matching this project's own GitHub README, WildINTEL/license badges, a
-**Contributing** section, and a **Funding** section (WildINTEL / Biodiversa+). Generated
-from the Jinja2 template `templates/hfh/README.md.j2` — edit that file directly to
-change any wording, no Python involved.
+**Contributing** section, and a **Funding** section (WildINTEL / Biodiversa+). It also
+documents every other file in the export — an **Integrity verification** section
+explains `checksums-sha256.txt`/`manifest.csv`/`manifest-files-sha256.csv`/
+`validation_report.json`/`verification_report_local.json`, and a **Metadata files**
+section explains `dataset_info.json`/`metadata.csv`/`HuggingFaceHub.yaml` — so nothing
+in the repo is left unexplained. Generated from the Jinja2 template
+`templates/hfh/README.md.j2` — edit that file directly to change any wording, no
+Python involved.
 
 ### `LICENSE`
 
