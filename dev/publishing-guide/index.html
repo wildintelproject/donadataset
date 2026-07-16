@@ -1177,7 +1177,7 @@ their adoption by the international research community:</p>
   dataset. Some repositories host these files directly (✅); others deliberately don't
   and instead link back to where they actually live on HuggingFace Hub (🔗) — e.g.
   Zenodo's <code>related_identifiers</code>, B2SHARE's <code>alternate_identifier</code>, or GBIF's
-  <code>media.filePath</code> when built with <code>--link-media-to-huggingface</code>.</p>
+  <code>media.filePath</code>, which always links back this way.</p>
 </li>
 <li>
 <p><strong>Species catalogue</strong> — the file <code>metadata/classes.yaml</code>, which maps each numeric
@@ -1462,11 +1462,13 @@ trying to pass a path on the <code>publish all</code> command line.</p>
 <p>It runs each integration's <code>pipeline</code> in the order they depend on each other
 (HuggingFace Hub → Zenodo → B2SHARE → GBIF), reusing whatever you've already saved with
 <code>donadataset publish &lt;repo&gt; config set ...</code> — no flags needed if every integration is
-already configured. Zenodo's own <code>pipeline</code> normally pauses to ask you to manually
-re-run <code>huggingface upload</code> after it reserves a DOI (so the public HF repo reflects it);
-<code>publish all</code> closes that gap itself, automatically, with no prompt. The <strong>one</strong> manual
-step left is unavoidable: HuggingFace Hub has no API to generate its own DOI, so its
-pipeline still pauses once for you to click "Generate DOI" on the web UI and press Enter.</p>
+already configured. Zenodo's <code>sync-doi</code> step re-uploads to HuggingFace Hub by itself
+right after reserving the DOI (only <code>CITATION.cff</code>, <code>README.md</code>, and the checksums file
+— never the whole export), so no manual step is needed there; B2SHARE still needs one
+explicit re-upload after it, since B2SHARE's own PID isn't reserved until after
+publication. The <strong>one</strong> manual step left is unavoidable: HuggingFace Hub has no API to
+generate its own DOI, so its pipeline still pauses once for you to click "Generate DOI"
+on the web UI and press Enter.</p>
 <p>Use <code>--include</code>/<code>--exclude</code> (comma-separated: <code>huggingface</code>, <code>zenodo</code>, <code>b2share</code>, <code>gbif</code>)
 to skip repositories — <code>--exclude</code> removes them, <code>--include</code> always wins if a repository
 ends up in both. <code>--dry-run</code> prints the exact commands it would run, in order, without

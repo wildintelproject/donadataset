@@ -1252,8 +1252,8 @@ plataformas de "datos" y de "metadatos" — todo vive en un mismo sitio.</p>
 <p><code>donadataset publish huggingface prepare</code> construye localmente una <strong>carpeta de
 exportación</strong> autocontenida, y <code>donadataset publish huggingface upload</code> sube <em>toda</em> la
 carpeta al repositorio de HuggingFace — no se sube nada de fuera de esa carpeta, y no
-se omite nada dentro de ella (salvo ficheros basura de editor/SO como <code>*.tmp</code>, <code>*.bak</code>,
-<code>__pycache__/</code>).</p>
+se omite nada dentro de ella (salvo ficheros basura de editor/SO y logs solo-locales
+como <code>*.tmp</code>, <code>*.bak</code>, <code>*.log</code>, <code>__pycache__/</code>).</p>
 <p>Esa carpeta contiene dos tipos de contenido:</p>
 <ul>
 <li><strong>Los datos en sí</strong> — cada imagen y su etiqueta YOLO, empaquetadas en shards <code>.tar</code>,
@@ -1330,9 +1330,14 @@ tarjeta de información lateral, seguido de una descripción legible: formato de
 dataset, particiones, lista de clases, cómo extraer los shards, un ejemplo de
 entrenamiento, la licencia, y un puntero de cita — más, a juego con el propio README de
 GitHub de este proyecto, badges de WildINTEL/licencia, una sección de
-<strong>Contribución</strong>, y una sección de <strong>Financiación</strong> (WildINTEL / Biodiversa+). Generado
-a partir de la plantilla Jinja2 <code>templates/hfh/README.md.j2</code> — edita ese fichero
-directamente para cambiar cualquier texto, sin necesidad de tocar Python.</p>
+<strong>Contribución</strong>, y una sección de <strong>Financiación</strong> (WildINTEL / Biodiversa+). También
+documenta el resto de ficheros del export — una sección de <strong>Integrity verification</strong>
+explica <code>checksums-sha256.txt</code>/<code>manifest.csv</code>/<code>manifest-files-sha256.csv</code>/
+<code>validation_report.json</code>/<code>verification_report_local.json</code>, y una sección de
+<strong>Metadata files</strong> explica <code>dataset_info.json</code>/<code>metadata.csv</code>/<code>HuggingFaceHub.yaml</code> —
+así que nada del repositorio queda sin explicar. Generado a partir de la plantilla
+Jinja2 <code>templates/hfh/README.md.j2</code> — edita ese fichero directamente para cambiar
+cualquier texto, sin necesidad de tocar Python.</p>
 <h3 id="license"><code>LICENSE</code></h3>
 <p>La licencia en texto plano (nombre, identificador y URL — CC BY 4.0 por defecto).
 Generado a partir de <code>templates/hfh/LICENSE.j2</code>, igual que <code>README.md</code>.</p>

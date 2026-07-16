@@ -1180,7 +1180,7 @@ internacional:</p>
   repositorios alojan estos ficheros directamente (✅); otros deliberadamente no lo
   hacen y en su lugar enlazan a dónde viven realmente en HuggingFace Hub (🔗) — p. ej.
   <code>related_identifiers</code> de Zenodo, <code>alternate_identifier</code> de B2SHARE, o <code>media.filePath</code>
-  de GBIF cuando se construye con <code>--link-media-to-huggingface</code>.</p>
+  de GBIF, que siempre enlaza así.</p>
 </li>
 <li>
 <p><strong>Catálogo de especies</strong> — el fichero <code>metadata/classes.yaml</code>, que mapea cada
@@ -1482,10 +1482,11 @@ pasar una ruta en la línea de comandos de <code>publish all</code>.</p>
 <p>Ejecuta el <code>pipeline</code> de cada integración en el orden en que dependen unas de otras
 (HuggingFace Hub → Zenodo → B2SHARE → GBIF), reutilizando lo que ya hayas guardado con
 <code>donadataset publish &lt;repo&gt; config set ...</code> — no hacen falta flags si cada integración
-ya está configurada. El propio <code>pipeline</code> de Zenodo normalmente se pausa para pedirte
-que vuelvas a ejecutar <code>huggingface upload</code> a mano tras reservar un DOI (para que el
-repo público de HF lo refleje); <code>publish all</code> cierra ese hueco por sí solo,
-automáticamente, sin preguntar. El <strong>único</strong> paso manual que queda es inevitable:
+ya está configurada. El paso <code>sync-doi</code> de Zenodo vuelve a subir a HuggingFace Hub por
+sí solo justo después de reservar el DOI (solo <code>CITATION.cff</code>, <code>README.md</code> y el
+fichero de checksums — nunca la exportación completa), así que ahí no hace falta
+ningún paso manual; B2SHARE sí necesita una re-subida explícita aparte, porque su propio PID no se
+reserva hasta después de publicar. El <strong>único</strong> paso manual que queda es inevitable:
 HuggingFace Hub no tiene API para generar su propio DOI, así que su pipeline se sigue
 pausando una vez para que hagas clic en "Generate DOI" en la web y pulses Enter.</p>
 <p>Usa <code>--include</code>/<code>--exclude</code> (separados por comas: <code>huggingface</code>, <code>zenodo</code>, <code>b2share</code>,

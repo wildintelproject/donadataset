@@ -598,6 +598,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#dataset-slug-camtrap-dpzip-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        &lt;dataset-slug&gt;-camtrap-dp.zip (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#verification_report_downloadedjson" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -631,10 +642,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#metadata_update_reportjson-zenodo_publish_responsejson-zenodo_publication_reportjson-public_release_readiness_reportjson" class="md-nav__link">
+  <a href="#zenodo_publish_responsejson-zenodo_publication_reportjson-public_release_readiness_reportjson" class="md-nav__link">
     <span class="md-ellipsis">
       
-        metadata_update_report.json / zenodo_publish_response.json / zenodo_publication_report.json / public_release_readiness_report.json
+        zenodo_publish_response.json / zenodo_publication_report.json / public_release_readiness_report.json
       
     </span>
   </a>
@@ -663,6 +674,17 @@
     <span class="md-ellipsis">
       
         First-time setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-to-zenodo-communities-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing to Zenodo communities (optional)
       
     </span>
   </a>
@@ -907,6 +929,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#dataset-slug-camtrap-dpzip-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        &lt;dataset-slug&gt;-camtrap-dp.zip (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#verification_report_downloadedjson" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -940,10 +973,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#metadata_update_reportjson-zenodo_publish_responsejson-zenodo_publication_reportjson-public_release_readiness_reportjson" class="md-nav__link">
+  <a href="#zenodo_publish_responsejson-zenodo_publication_reportjson-public_release_readiness_reportjson" class="md-nav__link">
     <span class="md-ellipsis">
       
-        metadata_update_report.json / zenodo_publish_response.json / zenodo_publication_report.json / public_release_readiness_report.json
+        zenodo_publish_response.json / zenodo_publication_report.json / public_release_readiness_report.json
       
     </span>
   </a>
@@ -972,6 +1005,17 @@
     <span class="md-ellipsis">
       
         First-time setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing-to-zenodo-communities-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing to Zenodo communities (optional)
       
     </span>
   </a>
@@ -1050,23 +1094,37 @@ on HuggingFace Hub (see the <a href="../publishing-huggingface/">HuggingFace gui
 links to the HuggingFace dataset page and its file tree, so anyone landing on the DOI
 page sees immediately "the data lives here."</p>
 <h2 id="3-what-we-upload">3. What we upload</h2>
-<p><code>donadataset publish zenodo prepare</code> does <strong>not</strong> need a local copy of the HuggingFace
-export to get the evidence files from. Instead, it:</p>
-<ol>
-<li>Connects to HuggingFace Hub (<code>--repo-id</code>) and <strong>downloads the repository live</strong>, into
-   its own directory (<code>--output-dir</code>).</li>
+<p>Three separate commands split "prepare locally" from "actually talk to Zenodo" —
+mirroring the same convention <code>huggingface prepare</code>/<code>upload</code> already use:</p>
+<ul>
+<li><strong><code>prepare</code></strong> never uploads anything to Zenodo. It does <strong>not</strong> need a local copy of
+  the HuggingFace export either — instead, it:</li>
+<li>Connects to HuggingFace Hub (<code>--repo-id</code>) and <strong>downloads the repository live</strong>,
+     into its own directory (<code>--output-dir</code>).</li>
 <li>Verifies that download against the same checksums/manifest the export was built
-   with (global checksums + internal <code>.tar</code> member hashes).</li>
-<li>Picks the small evidence files out of that same downloaded copy (never the <code>.tar</code>
-   shards — those stay HuggingFace-only) and uploads them to a new Zenodo deposition.</li>
-<li>Reserves a DOI for that deposition.</li>
-</ol>
-<p>So "what we upload" is: <strong>the evidence files already present in the HuggingFace
-repository</strong> (the same ones described in the
+     with (global checksums + internal <code>.tar</code> member hashes).</li>
+<li>Creates (or, with <code>--sync-existing-draft</code>, re-reads) a Zenodo deposition just to
+     <strong>reserve/read a DOI</strong> — no file upload happens yet.</li>
+<li>Copies the small evidence files out of that downloaded copy (never the <code>.tar</code>
+     shards — those stay HuggingFace-only) into <code>--output-dir</code>, injecting the reserved
+     DOI into that copy's <code>CITATION.cff</code> and recomputing that directory's own
+     <code>checksums-sha256.txt</code> so it stays internally consistent.</li>
+<li><strong><code>upload</code></strong> reads exactly what <code>prepare</code> staged in <code>--output-dir</code> and pushes it,
+  unmodified, to the Zenodo deposition's bucket — this is the only command that
+  actually talks to Zenodo's file API.</li>
+<li><strong><code>sync-doi</code></strong> reflects that DOI back on the HuggingFace Hub side: it copies the
+  DOI-patched <code>CITATION.cff</code> over the HuggingFace export's own copy, updates the
+  "## Zenodo DOI" section in that export's <code>README.md</code>, recomputes its
+  <code>checksums-sha256.txt</code>, and (by default) re-uploads just those three files to
+  HuggingFace Hub — see section 4's <code>--verify-data</code> box and section 5 for the full
+  command sequence.</li>
+</ul>
+<p>So "what we upload to Zenodo" is: <strong>the evidence files already present in the
+HuggingFace repository</strong> (the same ones described in the
 <a href="../publishing-huggingface/#4-how-we-upload-it-every-file-explained">HuggingFace guide</a>),
-plus one new report generated by this download-and-verify step, plus a JSON record
-tying it all together. Nothing here is written by hand — it's all produced by the
-commands in section 5.</p>
+with <code>CITATION.cff</code> carrying Zenodo's own DOI, plus one new report generated by the
+download-and-verify step, plus a JSON record tying it all together. Nothing here is
+written by hand — it's all produced by the commands in section 5.</p>
 <h2 id="4-how-we-upload-it-every-file-explained">4. How we upload it — every file, explained</h2>
 <h3 id="evidence-files-fetched-from-the-live-huggingface-download">Evidence files fetched from the live HuggingFace download</h3>
 <p>These are the same files already described in the
@@ -1077,29 +1135,60 @@ commands in section 5.</p>
 fetched fresh from HuggingFace Hub instead of read from a local pre-upload folder. This
 guarantees what Zenodo receives matches exactly what's currently public, not what your
 machine happened to have on disk at some earlier point.</p>
+<p><code>prepare</code> then copies all of these into <code>--output-dir</code> verbatim, <strong>except</strong>
+<code>CITATION.cff</code> and <code>README.md</code>: those two copies get Zenodo's just-reserved DOI
+written into them (<code>CITATION.cff</code>'s <code>doi</code>/<code>url</code> fields, or an <code>identifiers</code> entry in
+Sandbox; <code>README.md</code> gets a "## Zenodo DOI" section, same as HuggingFace's own copy
+gets via <code>sync-doi</code> — see below), and <code>checksums-sha256.txt</code> is regenerated for
+<code>--output-dir</code> right afterwards so it still matches those now-modified files sitting
+next to it — meaning Zenodo's own hosted copy of <code>checksums-sha256.txt</code> intentionally
+differs from HuggingFace's (it describes <code>--output-dir</code>'s flat evidence set, not the
+full HuggingFace export).</p>
+<h3 id="dataset-slug-camtrap-dpzip-optional"><code>&lt;dataset-slug&gt;-camtrap-dp.zip</code> (optional)</h3>
+<p>If you've published to <a href="../publishing-gbif/">GBIF</a> with <code>gbif prepare</code> + <code>gbif
+upload</code>, the resulting Camtrap DP package sits at the root of the
+HuggingFace Hub repo alongside the files above. <code>prepare</code> picks it up automatically
+(by filename pattern, <code>*-camtrap-dp.zip</code>, since it's named after GBIF's own
+<code>--dataset-slug</code>) and includes it as one more evidence file — it's small, structured
+metadata with no images in it, so it fits Zenodo's own rule for what belongs here just
+as well as <code>manifest.csv</code> does. Nothing fails if it isn't there; GBIF publishing is
+entirely optional and this is picked up opportunistically.</p>
 <h3 id="verification_report_downloadedjson"><code>verification_report_downloaded.json</code></h3>
 <p>The result of the live download-and-verify step described above:
 <code>status: "passed"/"failed"</code>, <code>repo_id</code>, the local path the download was written to,
-and the counts/errors from re-checking global checksums and internal <code>.tar</code> hashes.
-This is generated <strong>fresh every time</strong> <code>zenodo prepare</code> runs (never reused from an
-older <code>huggingface download</code> run), and it is itself uploaded to Zenodo as one more
-piece of evidence.</p>
+<code>data_verified</code> (whether the <code>data/&lt;split&gt;/*.tar</code> shards were downloaded and hashed too
+— see <code>--verify-data</code> below), and the counts/errors from re-checking global checksums
+and internal <code>.tar</code> hashes. This is generated <strong>fresh every time</strong> <code>zenodo prepare</code> runs
+(never reused from an older <code>huggingface download</code> run), and it is itself uploaded to
+Zenodo as one more piece of evidence.</p>
+<blockquote>
+<p>💡 <strong><code>--verify-data</code> / <code>--no-verify-data</code> (default: off).</strong> Zenodo never uploads the
+<code>.tar</code> shards — only the small evidence files — so by default <code>prepare</code> doesn't even
+download them from HuggingFace Hub to check them, just the metadata. Pass
+<code>--verify-data</code> to additionally download every shard and re-hash its contents against
+<code>manifest-files-sha256.csv</code>, for extra assurance that the published images/labels
+themselves (not just the metadata describing them) still match what <code>huggingface
+prepare</code> originally wrote — at the cost of a full dataset download every time you run
+this command.</p>
+</blockquote>
 <h3 id="zenodo_linked_dataset_recordjson"><code>zenodo_linked_dataset_record.json</code></h3>
-<p>The <strong>result</strong> of creating the Zenodo deposition — written locally after <code>prepare</code>
-succeeds, and also uploaded to Zenodo as a file in the same deposition:
-<code>deposition_id</code>, <code>record_id</code>, <code>reserved_doi</code>, <code>doi_url</code>, <code>record_url</code>, the Zenodo
-environment (<code>sandbox</code>/<code>production</code>), and a <code>huggingface_verification</code> block summarising
-the download-and-verify step above. Later commands (<code>upload</code>, <code>check-readiness</code>,
-<code>release</code>) all read this file to know which existing deposition they're working with.</p>
+<p>The <strong>result</strong> of creating the Zenodo deposition — written locally by <code>prepare</code>
+(<code>deposition_id</code>, <code>record_id</code>, <code>reserved_doi</code>, <code>doi_url</code>, <code>record_url</code>, the Zenodo
+environment, and a <code>huggingface_verification</code> block summarising the download-and-verify
+step above), then re-written by <code>upload</code> once the files are actually pushed and
+verified, and also uploaded to Zenodo as a file in the same deposition. Later commands
+(<code>upload</code>, <code>check-readiness</code>, <code>release</code>) all read this file to know which existing
+deposition they're working with.</p>
 <h3 id="zenodo_deposition_responsejson-zenodo_file_verification_reportjson-zenodo_link_verification_reportjson"><code>zenodo_deposition_response.json</code> / <code>zenodo_file_verification_report.json</code> / <code>zenodo_link_verification_report.json</code></h3>
-<p>Local-only audit trail (not uploaded to Zenodo itself): the raw API response for the
+<p>Written by <code>upload</code> (the step that actually talks to Zenodo's file API) as a
+local-only audit trail, not uploaded to Zenodo itself: the raw API response for the
 deposition after files were uploaded, a check that every uploaded file's size/hash
 matches what Zenodo reports back, and a check that the <code>related_identifiers</code> URLs
 (the links to HuggingFace) actually resolve.</p>
-<h3 id="metadata_update_reportjson-zenodo_publish_responsejson-zenodo_publication_reportjson-public_release_readiness_reportjson"><code>metadata_update_report.json</code> / <code>zenodo_publish_response.json</code> / <code>zenodo_publication_report.json</code> / <code>public_release_readiness_report.json</code></h3>
-<p>Written by the later steps in section 5 (<code>upload</code>, <code>release</code>, <code>check-readiness</code>
-respectively) — not part of the initial <code>prepare</code> upload, but living in the same
-directory for a single, complete audit trail of the whole release.</p>
+<h3 id="zenodo_publish_responsejson-zenodo_publication_reportjson-public_release_readiness_reportjson"><code>zenodo_publish_response.json</code> / <code>zenodo_publication_report.json</code> / <code>public_release_readiness_report.json</code></h3>
+<p>Written by the later steps in section 5 (<code>release</code>/<code>check-readiness</code>) — not part of
+<code>prepare</code>/<code>upload</code>, but living in the same directory for a single, complete audit trail
+of the whole release.</p>
 <h2 id="5-commands-to-publish">5. Commands to publish</h2>
 <h3 id="first-time-setup">First-time setup</h3>
 <ol>
@@ -1110,38 +1199,62 @@ directory for a single, complete audit trail of the whole release.</p>
 <li>Set it as <code>ZENODO_TOKEN</code>, or store it once via <code>donadataset publish zenodo config
    set token</code>.</li>
 </ol>
+<h3 id="publishing-to-zenodo-communities-optional">Publishing to Zenodo communities (optional)</h3>
+<p><code>prepare</code> submits the deposition to one or more <a href="https://zenodo.org/communities">Zenodo
+communities</a> (curated collections — submitting to one
+you don't curate yourself leaves the record pending approval; publishing the deposition
+itself is unaffected either way). By default that's just <code>wildintelproject</code>; change the
+full list once (comma-separated) to whatever fits your project:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="nv">communities</span><span class="o">=</span>camera-traps,biodiversity
+</code></pre></div>
+<p>(pass an empty value, <code>communities=</code>, to submit to no community at all)</p>
+<p>Every <code>prepare</code> run then submits to all of them by default. To narrow a specific run
+down to a subset (never to something outside this list — add it to <code>ZENODO.communities</code>
+first if it's missing), pass <code>--communities</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>prepare<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;<span class="w"> </span>--communities<span class="w"> </span>camera-traps
+</code></pre></div>
+<p>This only takes effect when <code>prepare</code> creates a <strong>new</strong> deposition — <code>--sync-existing-draft</code>
+re-reads an already-created draft without resending metadata, so communities set at
+creation time aren't changed by a later sync.</p>
 <h3 id="publishing-a-new-version">Publishing a new version</h3>
 <p>Zenodo publication happens <strong>after</strong> the dataset is already on HuggingFace Hub (steps
 1–4 of the <a href="../publishing-huggingface/#5-commands-to-publish">HuggingFace guide</a>), and
 the final, irreversible "publish" step happens <strong>after</strong> HuggingFace Hub has been made
 public:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Create the Zenodo draft, download+verify HuggingFace Hub live, upload evidence,</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1">#    and reserve a DOI. Uses sandbox.zenodo.org by default (see templates/Zenodo.yaml.j2).</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ZENODO_TOKEN</span><span class="o">=</span><span class="s1">&#39;xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&#39;</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>prepare<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># 2. Insert the reserved DOI into your local HuggingFace export&#39;s metadata</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">#    (CITATION.cff, dataset_info.json, README.md) and recompute checksums</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>upload<span class="w"> </span>--hfh-output-dir<span class="w"> </span>&lt;export-dir&gt;
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># 3. Re-upload to HuggingFace Hub so the DOI is reflected in the public files</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>upload
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1"># 4. Make the HuggingFace repository public (if not done already)</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>release
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="c1"># 5. Final read-only safety check before publishing for real</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>check-readiness<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="c1"># 6. Publish the Zenodo draft — IRREVERSIBLE, do this only after step 5 passes</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>release<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 1. Create the Zenodo draft, download+verify HuggingFace Hub live, reserve a DOI, and</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1">#    stage the evidence files (DOI already patched into CITATION.cff) in --output-dir.</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1">#    Nothing is uploaded to Zenodo yet. Uses sandbox.zenodo.org by default (see</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1">#    templates/Zenodo.yaml.j2).</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ZENODO_TOKEN</span><span class="o">=</span><span class="s1">&#39;xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&#39;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>prepare<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># 2. Push exactly what &#39;prepare&#39; staged to the Zenodo deposition&#39;s bucket.</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>upload<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1"># 3. Reflect the DOI on the HuggingFace Hub side: copies the DOI-patched CITATION.cff</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1">#    over the HuggingFace export&#39;s own copy, updates the &quot;## Zenodo DOI&quot; section in its</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1">#    README.md, recomputes its checksums-sha256.txt, and re-uploads ONLY those three</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="c1">#    files to HuggingFace Hub automatically (--no-upload to skip that last part).</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>sync-doi<span class="w"> </span>--hfh-output-dir<span class="w"> </span>&lt;export-dir&gt;
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="c1"># 4. Make the HuggingFace repository public (if not done already)</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>huggingface<span class="w"> </span>release
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="c1"># 5. Final read-only safety check before publishing for real. --hfh-output-dir is</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="c1">#    needed here too: it&#39;s how this command finds hfh_publication_report.json,</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="c1">#    written by &#39;huggingface release&#39; (step 4) inside that same directory.</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>check-readiness<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;<span class="w"> </span>--hfh-output-dir<span class="w"> </span>&lt;export-dir&gt;
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="c1"># 6. Publish the Zenodo draft — IRREVERSIBLE, do this only after step 5 passes</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>release<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
 </code></pre></div>
-<p>Or run steps 1, 2, 5, and 6 in one go with <code>pipeline</code> (it pauses between <code>upload</code> and
-<code>check-readiness</code> so you can do steps 3–4 in between):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>pipeline<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
+<p>Or run steps 1, 2, 3, 5, and 6 in one go with <code>pipeline</code> (step 4, making HuggingFace
+Hub public, is the only manual step left — do it whenever suits you, before running
+<code>check-readiness</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>pipeline<span class="w"> </span>--repo-id<span class="w"> </span>&lt;your-user&gt;/&lt;dataset-slug&gt;
 </code></pre></div>
 <h3 id="the-easy-way-wizard">The easy way: <code>wizard</code></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>wizard
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>donadataset<span class="w"> </span>publish<span class="w"> </span>zenodo<span class="w"> </span>wizard
 </code></pre></div>
 <p>Guides you through the same six steps interactively, one phase at a time. Unlike
 <code>pipeline</code> (which crashes on the first error and always creates a brand-new draft),
@@ -1152,8 +1265,8 @@ public:</p>
   offers to save it so you aren't asked again.</li>
 <li>Detects an existing linked Zenodo draft in <code>--output-dir</code> and asks whether to
   synchronise it (<code>--sync-existing-draft</code>) instead of always creating a new one.</li>
-<li>Does step 3 (re-upload to HuggingFace Hub) for you automatically, instead of leaving it
-  as a manual step you have to remember.</li>
+<li>Does the HuggingFace Hub re-upload inside step 3 (<code>sync-doi</code>) for you automatically,
+  instead of leaving it as a manual step you have to remember.</li>
 <li>Warns you before touching <code>production</code> if <code>zenodo.environment</code> isn't <code>sandbox</code>.</li>
 <li>Asks for explicit confirmation before the final publish — the one step that's
   irreversible.</li>
@@ -1164,7 +1277,7 @@ public:</p>
 <code>settings.toml</code> fields and doesn't publish anything.</p>
 <p>There is no <code>--config</code> flag on any of these commands: they always render the single
 bundled Jinja2 template (<code>templates/Zenodo.yaml.j2</code>) using <code>--repo-id</code>/<code>--output-dir</code>
-(and <code>--hfh-output-dir</code> for <code>upload</code>), whose defaults come from <code>settings.toml</code> — set
+(and <code>--hfh-output-dir</code> for <code>sync-doi</code>), whose defaults come from <code>settings.toml</code> — set
 them once with <code>donadataset publish zenodo config set &lt;field&gt;=...</code> (or <code>config
 wizard</code>) and skip repeating <code>--environment</code>/etc. on every run. Every command accepts
 <code>--dry-run</code> (except <code>download</code>, which doesn't exist as a publishing step — see
@@ -1177,9 +1290,9 @@ wins if set, otherwise it falls back to <code>zenodo.token</code> in <code>setti
 <code>config show</code>).</p>
 <blockquote>
 <p>⚠️ <strong><code>zenodo release</code> is the only step that actually publishes.</strong> Everything before
-it (<code>prepare</code>, <code>upload</code>, <code>check-readiness</code>) only creates/updates a <strong>draft</strong> — you can
-re-run them as many times as you need. Once <code>release</code> succeeds, the Zenodo record and
-its files can no longer be edited or removed.</p>
+it (<code>prepare</code>, <code>upload</code>, <code>sync-doi</code>, <code>check-readiness</code>) only creates/updates a
+<strong>draft</strong> — you can re-run them as many times as you need. Once <code>release</code> succeeds,
+the Zenodo record and its files can no longer be edited or removed.</p>
 </blockquote>
 
 

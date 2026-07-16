@@ -1251,7 +1251,8 @@ place.</p>
 <p><code>donadataset publish huggingface prepare</code> builds a self-contained <strong>export folder</strong>
 locally, and <code>donadataset publish huggingface upload</code> pushes the <em>entire</em> folder to the
 HuggingFace repository — nothing is uploaded from outside this folder, and nothing inside
-it is skipped (other than editor/OS junk files like <code>*.tmp</code>, <code>*.bak</code>, <code>__pycache__/</code>).</p>
+it is skipped (other than editor/OS junk and local-only log files like <code>*.tmp</code>, <code>*.bak</code>,
+<code>*.log</code>, <code>__pycache__/</code>).</p>
 <p>That folder contains two kinds of content:</p>
 <ul>
 <li><strong>The data itself</strong> — every image and its YOLO label, packaged into <code>.tar</code> shards, one
@@ -1320,9 +1321,14 @@ export itself is internally consistent, before anything is uploaded anywhere.</p
 sidebar info card, followed by a human-readable description: dataset format, splits,
 class list, how to extract the shards, a training example, the license, and a citation
 pointer — plus, matching this project's own GitHub README, WildINTEL/license badges, a
-<strong>Contributing</strong> section, and a <strong>Funding</strong> section (WildINTEL / Biodiversa+). Generated
-from the Jinja2 template <code>templates/hfh/README.md.j2</code> — edit that file directly to
-change any wording, no Python involved.</p>
+<strong>Contributing</strong> section, and a <strong>Funding</strong> section (WildINTEL / Biodiversa+). It also
+documents every other file in the export — an <strong>Integrity verification</strong> section
+explains <code>checksums-sha256.txt</code>/<code>manifest.csv</code>/<code>manifest-files-sha256.csv</code>/
+<code>validation_report.json</code>/<code>verification_report_local.json</code>, and a <strong>Metadata files</strong>
+section explains <code>dataset_info.json</code>/<code>metadata.csv</code>/<code>HuggingFaceHub.yaml</code> — so nothing
+in the repo is left unexplained. Generated from the Jinja2 template
+<code>templates/hfh/README.md.j2</code> — edit that file directly to change any wording, no
+Python involved.</p>
 <h3 id="license"><code>LICENSE</code></h3>
 <p>The plain-text license (name, identifier, and URL — CC BY 4.0 by default). Generated
 from <code>templates/hfh/LICENSE.j2</code>, same as <code>README.md</code>.</p>
